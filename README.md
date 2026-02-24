@@ -2,25 +2,6 @@
 
 Mobile-first web app for practising Hangul characters by listening to audio clips and typing the answer.
 
----
-
-## ⚙️ Configuring the answers
-
-Edit **`src/data/lessons.json`** and fill in the `answer` field for each lesson with the correct Hangul character(s).
-
-```json
-{
-  "id": "Lesson001-01",
-  "audioFile": "Lesson001-01.mp3",
-  "answer": "가",      // ← fill this in
-  "hint": "例：가"
-}
-```
-
-Leave `answer` as `""` and the app will show **未設定** when the user checks that question.
-
----
-
 ## 🚀 Local development
 
 ### Prerequisites
@@ -96,13 +77,13 @@ Vercel serves them from its CDN automatically — no additional configuration ne
 
 ## 🗂️ Features
 
-- Presents all 10 lessons in fixed order (01 → 10)
+- Presents all 10 basic Hangul vowels (ㅏ ㅑ ㅓ ㅕ ㅗ ㅛ ㅜ ㅠ ㅡ ㅣ) in randomized order
+- Shuffle on every Start / Reset so each session is different
 - Play the audio for each question with a single tap
 - Type the answer using any keyboard (including OS handwriting keyboard)
 - Immediate correct / incorrect feedback
-- Progress and score persisted in **localStorage** — resume where you left off
-- Start / Reset control
-- Displays **未設定** for any lesson whose answer is not yet configured
+- Progress **and** shuffled order persisted in **localStorage** — reload resumes the same sequence
+- Mobile-first responsive design
 
 ---
 
