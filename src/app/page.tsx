@@ -8,14 +8,15 @@ import lessonsData from "@/data/lessons.json";
 interface Lesson {
   id: string;
   audioFile: string;
-  answer: string; // empty string = not configured yet
+  answer: string;
   hint: string;
 }
 
-type AnswerResult = "correct" | "incorrect" | "unset" | null;
+type AnswerResult = "correct" | "incorrect" | null;
 
 interface Progress {
   currentIndex: number;
+  shuffledOrder: number[];
   history: (AnswerResult | null)[];
   started: boolean;
   finished: boolean;
@@ -27,9 +28,20 @@ const LESSONS: Lesson[] = lessonsData as Lesson[];
 const TOTAL = LESSONS.length;
 const STORAGE_KEY = "hangul-quiz-progress";
 
-function makeInitialProgress(): Progress {
+// Fisher-Yates shuffle
+function shuffleIndices(): number[] {
+  const arr = Array.from({ length: TOTAL }, (_, i) => i);
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function makeInitialProgress(withShuffle = false): Progress {
   return {
     currentIndex: 0,
+    shuffledOrder: withShuffle ? shuffleIndices() : Array.from({ length: TOTAL }, (_, i) => i),
     history: Array(TOTAL).fill(null),
     started: false,
     finished: false,
@@ -42,15 +54,19 @@ function loadProgress(): Progress {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return makeInitialProgress();
     const parsed = JSON.parse(raw) as Partial<Progress>;
-    // Basic shape validation
     if (
       typeof parsed.currentIndex !== "number" ||
-      !Array.isArray(parsed.history)
+      !Array.isArray(parsed.history) ||
+      !Array.isArray(parsed.shuffledOrder)
     ) {
       return makeInitialProgress();
     }
     return {
       currentIndex: parsed.currentIndex,
+      shuffledOrder:
+        parsed.shuffledOrder.length === TOTAL
+          ? parsed.shuffledOrder
+          : shuffleIndices(),
       history:
         parsed.history.length === TOTAL
           ? parsed.history
@@ -67,10 +83,6 @@ function saveProgress(p: Progress) {
   if (typeof window === "undefined") return;
   localStorage.setItem(STORAGE_KEY, JSON.stringify(p));
 }
-
-// ─── Admin notice ─────────────────────────────────────────────────────────────
-
-const ANY_UNSET = LESSONS.some((l) => l.answer === "");
 
 // ─── Component ───────────────────────────────────────────────────────────────
 
@@ -96,13 +108,15 @@ export default function QuizPage() {
     if (hydrated) saveProgress(progress);
   }, [progress, hydrated]);
 
-  const lesson = LESSONS[progress.currentIndex];
+  // Current lesson resolved via shuffled order
+  const lessonIndex = progress.shuffledOrder[progress.currentIndex];
+  const lesson = LESSONS[lessonIndex];
   const scoreCorrect = progress.history.filter((h) => h === "correct").length;
 
   // ── Handlers ──────────────────────────────────────────────────────────────
 
   function handleStart() {
-    const fresh = makeInitialProgress();
+    const fresh = makeInitialProgress(true);
     fresh.started = true;
     setProgress(fresh);
     setInput("");
@@ -111,7 +125,7 @@ export default function QuizPage() {
   }
 
   function handleReset() {
-    const fresh = makeInitialProgress();
+    const fresh = makeInitialProgress(true);
     setProgress(fresh);
     setInput("");
     setFeedback(null);
@@ -133,40 +147,28 @@ export default function QuizPage() {
       audioRef.current.load();
     }
     audioRef.current.play().catch(() => {
-      // Autoplay may be blocked; user tapped the button so it should be fine
+      // Audio playback failed (e.g. browser autoplay policy); the user tapped the button so this is usually fine
     });
   }
 
   function handleCheck() {
     if (!lesson) return;
 
-    let result: AnswerResult;
-    if (lesson.answer === "") {
-      result = "unset";
-    } else if (input.trim() === lesson.answer.trim()) {
-      result = "correct";
-    } else {
-      result = "incorrect";
-    }
+    const result: AnswerResult =
+      input.trim() === lesson.answer.trim() ? "correct" : "incorrect";
 
     setFeedback(result);
     setChecked(true);
 
-    // Record in history (only record correct/incorrect, not unset)
     const newHistory = [...progress.history];
-    if (result !== "unset") {
-      newHistory[progress.currentIndex] = result;
-    }
-    const newProgress = { ...progress, history: newHistory };
-    setProgress(newProgress);
+    newHistory[progress.currentIndex] = result;
+    setProgress({ ...progress, history: newHistory });
   }
 
   function handleNext() {
     const nextIndex = progress.currentIndex + 1;
     if (nextIndex >= TOTAL) {
-      // Quiz finished
-      const newProgress = { ...progress, finished: true };
-      setProgress(newProgress);
+      setProgress({ ...progress, finished: true });
     } else {
       setProgress({ ...progress, currentIndex: nextIndex });
     }
@@ -182,7 +184,7 @@ export default function QuizPage() {
 
   // ── Render ────────────────────────────────────────────────────────────────
 
-  if (!hydrated) return null; // Prevent SSR mismatch
+  if (!hydrated) return null;
 
   // Start screen
   if (!progress.started) {
@@ -192,19 +194,12 @@ export default function QuizPage() {
           <h1>ハングル習得クイズ</h1>
           <p>한글 퀴즈 · Hangul Quiz</p>
         </div>
-        {ANY_UNSET && (
-          <div className="admin-notice">
-            ⚠️ <strong>管理者へ：</strong>{" "}
-            <code>src/data/lessons.json</code>{" "}
-            の各レッスンの <code>answer</code>{" "}
-            フィールドに正解のハングル文字を入力してください。現在は未設定のため「未設定」と表示されます。
-          </div>
-        )}
         <div className="start-card">
           <h2>音声を聞いてハングルを入力しよう！</h2>
           <p>
             全 {TOTAL}{" "}
             問の音声を聞いて、対応するハングル文字をキーボードまたは手書きキーボードで入力します。
+            問題はランダムな順番で出題されます。
           </p>
           <button className="btn-reset" onClick={handleStart}>
             スタート
@@ -241,7 +236,7 @@ export default function QuizPage() {
             ))}
           </div>
           <button className="btn-reset" onClick={handleReset}>
-            もう一度
+            もう一度（シャッフル）
           </button>
         </div>
       </div>
@@ -255,13 +250,6 @@ export default function QuizPage() {
         <h1>ハングル習得クイズ</h1>
         <p>한글 퀴즈 · Hangul Quiz</p>
       </div>
-
-      {ANY_UNSET && (
-        <div className="admin-notice">
-          ⚠️ 一部の問題は未設定です（<code>src/data/lessons.json</code>{" "}
-          を編集してください）
-        </div>
-      )}
 
       {/* Progress */}
       <div>
@@ -331,7 +319,6 @@ export default function QuizPage() {
           >
             {feedback === "correct" && "✅ 正解！"}
             {feedback === "incorrect" && `❌ 不正解。正解：${lesson.answer}`}
-            {feedback === "unset" && "⚠️ 未設定（この問題の正解は設定されていません）"}
           </div>
         )}
 
@@ -376,13 +363,13 @@ export default function QuizPage() {
         </div>
       </div>
 
-      {/* Reset */}
+      {/* Reset / Reshuffle */}
       <button
         className="btn-reset"
         onClick={handleReset}
         style={{ background: "transparent", color: "#757575", border: "1px solid #e0e0e0" }}
       >
-        リセット
+        リセット＆シャッフル
       </button>
     </div>
   );
