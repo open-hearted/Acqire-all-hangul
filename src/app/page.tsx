@@ -28,6 +28,9 @@ const LESSONS: Lesson[] = lessonsData as Lesson[];
 const TOTAL = LESSONS.length;
 const STORAGE_KEY = "hangul-quiz-progress";
 
+// 基本母音（最初の10個）
+const BASIC_VOWELS = LESSONS.slice(0, 10);
+
 // Fisher-Yates shuffle
 function shuffleIndices(): number[] {
   const arr = Array.from({ length: TOTAL }, (_, i) => i);
@@ -148,6 +151,14 @@ export default function QuizPage() {
     }
     audioRef.current.play().catch(() => {
       // Audio playback failed (e.g. browser autoplay policy); the user tapped the button so this is usually fine
+    });
+  }
+
+  function playVowelAudio(audioFile: string) {
+    const src = `/audio/${audioFile}`;
+    const audio = new Audio(src);
+    audio.play().catch(() => {
+      // Audio playback failed
     });
   }
 
@@ -341,6 +352,23 @@ export default function QuizPage() {
               {progress.currentIndex + 1 < TOTAL ? "次の問題 →" : "結果を見る"}
             </button>
           )}
+        </div>
+      </div>
+
+      {/* Basic Vowels */}
+      <div className="vowels-section">
+        <h2>基本母音</h2>
+        <div className="vowels-grid">
+          {BASIC_VOWELS.map((vowel) => (
+            <button
+              key={vowel.id}
+              className="vowel-btn"
+              onClick={() => playVowelAudio(vowel.audioFile)}
+              title={vowel.hint}
+            >
+              {vowel.answer}
+            </button>
+          ))}
         </div>
       </div>
 

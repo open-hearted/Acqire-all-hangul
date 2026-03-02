@@ -379,3 +379,55 @@ body {
   color: var(--color-muted);
   line-height: 1.6;
 }
+
+/* Basic Vowels Section */
+.vowels-section {
+  background: var(--color-surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 16px 20px;
+}
+
+.vowels-section h2 {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-muted);
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.vowels-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+}
+
+.vowel-btn {
+  aspect-ratio: 1;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 1.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.vowel-btn:hover {
+  border-color: var(--color-primary);
+  background: #e3f2fd;
+}
+
+.vowel-btn:active {
+  transform: scale(0.95);
+  background: var(--color-primary);
+  color: #fff;
+  border-color: var(--color-primary);
+}
+
