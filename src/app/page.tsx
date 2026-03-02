@@ -28,6 +28,21 @@ const LESSONS: Lesson[] = lessonsData as Lesson[];
 const TOTAL = LESSONS.length;
 const STORAGE_KEY = "hangul-quiz-progress";
 
+// 基本母音（最初の10個）とキーボードの対応
+const BASIC_VOWELS = LESSONS.slice(0, 10);
+const VOWEL_KEYS: { [key: string]: string } = {
+  "ㅏ": "k",
+  "ㅑ": "i",
+  "ㅓ": "j",
+  "ㅕ": "u",
+  "ㅗ": "h",
+  "ㅛ": "y",
+  "ㅜ": "n",
+  "ㅠ": "b",
+  "ㅡ": "m",
+  "ㅣ": "l",
+};
+
 // Fisher-Yates shuffle
 function shuffleIndices(): number[] {
   const arr = Array.from({ length: TOTAL }, (_, i) => i);
@@ -151,6 +166,14 @@ export default function QuizPage() {
     });
   }
 
+  function playVowelAudio(audioFile: string) {
+    const src = `/audio/${audioFile}`;
+    const audio = new Audio(src);
+    audio.play().catch(() => {
+      // Audio playback failed
+    });
+  }
+
   function handleCheck() {
     if (!lesson) return;
 
@@ -163,6 +186,22 @@ export default function QuizPage() {
     const newHistory = [...progress.history];
     newHistory[progress.currentIndex] = result;
     setProgress({ ...progress, history: newHistory });
+
+    // 自動入力なしでも答えに誘導する
+    if (input.trim() === "" && result !== "correct") {
+      setInput(lesson.answer);
+    }
+  }
+
+  function handleRetry() {
+    setInput("");
+    setFeedback(null);
+    setChecked(false);
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    }
+    setTimeout(() => inputRef.current?.focus(), 100);
   }
 
   function handleNext() {
@@ -328,15 +367,37 @@ export default function QuizPage() {
             <button
               className="btn-check"
               onClick={handleCheck}
-              disabled={input.trim() === ""}
             >
               答え合わせ
             </button>
           ) : (
-            <button className="btn-next" onClick={handleNext}>
-              {progress.currentIndex + 1 < TOTAL ? "次の問題 →" : "結果を見る"}
-            </button>
+            <>
+              <button className="btn-retry" onClick={handleRetry}>
+                もう一度
+              </button>
+              <button className="btn-next" onClick={handleNext}>
+                {progress.currentIndex + 1 < TOTAL ? "次の問題 →" : "結果を見る"}
+              </button>
+            </>
           )}
+        </div>
+      </div>
+
+      {/* Basic Vowels */}
+      <div className="vowels-section">
+        <h2>基本母音</h2>
+        <div className="vowels-grid">
+          {BASIC_VOWELS.map((vowel) => (
+            <button
+              key={vowel.id}
+              className="vowel-btn"
+              onClick={() => playVowelAudio(vowel.audioFile)}
+              title={vowel.hint}
+            >
+              <span className="vowel-char">{vowel.answer}</span>
+              <span className="vowel-key">{VOWEL_KEYS[vowel.answer]}</span>
+            </button>
+          ))}
         </div>
       </div>
 

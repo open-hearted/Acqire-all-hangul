@@ -232,6 +232,25 @@ body {
   transform: scale(0.97);
 }
 
+.btn-retry {
+  flex: 1;
+  padding: 14px;
+  border: 2px solid var(--color-muted);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--color-muted);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s, border-color 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn-retry:active {
+  background: #f5f5f5;
+  transform: scale(0.97);
+}
+
 .btn-next {
   flex: 1;
   padding: 14px;
@@ -379,3 +398,69 @@ body {
   color: var(--color-muted);
   line-height: 1.6;
 }
+
+/* Basic Vowels Section */
+.vowels-section {
+  background: var(--color-surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 16px 20px;
+}
+
+.vowels-section h2 {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-muted);
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.vowels-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+}
+
+.vowel-btn {
+  aspect-ratio: 1;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 1.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}
+
+.vowel-char {
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.vowel-key {
+  font-size: 0.7rem;
+  font-weight: 500;
+  opacity: 0.6;
+  text-transform: uppercase;
+}
+
+.vowel-btn:hover {
+  border-color: var(--color-primary);
+  background: #e3f2fd;
+}
+
+.vowel-btn:active {
+  transform: scale(0.95);
+  background: var(--color-primary);
+  color: #fff;
+  border-color: var(--color-primary);
+}
+
