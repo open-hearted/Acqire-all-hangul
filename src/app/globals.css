@@ -232,6 +232,25 @@ body {
   transform: scale(0.97);
 }
 
+.btn-retry {
+  flex: 1;
+  padding: 14px;
+  border: 2px solid var(--color-muted);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--color-muted);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s, border-color 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn-retry:active {
+  background: #f5f5f5;
+  transform: scale(0.97);
+}
+
 .btn-next {
   flex: 1;
   padding: 14px;

@@ -193,6 +193,17 @@ export default function QuizPage() {
     }
   }
 
+  function handleRetry() {
+    setInput("");
+    setFeedback(null);
+    setChecked(false);
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    }
+    setTimeout(() => inputRef.current?.focus(), 100);
+  }
+
   function handleNext() {
     const nextIndex = progress.currentIndex + 1;
     if (nextIndex >= TOTAL) {
@@ -360,9 +371,14 @@ export default function QuizPage() {
               答え合わせ
             </button>
           ) : (
-            <button className="btn-next" onClick={handleNext}>
-              {progress.currentIndex + 1 < TOTAL ? "次の問題 →" : "結果を見る"}
-            </button>
+            <>
+              <button className="btn-retry" onClick={handleRetry}>
+                もう一度
+              </button>
+              <button className="btn-next" onClick={handleNext}>
+                {progress.currentIndex + 1 < TOTAL ? "次の問題 →" : "結果を見る"}
+              </button>
+            </>
           )}
         </div>
       </div>
