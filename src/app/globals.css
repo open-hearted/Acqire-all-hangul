@@ -415,8 +415,22 @@ body {
   transition: all 0.2s ease;
   -webkit-tap-highlight-color: transparent;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 2px;
+}
+
+.vowel-char {
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.vowel-key {
+  font-size: 0.7rem;
+  font-weight: 500;
+  opacity: 0.6;
+  text-transform: uppercase;
 }
 
 .vowel-btn:hover {

@@ -28,8 +28,20 @@ const LESSONS: Lesson[] = lessonsData as Lesson[];
 const TOTAL = LESSONS.length;
 const STORAGE_KEY = "hangul-quiz-progress";
 
-// 基本母音（最初の10個）
+// 基本母音（最初の10個）とキーボードの対応
 const BASIC_VOWELS = LESSONS.slice(0, 10);
+const VOWEL_KEYS: { [key: string]: string } = {
+  "ㅏ": "k",
+  "ㅑ": "i",
+  "ㅓ": "j",
+  "ㅕ": "u",
+  "ㅗ": "h",
+  "ㅛ": "y",
+  "ㅜ": "n",
+  "ㅠ": "b",
+  "ㅡ": "m",
+  "ㅣ": "l",
+};
 
 // Fisher-Yates shuffle
 function shuffleIndices(): number[] {
@@ -366,7 +378,8 @@ export default function QuizPage() {
               onClick={() => playVowelAudio(vowel.audioFile)}
               title={vowel.hint}
             >
-              {vowel.answer}
+              <span className="vowel-char">{vowel.answer}</span>
+              <span className="vowel-key">{VOWEL_KEYS[vowel.answer]}</span>
             </button>
           ))}
         </div>
