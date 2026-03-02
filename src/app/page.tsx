@@ -163,6 +163,11 @@ export default function QuizPage() {
     const newHistory = [...progress.history];
     newHistory[progress.currentIndex] = result;
     setProgress({ ...progress, history: newHistory });
+
+    // 自動入力なしでも答えに誘導する
+    if (input.trim() === "" && result !== "correct") {
+      setInput(lesson.answer);
+    }
   }
 
   function handleNext() {
@@ -328,7 +333,6 @@ export default function QuizPage() {
             <button
               className="btn-check"
               onClick={handleCheck}
-              disabled={input.trim() === ""}
             >
               答え合わせ
             </button>
