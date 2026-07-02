@@ -36,14 +36,25 @@ const BASIC_VOWELS = LESSONS.slice(0, 10);
 
 // ─── 習熟度ログ ─────────────────────────────────────────────────────────────
 
-// 1問ごとの初回判定の記録
+// 1タッチごとの記録
+interface TapEvent {
+  t: number; // 出題からの経過ミリ秒
+  kind: "play" | "listen" | "answer"; // 問題音声の再生 / 聞くモードのタップ / 答えるモードのタップ
+  char?: string; // タップした文字（play のときは無し）
+  result?: "correct" | "incorrect"; // answer のときの判定
+}
+
+// 1問ごとの記録（正解するか次の問題へ進むまでの全行動）
 interface AttemptLog {
   answer: string; // 出題された文字
-  result: "correct" | "incorrect"; // 初回判定の結果
-  listens: number; // 判定までに聞くモードで音を聞いた回数
+  result: "correct" | "incorrect"; // 初回判定の結果（習熟度計算用）
+  listens: number; // 初回判定までに聞くモードで音を聞いた回数
   firstListenCorrect: boolean; // 聞くモードで最初にタップしたのが正解の文字だったか
   replays: number; // 問題音声を手動再生した回数
-  ms: number; // 出題から判定までの時間
+  ms: number; // 出題から初回判定までの時間
+  tries: number; // 正解または次へ進むまでに答えた回数
+  solvedMs: number | null; // 出題から正解までの時間（正解せず進んだら null）
+  events: TapEvent[]; // 全タッチの時系列ログ
   ts: number; // 記録日時 (epoch ms)
 }
 
@@ -74,6 +85,7 @@ interface VowelStat {
   recentCount: number;
   recentCorrect: number;
   recentImmediate: number; // 聞かずに即正解した回数
+  avgSolveSec: number | null; // 直近の正解までの平均秒数
   level: MasteryLevel;
 }
 
@@ -84,6 +96,12 @@ function computeStat(attempts: AttemptLog[], answer: string): VowelStat {
   const recentImmediate = recent.filter(
     (a) => a.result === "correct" && a.listens === 0
   ).length;
+  const solved = recent
+    .map((a) => a.solvedMs)
+    .filter((v): v is number => typeof v === "number");
+  const avgSolveSec = solved.length
+    ? Math.round((solved.reduce((s, v) => s + v, 0) / solved.length / 1000) * 10) / 10
+    : null;
   let level: MasteryLevel = "none";
   if (recent.length > 0) {
     const score =
@@ -96,7 +114,13 @@ function computeStat(attempts: AttemptLog[], answer: string): VowelStat {
     else if (score >= 0.4) level = "soso";
     else level = "weak";
   }
-  return { recentCount: recent.length, recentCorrect, recentImmediate, level };
+  return {
+    recentCount: recent.length,
+    recentCorrect,
+    recentImmediate,
+    avgSolveSec,
+    level,
+  };
 }
 
 const MASTERY_LABEL: Record<MasteryLevel, string> = {
@@ -178,17 +202,24 @@ export default function QuizPage() {
   // 正解時の自動遷移タイマー
   const autoNextRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // 現在の問題に対する行動の記録（判定時に AttemptLog にまとめる）
+  // 現在の問題に対する行動の記録（正解するか次へ進むときに AttemptLog にまとめる）
   const listenTapsRef = useRef<string[]>([]);
   const replaysRef = useRef(0);
   const qStartRef = useRef<number>(Date.now());
-  const judgedRef = useRef(false);
+  const eventsRef = useRef<TapEvent[]>([]);
+  const firstJudgeRef = useRef<{
+    result: "correct" | "incorrect";
+    listens: number;
+    firstListenCorrect: boolean;
+    ms: number;
+  } | null>(null);
 
   function resetQuestionTracking() {
     listenTapsRef.current = [];
     replaysRef.current = 0;
     qStartRef.current = Date.now();
-    judgedRef.current = false;
+    eventsRef.current = [];
+    firstJudgeRef.current = null;
   }
 
   function appendAttempt(a: AttemptLog) {
@@ -196,6 +227,39 @@ export default function QuizPage() {
       const next = [...prev, a].slice(-MAX_LOG);
       saveAttempts(next);
       return next;
+    });
+  }
+
+  // タッチ1回分を時系列ログに追加
+  function recordEvent(
+    kind: TapEvent["kind"],
+    char?: string,
+    result?: "correct" | "incorrect"
+  ) {
+    const e: TapEvent = { t: Date.now() - qStartRef.current, kind };
+    if (char !== undefined) e.char = char;
+    if (result !== undefined) e.result = result;
+    eventsRef.current.push(e);
+  }
+
+  // 現在の問題の記録を確定して保存（一度も判定していなければ何もしない）
+  function finalizeAttempt(target: Lesson) {
+    const fj = firstJudgeRef.current;
+    if (!fj) return;
+    firstJudgeRef.current = null; // 二重記録防止
+    const answers = eventsRef.current.filter((e) => e.kind === "answer");
+    const correctEv = answers.find((e) => e.result === "correct");
+    appendAttempt({
+      answer: target.answer,
+      result: fj.result,
+      listens: fj.listens,
+      firstListenCorrect: fj.firstListenCorrect,
+      replays: replaysRef.current,
+      ms: fj.ms,
+      tries: answers.length,
+      solvedMs: correctEv ? correctEv.t : null,
+      events: eventsRef.current,
+      ts: Date.now(),
     });
   }
 
@@ -240,6 +304,8 @@ export default function QuizPage() {
 
   function handleReset() {
     clearAutoNext();
+    // 回答途中でリセットした場合も判定済みの分は記録を確定する
+    if (lesson) finalizeAttempt(lesson);
     const fresh = makeInitialProgress(true);
     setProgress(fresh);
     setSelected(null);
@@ -279,6 +345,7 @@ export default function QuizPage() {
   function handlePlay() {
     if (!lesson) return;
     replaysRef.current += 1;
+    recordEvent("play");
     playLessonAudio(lesson);
   }
 
@@ -293,7 +360,9 @@ export default function QuizPage() {
   // 聞くモード: 音だけ鳴らす / 答えるモード: タップした文字で即判定
   function handleVowelTap(vowel: Lesson) {
     if (mode === "listen") {
-      if (!checked) listenTapsRef.current.push(vowel.answer);
+      // 初回判定前の聞いた回数は習熟度の「即答」判定に使う
+      if (firstJudgeRef.current === null) listenTapsRef.current.push(vowel.answer);
+      recordEvent("listen", vowel.answer);
       playVowelAudio(vowel.audioFile);
       return;
     }
@@ -307,19 +376,24 @@ export default function QuizPage() {
     setFeedback(result);
     setChecked(true);
 
-    // 初回判定だけを習熟度ログに記録する（もう一度での再挑戦は含めない）
-    if (!judgedRef.current) {
-      judgedRef.current = true;
-      appendAttempt({
-        answer: lesson.answer,
+    recordEvent(
+      "answer",
+      vowel.answer,
+      result === "correct" ? "correct" : "incorrect"
+    );
+
+    // 初回判定のスナップショット（習熟度は初回判定で評価する）
+    if (firstJudgeRef.current === null) {
+      firstJudgeRef.current = {
         result: result === "correct" ? "correct" : "incorrect",
         listens: listenTapsRef.current.length,
         firstListenCorrect: listenTapsRef.current[0] === lesson.answer,
-        replays: replaysRef.current,
         ms: Date.now() - qStartRef.current,
-        ts: Date.now(),
-      });
+      };
     }
+
+    // 正解したらこの問題の記録を確定して保存
+    if (result === "correct") finalizeAttempt(lesson);
 
     const newHistory = [...progress.history];
     newHistory[progress.currentIndex] = result;
@@ -363,6 +437,8 @@ export default function QuizPage() {
 
   function handleNext() {
     clearAutoNext();
+    // 正解しないまま次へ進む場合もここまでの記録を確定する
+    if (lesson) finalizeAttempt(lesson);
     const nextIndex = progress.currentIndex + 1;
     if (nextIndex >= TOTAL) {
       setProgress({ ...progress, finished: true });
@@ -407,7 +483,8 @@ export default function QuizPage() {
               <span className="stats-level">{MASTERY_LABEL[s.level]}</span>
               <span className="stats-detail">
                 {s.recentCount > 0
-                  ? `直近${s.recentCount}回: 正解${s.recentCorrect}・即答${s.recentImmediate}`
+                  ? `直近${s.recentCount}回: 正解${s.recentCorrect}・即答${s.recentImmediate}` +
+                    (s.avgSolveSec !== null ? `・平均${s.avgSolveSec}秒` : "")
                   : "まだ記録がありません"}
               </span>
             </div>
