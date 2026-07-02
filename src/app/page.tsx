@@ -140,6 +140,16 @@ function shuffleIndices(): number[] {
   return arr;
 }
 
+// 回答ボタンの並び（BASIC_VOWELS のインデックス）をシャッフル
+function shuffleVowelOrder(): number[] {
+  const arr = Array.from({ length: BASIC_VOWELS.length }, (_, i) => i);
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
 function makeInitialProgress(withShuffle = false): Progress {
   return {
     currentIndex: 0,
@@ -197,6 +207,10 @@ export default function QuizPage() {
   const [hydrated, setHydrated] = useState(false);
 
   const [attempts, setAttempts] = useState<AttemptLog[]>([]);
+  // 回答ボタンの表示順（問題ごとにシャッフル）
+  const [buttonOrder, setButtonOrder] = useState<number[]>(() =>
+    Array.from({ length: BASIC_VOWELS.length }, (_, i) => i)
+  );
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   // 正解時の自動遷移タイマー
@@ -214,12 +228,14 @@ export default function QuizPage() {
     ms: number;
   } | null>(null);
 
+  // 次の問題に向けて行動記録をリセットし、回答ボタンの並びもシャッフルする
   function resetQuestionTracking() {
     listenTapsRef.current = [];
     replaysRef.current = 0;
     qStartRef.current = Date.now();
     eventsRef.current = [];
     firstJudgeRef.current = null;
+    setButtonOrder(shuffleVowelOrder());
   }
 
   function appendAttempt(a: AttemptLog) {
@@ -268,6 +284,7 @@ export default function QuizPage() {
     const stored = loadProgress();
     setProgress(stored);
     setAttempts(loadAttempts());
+    setButtonOrder(shuffleVowelOrder());
     setHydrated(true);
   }, []);
 
@@ -631,7 +648,8 @@ export default function QuizPage() {
               : "答えの文字をタップすると、すぐに判定されます"}
           </span>
           <div className="vowels-grid">
-            {BASIC_VOWELS.map((vowel) => {
+            {buttonOrder.map((orderIndex) => {
+              const vowel = BASIC_VOWELS[orderIndex];
               let stateClass = "";
               if (checked) {
                 if (vowel.answer === lesson.answer) stateClass = "correct";
