@@ -101,12 +101,21 @@ export default function QuizPage() {
   const [hydrated, setHydrated] = useState(false);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  // 正解時の自動遷移タイマー
+  const autoNextRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Hydrate from localStorage after mount
   useEffect(() => {
     const stored = loadProgress();
     setProgress(stored);
     setHydrated(true);
+  }, []);
+
+  // Clear pending auto-advance on unmount
+  useEffect(() => {
+    return () => {
+      if (autoNextRef.current) clearTimeout(autoNextRef.current);
+    };
   }, []);
 
   // Persist whenever progress changes
@@ -122,6 +131,7 @@ export default function QuizPage() {
   // ── Handlers ──────────────────────────────────────────────────────────────
 
   function handleStart() {
+    clearAutoNext();
     const fresh = makeInitialProgress(true);
     fresh.started = true;
     setProgress(fresh);
@@ -132,6 +142,7 @@ export default function QuizPage() {
   }
 
   function handleReset() {
+    clearAutoNext();
     const fresh = makeInitialProgress(true);
     setProgress(fresh);
     setSelected(null);
@@ -144,9 +155,17 @@ export default function QuizPage() {
     }
   }
 
-  function handlePlay() {
-    if (!lesson) return;
-    const src = `/audio/${encodeURIComponent(lesson.audioFile)}`;
+  function clearAutoNext() {
+    if (autoNextRef.current) {
+      clearTimeout(autoNextRef.current);
+      autoNextRef.current = null;
+    }
+  }
+
+  // 問題音声の再生。ユーザー操作で一度再生済みの Audio 要素を使い回すことで、
+  // 自動再生時もモバイルブラウザの再生制限にかかりにくくする
+  function playLessonAudio(target: Lesson) {
+    const src = `/audio/${encodeURIComponent(target.audioFile)}`;
     if (!audioRef.current) {
       audioRef.current = new Audio(src);
     } else {
@@ -155,8 +174,13 @@ export default function QuizPage() {
       audioRef.current.load();
     }
     audioRef.current.play().catch(() => {
-      // Audio playback failed (e.g. browser autoplay policy); the user tapped the button so this is usually fine
+      // Audio playback failed (e.g. browser autoplay policy)
     });
+  }
+
+  function handlePlay() {
+    if (!lesson) return;
+    playLessonAudio(lesson);
   }
 
   function playVowelAudio(audioFile: string) {
@@ -187,10 +211,34 @@ export default function QuizPage() {
 
     const newHistory = [...progress.history];
     newHistory[progress.currentIndex] = result;
-    setProgress({ ...progress, history: newHistory });
+    const updated = { ...progress, history: newHistory };
+    setProgress(updated);
+
+    // 正解なら少し見せてから自動で次の問題へ進み、音声を再生する
+    if (result === "correct") {
+      const nextIndex = updated.currentIndex + 1;
+      autoNextRef.current = setTimeout(() => {
+        autoNextRef.current = null;
+        setSelected(null);
+        setMode("listen");
+        setFeedback(null);
+        setChecked(false);
+        if (nextIndex >= TOTAL) {
+          setProgress({ ...updated, finished: true });
+          if (audioRef.current) {
+            audioRef.current.pause();
+            audioRef.current.currentTime = 0;
+          }
+        } else {
+          setProgress({ ...updated, currentIndex: nextIndex });
+          playLessonAudio(LESSONS[updated.shuffledOrder[nextIndex]]);
+        }
+      }, 1200);
+    }
   }
 
   function handleRetry() {
+    clearAutoNext();
     setSelected(null);
     setFeedback(null);
     setChecked(false);
@@ -201,19 +249,23 @@ export default function QuizPage() {
   }
 
   function handleNext() {
+    clearAutoNext();
     const nextIndex = progress.currentIndex + 1;
     if (nextIndex >= TOTAL) {
       setProgress({ ...progress, finished: true });
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+      }
     } else {
       setProgress({ ...progress, currentIndex: nextIndex });
+      // 手動で次に進んだ場合も次の問題の音声を再生
+      playLessonAudio(LESSONS[progress.shuffledOrder[nextIndex]]);
     }
     setSelected(null);
+    setMode("listen");
     setFeedback(null);
     setChecked(false);
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
-    }
   }
 
   // ── Render ────────────────────────────────────────────────────────────────
@@ -379,7 +431,10 @@ export default function QuizPage() {
             role="alert"
             aria-live="polite"
           >
-            {feedback === "correct" && "✅ 正解！"}
+            {feedback === "correct" &&
+              (progress.currentIndex + 1 < TOTAL
+                ? "✅ 正解！次の問題へ →"
+                : "✅ 正解！")}
             {feedback === "incorrect" && `❌ 不正解。正解：${lesson.answer}`}
           </div>
         )}
