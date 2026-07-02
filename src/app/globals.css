@@ -170,21 +170,23 @@ body {
   color: var(--color-muted);
 }
 
-.answer-input {
-  width: 100%;
-  padding: 14px 16px;
+.selected-display {
+  min-height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   border: 2px solid var(--color-border);
   border-radius: var(--radius);
-  font-size: 2rem;
-  text-align: center;
-  color: var(--color-text);
   background: var(--color-bg);
-  outline: none;
-  transition: border-color 0.2s;
+  font-size: 2rem;
+  font-weight: 600;
+  color: var(--color-text);
 }
 
-.answer-input:focus {
-  border-color: var(--color-primary);
+.selected-display.empty {
+  font-size: 0.9rem;
+  font-weight: 400;
+  color: var(--color-muted);
 }
 
 /* Feedback */
@@ -246,6 +248,11 @@ body {
 .btn-check:active {
   background: var(--color-primary-dark);
   transform: scale(0.97);
+}
+
+.btn-check:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .btn-retry {
@@ -415,23 +422,7 @@ body {
   line-height: 1.6;
 }
 
-/* Basic Vowels Section */
-.vowels-section {
-  background: var(--color-surface);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  padding: 16px 20px;
-}
-
-.vowels-section h2 {
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: var(--color-muted);
-  margin-bottom: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
+/* Basic Vowels */
 .vowels-grid {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
@@ -461,13 +452,6 @@ body {
   font-weight: 600;
 }
 
-.vowel-key {
-  font-size: 0.7rem;
-  font-weight: 500;
-  opacity: 0.6;
-  text-transform: uppercase;
-}
-
 .vowel-btn:hover {
   border-color: var(--color-primary);
   background: #e3f2fd;
@@ -478,5 +462,23 @@ body {
   background: var(--color-primary);
   color: #fff;
   border-color: var(--color-primary);
+}
+
+.vowel-btn.selected {
+  border-color: var(--color-primary);
+  background: #e3f2fd;
+  color: var(--color-primary);
+}
+
+.vowel-btn.correct {
+  border-color: var(--color-correct);
+  background: var(--color-correct);
+  color: #fff;
+}
+
+.vowel-btn.incorrect {
+  border-color: var(--color-incorrect);
+  background: var(--color-incorrect);
+  color: #fff;
 }
 

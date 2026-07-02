@@ -28,20 +28,8 @@ const LESSONS: Lesson[] = lessonsData as Lesson[];
 const TOTAL = LESSONS.length;
 const STORAGE_KEY = "hangul-quiz-progress";
 
-// 基本母音（最初の10個）とキーボードの対応
+// 基本母音（最初の10個）
 const BASIC_VOWELS = LESSONS.slice(0, 10);
-const VOWEL_KEYS: { [key: string]: string } = {
-  "ㅏ": "k",
-  "ㅑ": "i",
-  "ㅓ": "j",
-  "ㅕ": "u",
-  "ㅗ": "h",
-  "ㅛ": "y",
-  "ㅜ": "n",
-  "ㅠ": "b",
-  "ㅡ": "m",
-  "ㅣ": "l",
-};
 
 // Fisher-Yates shuffle
 function shuffleIndices(): number[] {
@@ -103,13 +91,12 @@ function saveProgress(p: Progress) {
 
 export default function QuizPage() {
   const [progress, setProgress] = useState<Progress>(makeInitialProgress);
-  const [input, setInput] = useState("");
+  const [selected, setSelected] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<AnswerResult>(null);
   const [checked, setChecked] = useState(false);
   const [hydrated, setHydrated] = useState(false);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
 
   // Hydrate from localStorage after mount
   useEffect(() => {
@@ -134,7 +121,7 @@ export default function QuizPage() {
     const fresh = makeInitialProgress(true);
     fresh.started = true;
     setProgress(fresh);
-    setInput("");
+    setSelected(null);
     setFeedback(null);
     setChecked(false);
   }
@@ -142,7 +129,7 @@ export default function QuizPage() {
   function handleReset() {
     const fresh = makeInitialProgress(true);
     setProgress(fresh);
-    setInput("");
+    setSelected(null);
     setFeedback(null);
     setChecked(false);
     if (audioRef.current) {
@@ -174,11 +161,17 @@ export default function QuizPage() {
     });
   }
 
+  // タップで音を鳴らしつつ回答候補として選択する（答え合わせ後は聞くだけ）
+  function handleVowelTap(vowel: Lesson) {
+    playVowelAudio(vowel.audioFile);
+    if (!checked) setSelected(vowel.answer);
+  }
+
   function handleCheck() {
-    if (!lesson) return;
+    if (!lesson || selected === null) return;
 
     const result: AnswerResult =
-      input.trim() === lesson.answer.trim() ? "correct" : "incorrect";
+      selected === lesson.answer ? "correct" : "incorrect";
 
     setFeedback(result);
     setChecked(true);
@@ -186,22 +179,16 @@ export default function QuizPage() {
     const newHistory = [...progress.history];
     newHistory[progress.currentIndex] = result;
     setProgress({ ...progress, history: newHistory });
-
-    // 自動入力なしでも答えに誘導する
-    if (input.trim() === "" && result !== "correct") {
-      setInput(lesson.answer);
-    }
   }
 
   function handleRetry() {
-    setInput("");
+    setSelected(null);
     setFeedback(null);
     setChecked(false);
     if (audioRef.current) {
       audioRef.current.pause();
       audioRef.current.currentTime = 0;
     }
-    setTimeout(() => inputRef.current?.focus(), 100);
   }
 
   function handleNext() {
@@ -211,14 +198,13 @@ export default function QuizPage() {
     } else {
       setProgress({ ...progress, currentIndex: nextIndex });
     }
-    setInput("");
+    setSelected(null);
     setFeedback(null);
     setChecked(false);
     if (audioRef.current) {
       audioRef.current.pause();
       audioRef.current.currentTime = 0;
     }
-    setTimeout(() => inputRef.current?.focus(), 100);
   }
 
   // ── Render ────────────────────────────────────────────────────────────────
@@ -234,11 +220,11 @@ export default function QuizPage() {
           <p>한글 퀴즈 · Hangul Quiz</p>
         </div>
         <div className="start-card">
-          <h2>音声を聞いてハングルを入力しよう！</h2>
+          <h2>音声を聞いてハングルを選ぼう！</h2>
           <p>
             全 {TOTAL}{" "}
-            問の音声を聞いて、対応するハングル文字をキーボードまたは手書きキーボードで入力します。
-            問題はランダムな順番で出題されます。
+            問の音声を聞いて、同じ音の母音ボタンを選んで答えます。
+            ボタンをタップすると音が鳴るので、聞き比べてから答え合わせできます。
           </p>
           <button className="btn-reset" onClick={handleStart}>
             スタート
@@ -323,29 +309,35 @@ export default function QuizPage() {
           音声を再生する
         </button>
 
-        {/* Answer input */}
+        {/* Answer buttons */}
         <div className="input-wrap">
-          <label className="input-label" htmlFor="answer-input">
-            ハングルを入力（手書きキーボードも使えます）
-          </label>
-          <input
-            id="answer-input"
-            ref={inputRef}
-            className="answer-input"
-            type="text"
-            inputMode="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !checked) handleCheck();
-              else if (e.key === "Enter" && checked) handleNext();
-            }}
-            disabled={checked}
-            autoComplete="off"
-            autoCorrect="off"
-            autoCapitalize="off"
-            spellCheck={false}
-          />
+          <span className="input-label">
+            同じ音の母音ボタンを選んでください（タップすると音が鳴ります）
+          </span>
+          <div className="vowels-grid">
+            {BASIC_VOWELS.map((vowel) => {
+              let stateClass = "";
+              if (checked) {
+                if (vowel.answer === lesson.answer) stateClass = "correct";
+                else if (vowel.answer === selected) stateClass = "incorrect";
+              } else if (vowel.answer === selected) {
+                stateClass = "selected";
+              }
+              return (
+                <button
+                  key={vowel.id}
+                  className={`vowel-btn ${stateClass}`}
+                  onClick={() => handleVowelTap(vowel)}
+                  title={vowel.hint}
+                >
+                  <span className="vowel-char">{vowel.answer}</span>
+                </button>
+              );
+            })}
+          </div>
+          <div className={`selected-display ${selected ? "" : "empty"}`}>
+            {selected ?? "まだ選んでいません"}
+          </div>
         </div>
 
         {/* Feedback */}
@@ -366,6 +358,7 @@ export default function QuizPage() {
             <button
               className="btn-check"
               onClick={handleCheck}
+              disabled={selected === null}
             >
               答え合わせ
             </button>
@@ -379,24 +372,6 @@ export default function QuizPage() {
               </button>
             </>
           )}
-        </div>
-      </div>
-
-      {/* Basic Vowels */}
-      <div className="vowels-section">
-        <h2>基本母音</h2>
-        <div className="vowels-grid">
-          {BASIC_VOWELS.map((vowel) => (
-            <button
-              key={vowel.id}
-              className="vowel-btn"
-              onClick={() => playVowelAudio(vowel.audioFile)}
-              title={vowel.hint}
-            >
-              <span className="vowel-char">{vowel.answer}</span>
-              <span className="vowel-key">{VOWEL_KEYS[vowel.answer]}</span>
-            </button>
-          ))}
         </div>
       </div>
 
