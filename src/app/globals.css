@@ -383,6 +383,97 @@ body {
   transform: scale(0.97);
 }
 
+/* Mastery stats */
+.stats-section {
+  background: var(--color-surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.stats-section h2 {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-muted);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.stats-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--color-bg);
+}
+
+.stats-row:last-of-type {
+  border-bottom: none;
+}
+
+.stats-char {
+  width: 60px;
+  flex-shrink: 0;
+  padding: 6px 4px;
+  border: 2px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.stats-char:active {
+  background: #e3f2fd;
+  border-color: var(--color-primary);
+}
+
+.stats-level {
+  width: 92px;
+  flex-shrink: 0;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.stats-row.good .stats-level {
+  color: var(--color-correct);
+}
+
+.stats-row.soso .stats-level {
+  color: #ef6c00;
+}
+
+.stats-row.weak .stats-level {
+  color: var(--color-incorrect);
+}
+
+.stats-row.none .stats-level {
+  color: var(--color-muted);
+}
+
+.stats-detail {
+  font-size: 0.78rem;
+  color: var(--color-muted);
+}
+
+.stats-clear {
+  margin-top: 10px;
+  padding: 8px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--color-muted);
+  font-size: 0.85rem;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
 /* Start screen */
 .start-card {
   background: var(--color-surface);

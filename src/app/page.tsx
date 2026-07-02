@@ -34,6 +34,78 @@ const STORAGE_KEY = "hangul-quiz-progress";
 // 基本母音（最初の10個）
 const BASIC_VOWELS = LESSONS.slice(0, 10);
 
+// ─── 習熟度ログ ─────────────────────────────────────────────────────────────
+
+// 1問ごとの初回判定の記録
+interface AttemptLog {
+  answer: string; // 出題された文字
+  result: "correct" | "incorrect"; // 初回判定の結果
+  listens: number; // 判定までに聞くモードで音を聞いた回数
+  firstListenCorrect: boolean; // 聞くモードで最初にタップしたのが正解の文字だったか
+  replays: number; // 問題音声を手動再生した回数
+  ms: number; // 出題から判定までの時間
+  ts: number; // 記録日時 (epoch ms)
+}
+
+const STATS_KEY = "hangul-quiz-stats";
+const MAX_LOG = 500;
+const RECENT_N = 5;
+
+function loadAttempts(): AttemptLog[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = localStorage.getItem(STATS_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? (parsed as AttemptLog[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveAttempts(attempts: AttemptLog[]) {
+  if (typeof window === "undefined") return;
+  localStorage.setItem(STATS_KEY, JSON.stringify(attempts.slice(-MAX_LOG)));
+}
+
+type MasteryLevel = "good" | "soso" | "weak" | "none";
+
+interface VowelStat {
+  recentCount: number;
+  recentCorrect: number;
+  recentImmediate: number; // 聞かずに即正解した回数
+  level: MasteryLevel;
+}
+
+// 直近 RECENT_N 回を「即正解=1 / 聞いて正解=0.6 / 不正解=0」で平均して判定
+function computeStat(attempts: AttemptLog[], answer: string): VowelStat {
+  const recent = attempts.filter((a) => a.answer === answer).slice(-RECENT_N);
+  const recentCorrect = recent.filter((a) => a.result === "correct").length;
+  const recentImmediate = recent.filter(
+    (a) => a.result === "correct" && a.listens === 0
+  ).length;
+  let level: MasteryLevel = "none";
+  if (recent.length > 0) {
+    const score =
+      recent.reduce(
+        (s, a) =>
+          s + (a.result !== "correct" ? 0 : a.listens === 0 ? 1 : 0.6),
+        0
+      ) / recent.length;
+    if (score >= 0.8 && recent.length >= 3) level = "good";
+    else if (score >= 0.4) level = "soso";
+    else level = "weak";
+  }
+  return { recentCount: recent.length, recentCorrect, recentImmediate, level };
+}
+
+const MASTERY_LABEL: Record<MasteryLevel, string> = {
+  good: "◎ 大丈夫",
+  soso: "○ もう少し",
+  weak: "△ 要練習",
+  none: "－ 未挑戦",
+};
+
 // Fisher-Yates shuffle
 function shuffleIndices(): number[] {
   const arr = Array.from({ length: TOTAL }, (_, i) => i);
@@ -100,14 +172,38 @@ export default function QuizPage() {
   const [checked, setChecked] = useState(false);
   const [hydrated, setHydrated] = useState(false);
 
+  const [attempts, setAttempts] = useState<AttemptLog[]>([]);
+
   const audioRef = useRef<HTMLAudioElement | null>(null);
   // 正解時の自動遷移タイマー
   const autoNextRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // 現在の問題に対する行動の記録（判定時に AttemptLog にまとめる）
+  const listenTapsRef = useRef<string[]>([]);
+  const replaysRef = useRef(0);
+  const qStartRef = useRef<number>(Date.now());
+  const judgedRef = useRef(false);
+
+  function resetQuestionTracking() {
+    listenTapsRef.current = [];
+    replaysRef.current = 0;
+    qStartRef.current = Date.now();
+    judgedRef.current = false;
+  }
+
+  function appendAttempt(a: AttemptLog) {
+    setAttempts((prev) => {
+      const next = [...prev, a].slice(-MAX_LOG);
+      saveAttempts(next);
+      return next;
+    });
+  }
 
   // Hydrate from localStorage after mount
   useEffect(() => {
     const stored = loadProgress();
     setProgress(stored);
+    setAttempts(loadAttempts());
     setHydrated(true);
   }, []);
 
@@ -139,6 +235,7 @@ export default function QuizPage() {
     setMode("listen");
     setFeedback(null);
     setChecked(false);
+    resetQuestionTracking();
   }
 
   function handleReset() {
@@ -148,6 +245,7 @@ export default function QuizPage() {
     setSelected(null);
     setMode("listen");
     setFeedback(null);
+    resetQuestionTracking();
     setChecked(false);
     if (audioRef.current) {
       audioRef.current.pause();
@@ -180,6 +278,7 @@ export default function QuizPage() {
 
   function handlePlay() {
     if (!lesson) return;
+    replaysRef.current += 1;
     playLessonAudio(lesson);
   }
 
@@ -194,6 +293,7 @@ export default function QuizPage() {
   // 聞くモード: 音だけ鳴らす / 答えるモード: タップした文字で即判定
   function handleVowelTap(vowel: Lesson) {
     if (mode === "listen") {
+      if (!checked) listenTapsRef.current.push(vowel.answer);
       playVowelAudio(vowel.audioFile);
       return;
     }
@@ -206,6 +306,20 @@ export default function QuizPage() {
 
     setFeedback(result);
     setChecked(true);
+
+    // 初回判定だけを習熟度ログに記録する（もう一度での再挑戦は含めない）
+    if (!judgedRef.current) {
+      judgedRef.current = true;
+      appendAttempt({
+        answer: lesson.answer,
+        result: result === "correct" ? "correct" : "incorrect",
+        listens: listenTapsRef.current.length,
+        firstListenCorrect: listenTapsRef.current[0] === lesson.answer,
+        replays: replaysRef.current,
+        ms: Date.now() - qStartRef.current,
+        ts: Date.now(),
+      });
+    }
 
     const newHistory = [...progress.history];
     newHistory[progress.currentIndex] = result;
@@ -221,6 +335,7 @@ export default function QuizPage() {
         setMode("listen");
         setFeedback(null);
         setChecked(false);
+        resetQuestionTracking();
         if (nextIndex >= TOTAL) {
           setProgress({ ...updated, finished: true });
           if (audioRef.current) {
@@ -264,6 +379,47 @@ export default function QuizPage() {
     setMode("listen");
     setFeedback(null);
     setChecked(false);
+    resetQuestionTracking();
+  }
+
+  function handleClearStats() {
+    if (!window.confirm("習熟度の記録をすべて消しますか？")) return;
+    setAttempts([]);
+    if (typeof window !== "undefined") localStorage.removeItem(STATS_KEY);
+  }
+
+  // 音ごとの習熟度セクション（スタート画面と結果画面で表示）
+  function renderStats() {
+    return (
+      <div className="stats-section">
+        <h2>音ごとの習熟度</h2>
+        {BASIC_VOWELS.map((vowel) => {
+          const s = computeStat(attempts, vowel.answer);
+          return (
+            <div key={vowel.id} className={`stats-row ${s.level}`}>
+              <button
+                className="stats-char"
+                onClick={() => playVowelAudio(vowel.audioFile)}
+                title="タップで音を聞く"
+              >
+                {vowel.answer} 🔊
+              </button>
+              <span className="stats-level">{MASTERY_LABEL[s.level]}</span>
+              <span className="stats-detail">
+                {s.recentCount > 0
+                  ? `直近${s.recentCount}回: 正解${s.recentCorrect}・即答${s.recentImmediate}`
+                  : "まだ記録がありません"}
+              </span>
+            </div>
+          );
+        })}
+        {attempts.length > 0 && (
+          <button className="stats-clear" onClick={handleClearStats}>
+            記録をリセット
+          </button>
+        )}
+      </div>
+    );
   }
 
   // ── Render ────────────────────────────────────────────────────────────────
@@ -289,6 +445,7 @@ export default function QuizPage() {
             スタート
           </button>
         </div>
+        {renderStats()}
       </div>
     );
   }
@@ -323,6 +480,7 @@ export default function QuizPage() {
             もう一度（シャッフル）
           </button>
         </div>
+        {renderStats()}
       </div>
     );
   }
