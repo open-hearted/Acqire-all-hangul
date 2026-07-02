@@ -340,7 +340,6 @@ export default function QuizPage() {
               if (e.key === "Enter" && !checked) handleCheck();
               else if (e.key === "Enter" && checked) handleNext();
             }}
-            placeholder="여기에 입력"
             disabled={checked}
             autoComplete="off"
             autoCorrect="off"
