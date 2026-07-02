@@ -18,7 +18,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ja">
-      <body>{children}</body>
+      <body>
+        <div className="build-sha" aria-hidden="true">
+          {process.env.NEXT_PUBLIC_COMMIT_SHA}
+        </div>
+        {children}
+      </body>
     </html>
   );
 }

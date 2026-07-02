@@ -39,6 +39,22 @@ body {
   gap: 16px;
 }
 
+/* Build SHA badge */
+.build-sha {
+  position: fixed;
+  top: 6px;
+  right: 8px;
+  z-index: 100;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.7rem;
+  color: var(--color-muted);
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  padding: 2px 8px;
+  pointer-events: none;
+}
+
 /* Header */
 .header {
   text-align: center;
