@@ -191,20 +191,18 @@ export default function QuizPage() {
     });
   }
 
-  // 聞くモード: 音だけ鳴らす / 答えるモード: 選択だけする（答え合わせ後は変更不可）
+  // 聞くモード: 音だけ鳴らす / 答えるモード: タップした文字で即判定
   function handleVowelTap(vowel: Lesson) {
     if (mode === "listen") {
       playVowelAudio(vowel.audioFile);
       return;
     }
-    if (!checked) setSelected(vowel.answer);
-  }
+    if (checked || !lesson) return;
 
-  function handleCheck() {
-    if (!lesson || selected === null) return;
+    setSelected(vowel.answer);
 
     const result: AnswerResult =
-      selected === lesson.answer ? "correct" : "incorrect";
+      vowel.answer === lesson.answer ? "correct" : "incorrect";
 
     setFeedback(result);
     setChecked(true);
@@ -214,7 +212,7 @@ export default function QuizPage() {
     const updated = { ...progress, history: newHistory };
     setProgress(updated);
 
-    // 正解なら少し見せてから自動で次の問題へ進み、音声を再生する
+    // 正解なら一瞬見せてから自動で次の問題へ進み、音声を再生する
     if (result === "correct") {
       const nextIndex = updated.currentIndex + 1;
       autoNextRef.current = setTimeout(() => {
@@ -394,8 +392,8 @@ export default function QuizPage() {
           </div>
           <span className="input-label">
             {mode === "listen"
-              ? "タップすると音が鳴ります（選択はされません）"
-              : "答えの文字をタップして選んでください（音は鳴りません）"}
+              ? "タップすると音が鳴ります（回答にはなりません）"
+              : "答えの文字をタップすると、すぐに判定されます"}
           </span>
           <div className="vowels-grid">
             {BASIC_VOWELS.map((vowel) => {
@@ -419,9 +417,6 @@ export default function QuizPage() {
               );
             })}
           </div>
-          <div className={`selected-display ${selected ? "" : "empty"}`}>
-            {selected ?? "まだ選んでいません"}
-          </div>
         </div>
 
         {/* Feedback */}
@@ -439,27 +434,17 @@ export default function QuizPage() {
           </div>
         )}
 
-        {/* Buttons */}
-        <div className="btn-row">
-          {!checked ? (
-            <button
-              className="btn-check"
-              onClick={handleCheck}
-              disabled={selected === null}
-            >
-              答え合わせ
+        {/* Buttons (不正解のときだけ表示) */}
+        {feedback === "incorrect" && (
+          <div className="btn-row">
+            <button className="btn-retry" onClick={handleRetry}>
+              もう一度
             </button>
-          ) : (
-            <>
-              <button className="btn-retry" onClick={handleRetry}>
-                もう一度
-              </button>
-              <button className="btn-next" onClick={handleNext}>
-                {progress.currentIndex + 1 < TOTAL ? "次の問題 →" : "結果を見る"}
-              </button>
-            </>
-          )}
-        </div>
+            <button className="btn-next" onClick={handleNext}>
+              {progress.currentIndex + 1 < TOTAL ? "次の問題 →" : "結果を見る"}
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Score history */}

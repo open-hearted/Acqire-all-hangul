@@ -199,25 +199,6 @@ body {
   color: var(--color-muted);
 }
 
-.selected-display {
-  min-height: 64px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 2px solid var(--color-border);
-  border-radius: var(--radius);
-  background: var(--color-bg);
-  font-size: 2rem;
-  font-weight: 600;
-  color: var(--color-text);
-}
-
-.selected-display.empty {
-  font-size: 0.9rem;
-  font-weight: 400;
-  color: var(--color-muted);
-}
-
 /* Feedback */
 .feedback {
   text-align: center;
@@ -258,30 +239,6 @@ body {
 .btn-row {
   display: flex;
   gap: 10px;
-}
-
-.btn-check {
-  flex: 1;
-  padding: 14px;
-  border: none;
-  border-radius: var(--radius);
-  background: var(--color-primary);
-  color: #fff;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s, transform 0.1s;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.btn-check:active {
-  background: var(--color-primary-dark);
-  transform: scale(0.97);
-}
-
-.btn-check:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
 }
 
 .btn-retry {
