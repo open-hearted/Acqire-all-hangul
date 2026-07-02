@@ -233,7 +233,7 @@ export default function QuizPage() {
           setProgress({ ...updated, currentIndex: nextIndex });
           playLessonAudio(LESSONS[updated.shuffledOrder[nextIndex]]);
         }
-      }, 1200);
+      }, 400);
     }
   }
 
