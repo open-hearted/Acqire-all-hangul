@@ -158,6 +158,35 @@ body {
   flex-shrink: 0;
 }
 
+/* Mode toggle (listen / answer) */
+.mode-toggle {
+  display: flex;
+  gap: 4px;
+  background: var(--color-border);
+  border-radius: 999px;
+  padding: 4px;
+}
+
+.mode-toggle button {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-muted);
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mode-toggle button.active {
+  background: #fff;
+  color: var(--color-primary);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+}
+
 /* Input area */
 .input-wrap {
   display: flex;
@@ -450,6 +479,11 @@ body {
 .vowel-char {
   font-size: 1.5rem;
   font-weight: 600;
+}
+
+.vowel-sub {
+  font-size: 0.7rem;
+  opacity: 0.7;
 }
 
 .vowel-btn:hover {

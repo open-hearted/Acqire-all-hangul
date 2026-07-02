@@ -14,6 +14,9 @@ interface Lesson {
 
 type AnswerResult = "correct" | "incorrect" | null;
 
+// 母音ボタンの動作モード: 聞く（音のみ）/ 答える（選択のみ）
+type TapMode = "listen" | "answer";
+
 interface Progress {
   currentIndex: number;
   shuffledOrder: number[];
@@ -92,6 +95,7 @@ function saveProgress(p: Progress) {
 export default function QuizPage() {
   const [progress, setProgress] = useState<Progress>(makeInitialProgress);
   const [selected, setSelected] = useState<string | null>(null);
+  const [mode, setMode] = useState<TapMode>("listen");
   const [feedback, setFeedback] = useState<AnswerResult>(null);
   const [checked, setChecked] = useState(false);
   const [hydrated, setHydrated] = useState(false);
@@ -122,6 +126,7 @@ export default function QuizPage() {
     fresh.started = true;
     setProgress(fresh);
     setSelected(null);
+    setMode("listen");
     setFeedback(null);
     setChecked(false);
   }
@@ -130,6 +135,7 @@ export default function QuizPage() {
     const fresh = makeInitialProgress(true);
     setProgress(fresh);
     setSelected(null);
+    setMode("listen");
     setFeedback(null);
     setChecked(false);
     if (audioRef.current) {
@@ -161,9 +167,12 @@ export default function QuizPage() {
     });
   }
 
-  // タップで音を鳴らしつつ回答候補として選択する（答え合わせ後は聞くだけ）
+  // 聞くモード: 音だけ鳴らす / 答えるモード: 選択だけする（答え合わせ後は変更不可）
   function handleVowelTap(vowel: Lesson) {
-    playVowelAudio(vowel.audioFile);
+    if (mode === "listen") {
+      playVowelAudio(vowel.audioFile);
+      return;
+    }
     if (!checked) setSelected(vowel.answer);
   }
 
@@ -224,7 +233,7 @@ export default function QuizPage() {
           <p>
             全 {TOTAL}{" "}
             問の音声を聞いて、同じ音の母音ボタンを選んで答えます。
-            ボタンをタップすると音が鳴るので、聞き比べてから答え合わせできます。
+            「🔊 聞く / ✏️ 答える」の切り替えで、聞き比べと回答を分けて操作できます。
           </p>
           <button className="btn-reset" onClick={handleStart}>
             スタート
@@ -311,8 +320,30 @@ export default function QuizPage() {
 
         {/* Answer buttons */}
         <div className="input-wrap">
+          <div className="mode-toggle" role="tablist" aria-label="ボタンの動作">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={mode === "listen"}
+              className={mode === "listen" ? "active" : ""}
+              onClick={() => setMode("listen")}
+            >
+              🔊 聞く
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={mode === "answer"}
+              className={mode === "answer" ? "active" : ""}
+              onClick={() => setMode("answer")}
+            >
+              ✏️ 答える
+            </button>
+          </div>
           <span className="input-label">
-            同じ音の母音ボタンを選んでください（タップすると音が鳴ります）
+            {mode === "listen"
+              ? "タップすると音が鳴ります（選択はされません）"
+              : "答えの文字をタップして選んでください（音は鳴りません）"}
           </span>
           <div className="vowels-grid">
             {BASIC_VOWELS.map((vowel) => {
@@ -331,6 +362,7 @@ export default function QuizPage() {
                   title={vowel.hint}
                 >
                   <span className="vowel-char">{vowel.answer}</span>
+                  {mode === "listen" && <span className="vowel-sub">🔊</span>}
                 </button>
               );
             })}
