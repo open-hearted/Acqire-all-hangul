@@ -58,5 +58,71 @@
     "audioFile": "ㅣ.mp3",
     "answer": "ㅣ",
     "hint": "基本母音 10"
+  },
+  {
+    "id": "Lesson002-01",
+    "audioFile": "ㅐ.mp3",
+    "answer": "ㅐ",
+    "hint": "合成母音 1"
+  },
+  {
+    "id": "Lesson002-02",
+    "audioFile": "ㅒ.mp3",
+    "answer": "ㅒ",
+    "hint": "合成母音 2"
+  },
+  {
+    "id": "Lesson002-03",
+    "audioFile": "ㅔ.mp3",
+    "answer": "ㅔ",
+    "hint": "合成母音 3"
+  },
+  {
+    "id": "Lesson002-04",
+    "audioFile": "ㅖ.mp3",
+    "answer": "ㅖ",
+    "hint": "合成母音 4"
+  },
+  {
+    "id": "Lesson002-05",
+    "audioFile": "ㅘ.mp3",
+    "answer": "ㅘ",
+    "hint": "合成母音 5"
+  },
+  {
+    "id": "Lesson002-06",
+    "audioFile": "ㅙ.mp3",
+    "answer": "ㅙ",
+    "hint": "合成母音 6"
+  },
+  {
+    "id": "Lesson002-07",
+    "audioFile": "ㅚ.mp3",
+    "answer": "ㅚ",
+    "hint": "合成母音 7"
+  },
+  {
+    "id": "Lesson002-08",
+    "audioFile": "ㅝ.mp3",
+    "answer": "ㅝ",
+    "hint": "合成母音 8"
+  },
+  {
+    "id": "Lesson002-09",
+    "audioFile": "ㅞ.mp3",
+    "answer": "ㅞ",
+    "hint": "合成母音 9"
+  },
+  {
+    "id": "Lesson002-10",
+    "audioFile": "ㅟ.mp3",
+    "answer": "ㅟ",
+    "hint": "合成母音 10"
+  },
+  {
+    "id": "Lesson002-11",
+    "audioFile": "ㅢ.mp3",
+    "answer": "ㅢ",
+    "hint": "合成母音 11"
   }
 ]

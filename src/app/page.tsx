@@ -31,8 +31,8 @@ const LESSONS: Lesson[] = lessonsData as Lesson[];
 const TOTAL = LESSONS.length;
 const STORAGE_KEY = "hangul-quiz-progress";
 
-// 基本母音（最初の10個）
-const BASIC_VOWELS = LESSONS.slice(0, 10);
+// 回答ボタンに使う全母音（基本母音 + 合成母音）
+const ALL_VOWELS = LESSONS;
 
 // ─── 習熟度ログ ─────────────────────────────────────────────────────────────
 
@@ -140,9 +140,9 @@ function shuffleIndices(): number[] {
   return arr;
 }
 
-// 回答ボタンの並び（BASIC_VOWELS のインデックス）をシャッフル
+// 回答ボタンの並び（ALL_VOWELS のインデックス）をシャッフル
 function shuffleVowelOrder(): number[] {
-  const arr = Array.from({ length: BASIC_VOWELS.length }, (_, i) => i);
+  const arr = Array.from({ length: ALL_VOWELS.length }, (_, i) => i);
   for (let i = arr.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [arr[i], arr[j]] = [arr[j], arr[i]];
@@ -209,7 +209,7 @@ export default function QuizPage() {
   const [attempts, setAttempts] = useState<AttemptLog[]>([]);
   // 回答ボタンの表示順（問題ごとにシャッフル）
   const [buttonOrder, setButtonOrder] = useState<number[]>(() =>
-    Array.from({ length: BASIC_VOWELS.length }, (_, i) => i)
+    Array.from({ length: ALL_VOWELS.length }, (_, i) => i)
   );
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -486,7 +486,7 @@ export default function QuizPage() {
     return (
       <div className="stats-section">
         <h2>音ごとの習熟度</h2>
-        {BASIC_VOWELS.map((vowel) => {
+        {ALL_VOWELS.map((vowel) => {
           const s = computeStat(attempts, vowel.answer);
           return (
             <div key={vowel.id} className={`stats-row ${s.level}`}>
@@ -649,7 +649,7 @@ export default function QuizPage() {
           </span>
           <div className="vowels-grid">
             {buttonOrder.map((orderIndex) => {
-              const vowel = BASIC_VOWELS[orderIndex];
+              const vowel = ALL_VOWELS[orderIndex];
               let stateClass = "";
               if (checked) {
                 if (vowel.answer === lesson.answer) stateClass = "correct";
