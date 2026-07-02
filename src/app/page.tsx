@@ -153,7 +153,7 @@ export default function QuizPage() {
 
   function handlePlay() {
     if (!lesson) return;
-    const src = `/audio/${lesson.audioFile}`;
+    const src = `/audio/${encodeURIComponent(lesson.audioFile)}`;
     if (!audioRef.current) {
       audioRef.current = new Audio(src);
     } else {
@@ -167,7 +167,7 @@ export default function QuizPage() {
   }
 
   function playVowelAudio(audioFile: string) {
-    const src = `/audio/${audioFile}`;
+    const src = `/audio/${encodeURIComponent(audioFile)}`;
     const audio = new Audio(src);
     audio.play().catch(() => {
       // Audio playback failed
