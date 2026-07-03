@@ -383,6 +383,11 @@ body {
   transform: scale(0.97);
 }
 
+.btn-reset:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 /* Phoneme quiz buttons */
 .phoneme-row {
   display: flex;

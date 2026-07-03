@@ -45,8 +45,8 @@ const COUNT_OPTIONS = [10, 20, 50, 100, Infinity]; // Infinity = 全単語一気
 const ANSWERS_KEY = "word-quiz-answers";
 const SESSIONS_KEY = "word-quiz-sessions";
 const WRONG_KEY = "word-quiz-wrong";
+// 回答記録がこの件数に達したら、記録を消さずに新規セッションを停止する
 const MAX_ANSWERS = 5000;
-const MAX_SESSIONS = 200;
 
 function loadJson<T>(key: string, fallback: T): T {
   if (typeof window === "undefined") return fallback;
@@ -106,6 +106,7 @@ export default function WordPhonemeQuizPage() {
   const [sessions, setSessions] = useState<SessionLog[]>([]);
   const [wrongPool, setWrongPool] = useState<string[]>([]);
   const [sessionAnswers, setSessionAnswers] = useState<WordAnswer[]>([]);
+  const [answersCount, setAnswersCount] = useState(0);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const autoNextRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -115,6 +116,7 @@ export default function WordPhonemeQuizPage() {
   useEffect(() => {
     setSessions(loadJson<SessionLog[]>(SESSIONS_KEY, []));
     setWrongPool(loadJson<string[]>(WRONG_KEY, []));
+    setAnswersCount(loadJson<WordAnswer[]>(ANSWERS_KEY, []).length);
     setHydrated(true);
   }, []);
 
@@ -145,6 +147,7 @@ export default function WordPhonemeQuizPage() {
   // ── Session flow ──────────────────────────────────────────────────────────
 
   function startSession(selectedMode: QuizMode) {
+    if (answersCount >= MAX_ANSWERS) return; // 記録上限: 新規セッション停止
     const source =
       selectedMode === "all"
         ? WORDS
@@ -177,7 +180,7 @@ export default function WordPhonemeQuizPage() {
       avgMs,
       durationMs: Date.now() - sessionStartRef.current,
     };
-    const nextSessions = [...sessions, log].slice(-MAX_SESSIONS);
+    const nextSessions = [...sessions, log];
     setSessions(nextSessions);
     saveJson(SESSIONS_KEY, nextSessions);
     setPhase("result");
@@ -226,9 +229,11 @@ export default function WordPhonemeQuizPage() {
     const answers = [...sessionAnswers, answer];
     setSessionAnswers(answers);
 
-    // 全回答ログに追記
+    // 全回答ログに追記（削除はしない。進行中のセッションは上限を超えても記録する）
     const all = loadJson<WordAnswer[]>(ANSWERS_KEY, []);
-    saveJson(ANSWERS_KEY, [...all, answer].slice(-MAX_ANSWERS));
+    const nextAll = [...all, answer];
+    saveJson(ANSWERS_KEY, nextAll);
+    setAnswersCount(nextAll.length);
 
     // 間違いプールを更新（誤答で追加、正解で除外）
     let pool = wrongPool;
@@ -251,6 +256,7 @@ export default function WordPhonemeQuizPage() {
     if (!window.confirm("単語クイズの記録（履歴・間違いプール）をすべて消しますか？")) return;
     setSessions([]);
     setWrongPool([]);
+    setAnswersCount(0);
     localStorage.removeItem(SESSIONS_KEY);
     localStorage.removeItem(WRONG_KEY);
     localStorage.removeItem(ANSWERS_KEY);
@@ -270,9 +276,16 @@ export default function WordPhonemeQuizPage() {
   // Setup screen
   if (phase === "setup") {
     const recent = [...sessions].reverse().slice(0, 10);
+    const logFull = answersCount >= MAX_ANSWERS;
     return (
       <div className="container">
         {header}
+        {logFull && (
+          <div className="admin-notice">
+            回答記録が{MAX_ANSWERS}件に達しました。記録を守るため、新しいクイズは一時停止しています。
+            記録はすべて残っています（クラウド保存への移行までお待ちください。すぐ再開したい場合は「記録をリセット」で消去もできます）。
+          </div>
+        )}
         <div className="start-card">
           <h2>単語を聞いて音素数を答えよう！</h2>
           <p>
@@ -294,17 +307,24 @@ export default function WordPhonemeQuizPage() {
               ))}
             </div>
           </div>
-          <button className="btn-reset" onClick={() => startSession("all")}>
+          <button
+            className="btn-reset"
+            onClick={() => startSession("all")}
+            disabled={logFull}
+          >
             スタート（全単語からランダム）
           </button>
           <button
             className="btn-reset"
             style={{ background: "#e65100" }}
             onClick={() => startSession("wrong")}
-            disabled={wrongPool.length === 0}
+            disabled={wrongPool.length === 0 || logFull}
           >
             間違えた単語だけ（{wrongPool.length}語）
           </button>
+          <p style={{ fontSize: "0.8rem", color: "#757575" }}>
+            回答記録: {answersCount} / {MAX_ANSWERS}件
+          </p>
           <Link href="/" className="link-btn">
             ← 母音クイズへ
           </Link>
