@@ -1,0 +1,560 @@
+1	가게	store, shop
+2	가격	price
+3	가구	furniture
+4	가깝다	close
+5	가끔	sometimes
+6	가다	go
+7	가르치다	teach
+8	가방	bag
+9	가볍다	light
+10	가수	singer
+11	가슴	chest, breast
+12	가요	song
+13	가운데	middle
+14	가위	scissors
+15	가을	autumn, fall
+16	가장	most
+17	가져가다	take away
+18	가져오다	bring
+19	가족	family
+20	가지	branch
+21	가지다	have
+22	각	each
+23	간	while
+24	간단하다	simple, easy
+25	간단히	simply
+26	간식	snack
+27	간장	soy sauce
+28	간호사	nurse
+29	갈비	Galvi, spareribs
+30	갈비탕	Galbitang, spareribs soup
+31	갈색	brown
+32	갈아타다	transfer
+33	감	persimmon
+34	감기	cold
+35	감기약	cold medicine
+36	감다	close ~ (eyes)
+37	감동	sensation
+38	감동하다	be impressed
+39	감사	thank
+40	감사드립니다	thank you
+41	감사하다	thank, appreciate
+42	감사합니다	thank you
+43	감자	potato
+44	감자탕	Gamjatang, potato soup
+45	갑자기	suddenly
+46	값	price
+47	강	river
+48	강아지	puppy
+49	강좌	lecture
+50	갖다	have
+51	같다	same
+52	같이	together
+53	개	dog, ~ piece(s)
+54	개나리	forsythia
+55	개인	individual
+56	거기	there
+57	거리	street
+58	거실	living room
+59	거울	mirror
+60	거의	almost, nearly
+61	거짓말	lie
+62	걱정	anxiety, concern
+63	걱정하다	worry
+64	건강	health
+65	건강하다	be healthy
+66	건너가다	cross (a road)
+67	건너다	cross over
+68	건너편	other side, opposite side
+69	건물	building
+70	건배	cheers, toast
+71	걷다	walk
+72	걸다	bet, call
+73	걸리다	get caught, take (time)
+74	걸어가다	walk (go)
+75	걸어오다	walk (come)
+76	검은색	black
+77	것	that, thing, it
+78	게임	game
+79	겨울	winter
+80	겨울방학	winter vacation
+81	결과	result
+82	결정	decision
+83	결정하다	decide
+84	결혼	marriage
+85	결혼식	wedding ceremony
+86	결혼하다	get married
+87	경기	competition, game
+88	경기장	stadium, arena
+89	경복궁	Gyeongbokgung
+90	경주	Gyeongju
+91	경찰	police
+92	경찰관	police officer
+93	경찰서	police office
+94	경치	view, landscape
+95	경험	experience
+96	계단	stairs
+97	계란	egg
+98	계산하다	calculate
+99	계속	continue
+100	계시다	be, exist (honorific form)
+101	계절	season
+102	계획	plan
+103	고기	meat
+104	고등학교	high school
+105	고등학생	high school student
+106	고르다	choose
+107	고마웠습니다	Thank you (past tense)
+108	고맙다	thank
+109	고맙습니다	Thank you
+110	고모	paternal aunt
+111	고모부	paternal uncle
+112	고속버스	express bus
+113	고양이	cat
+114	고장	broken, malfunction
+115	고추	red pepper
+116	고추장	Kochujang, red pepper paste
+117	고치다	fix
+118	고프다	hungry
+119	고향	hometown
+120	곧	soon
+121	골목	alley
+122	골프	golf
+123	곱다	beautiful
+124	곳	place
+125	공	ball
+126	공간	space
+127	공기	air
+128	공무원	public official
+129	공부	study
+130	공부하다	study
+131	공연	show, public performance
+132	공원	park
+133	공중전화	payphone, public phone
+134	공짜	free
+135	공책	notebook, note
+136	공항	airport
+137	공휴일	public holiday
+138	과	division
+139	과거	past
+140	과일	fruit
+141	과자	snack
+142	과학	science
+143	관계	relation
+144	관광하다	travel, sightsee
+145	관심	attention, interest
+146	광고	advertisement
+147	괜찮다	be okay
+148	괜찮습니다	It's fine.
+149	교과서	textbook
+150	교수	professor
+151	교실	classroom
+152	교체	substitute, change
+153	교통	traffic
+154	교통사고	traffic accident
+155	교회	church
+156	구	9
+157	구경하다	take a look
+158	구두	shoes
+159	구름	cloud
+160	구십	90
+161	구월	September
+162	구하다	save, seek, get
+163	국	soup
+164	국내	domestic
+165	국립	nationalestablished, state
+166	국수	noodle
+167	국어	Korean language
+168	국적	nationality, country of citizenship
+169	국제	international
+170	군인	soldier, military personnel
+171	굽다	bake
+172	권	~ book(s)
+173	귀	ear
+174	귀엽다	cute
+175	규칙	rule
+176	귤	mandarin orange
+177	그	it
+178	그거	it
+179	그것	it
+180	그곳	there
+181	그날	that day
+182	그냥	just, as it is
+183	그동안	meantime, meanwhile, up to now
+184	그들	them, they
+185	그때	then, at that time
+186	그래	Yes, Yeah
+187	그래서	so, thus
+188	그램	gram
+189	그러나	but, however
+190	그러니까	so, because
+191	그러면	then, if so
+192	그런	then, such
+193	그런데	by the way, however
+194	그럼	then
+195	그렇게	like that, so
+196	그렇구나	well, I see.
+197	그렇다	Yes, that's it.
+198	그렇습니다	That's right.
+199	그렇지만	nevertheless, but
+200	그릇	bowl, container, tableware
+201	그리고	and
+202	그리다	draw
+203	그림	drawing, picture
+204	그만	stop, finish
+205	그분	his, the person
+206	그저께	day before yesterday
+207	그중	among them
+208	그쪽	there, the person
+209	그치다	stop, end, cease
+210	극장	theater, cinema
+211	근처	nearby, neighborhood
+212	글	post, sentence, character
+213	글쎄요	I do not know., well, I guess ~
+214	금방	soon, a little while ago
+215	금연	no smoking
+216	금요일	Friday
+217	금주	abstinence, temperance
+218	급	class, grade
+219	급하다	hurry, urgent
+220	기간	term, period
+221	기다리다	wait
+222	기르다	cultivate, grow
+223	기름	oil, gasoline
+224	기분	feeling
+225	기뻐하다	glad, delight
+226	기쁘다	happy
+227	기사	article, driver, engineer
+228	기숙사	dormitory
+229	기억하다	remember
+230	기온	temperature
+231	기자	reporter
+232	기차	train
+233	기침	cough
+234	기타	other
+235	긴장되다	be nervous
+236	길	way, road
+237	길다	long
+238	김	seaweed
+239	김밥	Kimbab
+240	김치	Kimchi
+241	김치찌개	Kimchi stew
+242	김포공항	Gimpo International Airport
+243	까만색	black color
+244	까맣다	black
+245	깎다	cut, shave
+246	깜짝	startled, surprised
+247	깨끗하다	clean
+248	깨다	wake up, crack, break
+249	깨지다	chip, crack, break
+250	꺼내다	take out
+251	껌	chewing gum
+252	꼭	exactly, absolutely
+253	꽃	flower
+254	꽃집	florist
+255	꾸다	dream
+256	꿈	dream
+257	끄다	turn off, extinguish, stop
+258	끓이다	boil
+259	끝	end
+260	끝나다	finish, end
+261	끝내다	finish
+262	끼다	put on, plug, (fog) rolls in
+263	나	I
+264	나가다	go out, get out
+265	나누다	share, divide
+266	나다	occur, come out
+267	나라	country
+268	나무	tree
+269	나빠지다	spoil, deteriorate
+270	나쁘다	bad
+271	나오다	come out, appear
+272	나이	age, old
+273	나중	later, after
+274	나타나다	appear
+275	나흘	four days
+276	낚시	fishing
+277	날	day
+278	날씨	weather
+279	날짜	date
+280	남	south, man
+281	남기다	leave
+282	남녀	men and women
+283	남대문시장	Namdaemun market
+284	남동생	younger brother
+285	남미	South America
+286	남북	north and south
+287	남자	man
+288	남쪽	south
+289	남편	husband
+290	남학생	male student
+291	낮	day, noon, during the day
+292	낮다	low
+293	내	of mine, my
+294	내가	I
+295	내과	internal medicine
+296	내년	next year
+297	내다	pay, put out
+298	내려가다	go down
+299	내려오다	come down
+300	내리다	go down
+301	내용	content
+302	내일	tomorrow
+303	냄비	pot
+304	냄새	smell
+305	냉면	cold noodle
+306	냉장고	refrigerator
+307	너	you
+308	너무	too, very
+309	넓다	wide
+310	넘다	exceed, more than
+311	넘어지다	fall down, fall
+312	넣다	put in
+313	네	yes, 4
+314	넥타이	necktie
+315	넷	4
+316	넷째	fourth
+317	년	year
+318	노란색	yellow color
+319	노랗다	yellow
+320	노래	song
+321	노래방	Karaoke shop
+322	노래하다	sing
+323	노력하다	endeavor, strive
+324	노트	note
+325	녹색	green
+326	녹차	green tea
+327	놀다	play
+328	놀라다	be surprised
+329	농구	basketball
+330	높다	high
+331	놓다	put
+332	누가	who
+333	누구	who
+334	누나	sister (as seen from the younger brother)
+335	누르다	press down, push
+336	눈	eye, snow
+337	눈물	tear
+338	눈사람	snowman
+339	눈싸움	staring contest, snowball fight
+340	눕다	lie down, sleep
+341	뉴스	news
+342	뉴욕	New York
+343	느끼다	feel
+344	느낌	feeling
+345	느리다	slow
+346	늘	always
+347	늘다	gain, increase
+348	능력	ability
+349	늦다	late, delay
+350	늦잠	overslept, sleeping in late
+351	님	Sir
+352	다	all, whole
+353	다녀오다	return, come back
+354	다니다	go, commute
+355	다르다	different
+356	다른	other ~, another ~, different ~
+357	다리	bridge, leg, foot
+358	다섯	5
+359	다시	again
+360	다음	next, after
+361	다음달	next month
+362	다음주	next week
+363	다음해	next year, following year
+364	다이어트	diet
+365	다치다	hurt
+366	닦다	wipe, polish
+367	단어	word
+368	단점	disadvantage, shortcoming, drawback
+369	닫다	close
+370	닫히다	shut, close
+371	달	month, moon
+372	달걀	egg
+373	달다	sweet
+374	달러	dollar
+375	달력	calendar
+376	달리다	run
+377	닭	chicken, hen
+378	닭고기	chicken
+379	닮다	resemble
+380	담그다	dip, pickle
+381	담배	tobacco
+382	답장	reply
+383	당근	carrot
+384	당신	you
+385	대	versus, large
+386	대답	answer
+387	대답하다	answer, reply
+388	대부분	mostly, almost
+389	대사관	embassy
+390	대학	university, college
+391	대학교	university, college
+392	대학생	college student
+393	대학원	graduate school
+394	대학원생	postgraduate student, graduate student
+395	대한민국	Republic of Korea, South Korea
+396	대화	conversation, dialogue
+397	대회	competition, tournament
+398	댁	house
+399	더	more
+400	더럽다	dirty
+401	더운물	hot water
+402	덕분	thanks for, thanks to
+403	덥다	hot
+404	덮다	cover
+405	데리다	bring, take along
+406	데이트	date, dating
+407	도로	road
+408	도서관	library
+409	도시	city
+410	도와주다	help
+411	도움	help, assistance
+412	도착	arrival
+413	도착하다	arrive
+414	도쿄	Tokyo
+415	독서	reading
+416	독서실	reading room
+417	독서하다	read
+418	독일	Germany
+419	돈	money
+420	돌아가다	return, go back
+421	돌아오다	come back, come home
+422	돕다	help
+423	동네	town, neighborhood
+424	동대문시장	Dongdaemun market
+425	동물	animal
+426	동생	brother, sister
+427	동아리	club, group
+428	동안	during, between
+429	동양	eastern, orient
+430	동전	coin
+431	동쪽	east
+432	돼지	pig
+433	돼지고기	pork
+434	되다	become
+435	된장	fermented soybean paste
+436	된장국	soybean paste soup
+437	된장찌개	soybean paste stew
+438	두	two
+439	두껍다	thick
+440	두다	put
+441	두부	tofu
+442	두부찌개	tofu soup
+443	둘	2
+444	둘째	second, the second of~
+445	뒤	rear, back
+446	뒤쪽	behind, back, towards the rear
+447	드라마	drama
+448	드리다	give
+449	드시다	eat (honorific form)
+450	듣기	listening, hearing
+451	듣다	listen
+452	들	field, ~s,
+453	들다	hold, enter
+454	들어가다	go in, enter
+455	들어오다	come in, enter
+456	등	etc, back
+457	등산	hiking, mountain-climbing
+458	등산복	mountaineering clothing
+459	등산화	hiking boots, climbing shoes
+460	디브이디	DVD
+461	디자인	design
+462	따뜻하다	warm
+463	따라가다	follow
+464	따라오다	come with, follow
+465	따로	separately
+466	따르다	follow
+467	딸	daughter
+468	딸기	strawberry
+469	땀	sweat
+470	때	time
+471	때문	because, for ~, so~
+472	떠나다	leave
+473	떠들다	chatter, make a noise
+474	떡	rice cake
+475	떡국	rice cake soup
+476	떡볶이	Toppogi
+477	떨어지다	drop
+478	또	in addition, again
+479	또는	or
+480	똑같다	same
+481	똑바로	upright, straight
+482	뛰다	run
+483	뜨겁다	hot
+484	뜨다	rise, open (the eyes)
+485	뜻	meaning
+486	라디오	radio
+487	라면	ramen
+488	러시아	Russia
+489	로션	skin lotion
+490	마늘	garlic
+491	마르다	dry
+492	마리	~ animal(s), ~ head(s)
+493	마시다	drink
+494	마음	mind, feeling
+495	마지막	last
+496	마치다	finish, end
+497	마흔	40
+498	막히다	be blocked, be clogged
+499	만	only, ten thousand
+500	만나다	meet
+501	만두	dumpling
+502	만들다	make, create
+503	만일	if, should
+504	만지다	touch
+505	만화	comic book, cartoon
+506	많다	many
+507	많이	a lot of, many
+508	말	word, talk
+509	말씀	words, remarks
+510	말씀하다	talk
+511	말하기	speaking
+512	말하다	say, talk
+513	맑다	clear, clean
+514	맛	flavor, taste
+515	맛없다	not delicious
+516	맛있다	delicious
+517	맞다	right, fit, correct
+518	맞습니다	That's right.
+519	맞아요	That's right.
+520	맞은편	across, the other side, opposite
+521	매다	tie
+522	매우	extremely, very
+523	매일	everyday
+524	매주	every week
+525	맥주	beer
+526	맵다	spicy
+527	머리	head, hair
+528	먹다	eat
+529	먼저	first, first of all, before
+530	멀다	far, distant, long
+531	멋있다	cool, nice
+532	메뉴	menu
+533	메다	shoulder, carry
+534	메모	memo
+535	메시지	message
+536	멕시코	Mexico
+537	며칠	a few days, what date
+538	면도	razor, shaving
+539	명	~ person(s)
+540	명절	holidays, annual events
+541	몇	a few, a number of
+542	모두	all, everyone
+543	모레	the day after tomorrow
+544	모르겠습니다	I don't know.
+545	모르다	do not know
+546	모시다	take you, serve you (honorific form)
+547	모양	shape, form, style
+548	모으다	collect, gather
+549	모이다	gather, get together
+550	모임	meeting, gathering
+551	모자	hat
+552	목	neck, throat
+553	목걸이	necklace
+554	목소리	voice
+555	목요일	Thursday
+556	목욕	bath, bathing
+557	목욕하다	take a bath
+558	목적	purpose
+559	몸	body
+560	몸살	sickness, disease that comes from fatigue
