@@ -121,6 +121,17 @@ function csvField(s) {
   return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 }
 
+// アプリ用JSON（音素数クイズの出題データ）
+const wordsJson = rows
+  .slice()
+  .sort((a, b) => a.no - b.no)
+  .map((r) => ({ w: r.word, e: r.english, p: r.phonemes }));
+fs.writeFileSync(
+  path.join(__dirname, "..", "src", "data", "words.json"),
+  JSON.stringify(wordsJson),
+  "utf8"
+);
+
 const header = "phonemes,word,english,no";
 const body = rows
   .map((r) => [r.phonemes, csvField(r.word), csvField(r.english), r.no].join(","))

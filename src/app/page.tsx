@@ -541,7 +541,10 @@ export default function QuizPage() {
             スタート
           </button>
           <Link href="/phoneme" className="link-btn">
-            音素数クイズへ →
+            音素数クイズ（母音）へ →
+          </Link>
+          <Link href="/words" className="link-btn">
+            単語の音素数クイズへ →
           </Link>
         </div>
         {renderStats()}

@@ -427,6 +427,84 @@ body {
   color: #fff;
 }
 
+/* Word phoneme quiz number buttons */
+.num-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 6px;
+}
+
+.num-btn {
+  aspect-ratio: 1;
+  border: 2px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.num-btn:hover {
+  border-color: var(--color-primary);
+  background: #e3f2fd;
+}
+
+.num-btn:active {
+  transform: scale(0.93);
+  background: var(--color-primary);
+  color: #fff;
+  border-color: var(--color-primary);
+}
+
+.num-btn.correct {
+  border-color: var(--color-correct);
+  background: var(--color-correct);
+  color: #fff;
+}
+
+.num-btn.incorrect {
+  border-color: var(--color-incorrect);
+  background: var(--color-incorrect);
+  color: #fff;
+}
+
+/* Session history rows */
+.history-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--color-bg);
+  font-size: 0.82rem;
+}
+
+.history-row:last-of-type {
+  border-bottom: none;
+}
+
+.history-date {
+  color: var(--color-muted);
+  width: 88px;
+  flex-shrink: 0;
+}
+
+.history-result {
+  font-weight: 700;
+  color: var(--color-incorrect);
+}
+
+.history-result.good {
+  color: var(--color-correct);
+}
+
+.history-time {
+  color: var(--color-muted);
+  margin-left: auto;
+}
+
 /* Page link button */
 .link-btn {
   display: block;
