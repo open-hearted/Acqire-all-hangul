@@ -476,6 +476,36 @@ body {
   color: #fff;
 }
 
+/* 聞こえ方メモ buttons */
+.memo-row {
+  display: flex;
+  gap: 8px;
+}
+
+.memo-btn {
+  flex: 1;
+  padding: 10px;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.memo-btn:active {
+  background: #e3f2fd;
+  border-color: var(--color-primary);
+}
+
+.memo-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 /* Session history rows */
 .history-row {
   display: flex;

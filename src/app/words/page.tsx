@@ -24,6 +24,7 @@ interface WordAnswer {
   result: "correct" | "incorrect";
   ms: number; // 出題から回答までの時間
   ts: number; // 回答日時 (epoch ms)
+  heard?: string; // 自分にどう聞こえたか（例: "子母子" = 子音・母音・子音）任意
 }
 
 // セッションごとの記録
@@ -102,6 +103,7 @@ export default function WordPhonemeQuizPage() {
   const [chosen, setChosen] = useState<number | null>(null);
   const [checked, setChecked] = useState(false);
   const [feedback, setFeedback] = useState<AnswerResult>(null);
+  const [heard, setHeard] = useState(""); // 聞こえ方メモ（"子母子" 形式）
 
   const [sessions, setSessions] = useState<SessionLog[]>([]);
   const [wrongPool, setWrongPool] = useState<string[]>([]);
@@ -190,11 +192,26 @@ export default function WordPhonemeQuizPage() {
     }
   }
 
+  // 聞こえ方メモが入力されていれば、直前の回答記録に添付する
+  function attachHeard(answers: WordAnswer[]): WordAnswer[] {
+    if (!heard || answers.length === 0) return answers;
+    const updated = [...answers];
+    updated[updated.length - 1] = { ...updated[updated.length - 1], heard };
+    setSessionAnswers(updated);
+    const all = loadJson<WordAnswer[]>(ANSWERS_KEY, []);
+    if (all.length > 0) {
+      all[all.length - 1] = { ...all[all.length - 1], heard };
+      saveJson(ANSWERS_KEY, all);
+    }
+    return updated;
+  }
+
   function advance(answers: WordAnswer[]) {
     if (autoNextRef.current) {
       clearTimeout(autoNextRef.current);
       autoNextRef.current = null;
     }
+    setHeard("");
     const nextIndex = index + 1;
     if (nextIndex >= questions.length) {
       finishSession(answers);
@@ -402,7 +419,9 @@ export default function WordPhonemeQuizPage() {
                   </button>
                   <span className="stats-level">{a.p}音素</span>
                   <span className="stats-detail">
-                    {a.choice}と回答・{entry ? entry.e : ""}
+                    {a.choice}と回答
+                    {a.heard ? `・聞こえ: ${a.heard}` : ""}・
+                    {entry ? entry.e : ""}
                   </span>
                 </div>
               );
@@ -482,17 +501,55 @@ export default function WordPhonemeQuizPage() {
         )}
 
         {feedback === "incorrect" && (
-          <div className="btn-row">
-            <button className="btn-next" onClick={() => advance(sessionAnswers)}>
-              {index + 1 < questions.length ? "次の問題 →" : "結果を見る"}
-            </button>
-          </div>
+          <>
+            {/* 聞こえ方メモ（任意）: 子/母ボタンで組み立てる */}
+            <div className="input-wrap">
+              <span className="input-label">
+                聞こえ方をメモ（任意）:{" "}
+                {heard
+                  ? `${heard}（${heard.length}音素に聞こえた）`
+                  : "「子」「母」を聞こえた順にタップ"}
+              </span>
+              <div className="memo-row">
+                <button
+                  type="button"
+                  className="memo-btn"
+                  onClick={() => setHeard(heard + "子")}
+                >
+                  子音
+                </button>
+                <button
+                  type="button"
+                  className="memo-btn"
+                  onClick={() => setHeard(heard + "母")}
+                >
+                  母音
+                </button>
+                <button
+                  type="button"
+                  className="memo-btn"
+                  onClick={() => setHeard(heard.slice(0, -1))}
+                  disabled={heard.length === 0}
+                >
+                  ⌫ 消す
+                </button>
+              </div>
+            </div>
+            <div className="btn-row">
+              <button
+                className="btn-next"
+                onClick={() => advance(attachHeard(sessionAnswers))}
+              >
+                {index + 1 < questions.length ? "次の問題 →" : "結果を見る"}
+              </button>
+            </div>
+          </>
         )}
       </div>
 
       <button
         className="btn-reset"
-        onClick={() => finishSession(sessionAnswers)}
+        onClick={() => finishSession(attachHeard(sessionAnswers))}
         style={{ background: "transparent", color: "#757575", border: "1px solid #e0e0e0" }}
       >
         ここで終了する
