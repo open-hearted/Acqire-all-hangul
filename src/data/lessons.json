@@ -3,126 +3,147 @@
     "id": "Lesson001-01",
     "audioFile": "ㅏ.mp3",
     "answer": "ㅏ",
-    "hint": "基本母音 1"
+    "hint": "基本母音 1",
+    "phonemes": 1
   },
   {
     "id": "Lesson001-02",
     "audioFile": "ㅑ.mp3",
     "answer": "ㅑ",
-    "hint": "基本母音 2"
+    "hint": "基本母音 2",
+    "phonemes": 2
   },
   {
     "id": "Lesson001-03",
     "audioFile": "ㅓ.mp3",
     "answer": "ㅓ",
-    "hint": "基本母音 3"
+    "hint": "基本母音 3",
+    "phonemes": 1
   },
   {
     "id": "Lesson001-04",
     "audioFile": "ㅕ.mp3",
     "answer": "ㅕ",
-    "hint": "基本母音 4"
+    "hint": "基本母音 4",
+    "phonemes": 2
   },
   {
     "id": "Lesson001-05",
     "audioFile": "ㅗ.mp3",
     "answer": "ㅗ",
-    "hint": "基本母音 5"
+    "hint": "基本母音 5",
+    "phonemes": 1
   },
   {
     "id": "Lesson001-06",
     "audioFile": "ㅛ.mp3",
     "answer": "ㅛ",
-    "hint": "基本母音 6"
+    "hint": "基本母音 6",
+    "phonemes": 2
   },
   {
     "id": "Lesson001-07",
     "audioFile": "ㅜ.mp3",
     "answer": "ㅜ",
-    "hint": "基本母音 7"
+    "hint": "基本母音 7",
+    "phonemes": 1
   },
   {
     "id": "Lesson001-08",
     "audioFile": "ㅠ.mp3",
     "answer": "ㅠ",
-    "hint": "基本母音 8"
+    "hint": "基本母音 8",
+    "phonemes": 2
   },
   {
     "id": "Lesson001-09",
     "audioFile": "ㅡ.mp3",
     "answer": "ㅡ",
-    "hint": "基本母音 9"
+    "hint": "基本母音 9",
+    "phonemes": 1
   },
   {
     "id": "Lesson001-10",
     "audioFile": "ㅣ.mp3",
     "answer": "ㅣ",
-    "hint": "基本母音 10"
+    "hint": "基本母音 10",
+    "phonemes": 1
   },
   {
     "id": "Lesson002-01",
     "audioFile": "ㅐ.mp3",
     "answer": "ㅐ",
-    "hint": "合成母音 1"
+    "hint": "合成母音 1",
+    "phonemes": 1
   },
   {
     "id": "Lesson002-02",
     "audioFile": "ㅒ.mp3",
     "answer": "ㅒ",
-    "hint": "合成母音 2"
+    "hint": "合成母音 2",
+    "phonemes": 2
   },
   {
     "id": "Lesson002-03",
     "audioFile": "ㅔ.mp3",
     "answer": "ㅔ",
-    "hint": "合成母音 3"
+    "hint": "合成母音 3",
+    "phonemes": 1
   },
   {
     "id": "Lesson002-04",
     "audioFile": "ㅖ.mp3",
     "answer": "ㅖ",
-    "hint": "合成母音 4"
+    "hint": "合成母音 4",
+    "phonemes": 2
   },
   {
     "id": "Lesson002-05",
     "audioFile": "ㅘ.mp3",
     "answer": "ㅘ",
-    "hint": "合成母音 5"
+    "hint": "合成母音 5",
+    "phonemes": 2
   },
   {
     "id": "Lesson002-06",
     "audioFile": "ㅙ.mp3",
     "answer": "ㅙ",
-    "hint": "合成母音 6"
+    "hint": "合成母音 6",
+    "phonemes": 2
   },
   {
     "id": "Lesson002-07",
     "audioFile": "ㅚ.mp3",
     "answer": "ㅚ",
-    "hint": "合成母音 7"
+    "hint": "合成母音 7",
+    "phonemes": 2
   },
   {
     "id": "Lesson002-08",
     "audioFile": "ㅝ.mp3",
     "answer": "ㅝ",
-    "hint": "合成母音 8"
+    "hint": "合成母音 8",
+    "phonemes": 2
   },
   {
     "id": "Lesson002-09",
     "audioFile": "ㅞ.mp3",
     "answer": "ㅞ",
-    "hint": "合成母音 9"
+    "hint": "合成母音 9",
+    "phonemes": 2
   },
   {
     "id": "Lesson002-10",
     "audioFile": "ㅟ.mp3",
     "answer": "ㅟ",
-    "hint": "合成母音 10"
+    "hint": "合成母音 10",
+    "phonemes": 2
   },
   {
     "id": "Lesson002-11",
     "audioFile": "ㅢ.mp3",
     "answer": "ㅢ",
-    "hint": "合成母音 11"
+    "hint": "合成母音 11",
+    "phonemes": 2
   }
 ]
