@@ -53,6 +53,7 @@
 3,감,persimmon,33
 3,값,price,46
 3,강,river,47
+3,거의,"almost, nearly",60
 3,것,"that, thing, it",77
 3,곧,soon,120
 3,곳,place,124
@@ -145,7 +146,6 @@
 3,어머,"oh, well",1004
 3,어서,"hurry, quickly",1007
 3,어제,yesterday,1010
-3,없이,without,1020
 3,역,station,1040
 3,열,10,1049
 3,영,"spirit, zero",1056
@@ -218,7 +218,6 @@
 4,거기,there,56
 4,거리,street,57
 4,거울,mirror,59
-4,거의,"almost, nearly",60
 4,게임,game,78
 4,고기,meat,103
 4,고모,paternal aunt,110
@@ -246,9 +245,11 @@
 4,내다,"pay, put out",297
 4,내일,tomorrow,302
 4,너무,"too, very",308
+4,넣다,put in,312
 4,년,year,317
 4,노래,song,320
 4,노트,note,324
+4,놓다,put,331
 4,누가,who,332
 4,누구,who,333
 4,누나,sister (as seen from the younger brother),334
@@ -306,6 +307,7 @@
 4,서다,stand,783
 4,서로,"each other, both",784
 4,서울,Seoul,789
+4,세계,world,810
 4,소개,introduction,821
 4,소리,"sound, voice",825
 4,소파,sofa,829
@@ -317,6 +319,7 @@
 4,쉰,50,858
 4,스키,"ski, skiing",864
 4,스타,star,866
+4,시계,clock,877
 4,시내,"downtown, city, stream",880
 4,시다,sour,881
 4,시디,CD,882
@@ -345,6 +348,7 @@
 4,얼음,ice,1017
 4,엄마,mom,1018
 4,없다,"none, no, not",1019
+4,없이,without,1020
 4,여기,here,1025
 4,여러,"various, many",1030
 4,여자,woman,1036
@@ -389,6 +393,7 @@
 4,잃다,lose,1237
 4,입구,entrance,1240
 4,입다,"put on, wear",1241
+4,입학,admission,1243
 4,있다,"have, there",1244
 4,잊다,forget,1245
 4,자기,"myself, own",1248
@@ -398,10 +403,12 @@
 4,자주,often,1260
 4,저거,that,1290
 4,저기,"there, over there",1293
+4,저희,we,1299
 4,제가,I,1330
 4,제일,most,1332
 4,조카,nephew,1342
 4,종이,paper,1351
+4,좋다,good,1353
 4,주다,give,1357
 4,주로,mainly,1358
 4,주부,housewife,1364
@@ -421,6 +428,7 @@
 4,처음,"first, for the first time",1444
 4,추다,dance,1462
 4,추억,memory,1464
+4,축하,celebration,1467
 4,치마,skirt,1484
 4,카드,card,1496
 4,카레,curry,1497
@@ -431,6 +439,7 @@
 4,크기,size,1515
 4,크다,"big, large",1516
 4,타다,"ride, get on",1523
+4,특히,"especially, in particular",1544
 4,파티,party,1552
 4,편,"side, episode",1563
 4,포도,grape,1568
@@ -443,6 +452,7 @@
 4,허리,"waist, hip",1633
 4,형,brother (as seen from the younger brother),1636
 4,호주,Australia,1641
+4,회의,conference,1660
 4,후배,Junior,1663
 5,가끔,sometimes,5
 5,가방,bag,8
@@ -461,6 +471,10 @@
 5,걷다,walk,71
 5,걸다,"bet, call",72
 5,겨울,winter,79
+5,계단,stairs,96
+5,계란,egg,97
+5,계속,continue,99
+5,계절,season,101
 5,고장,"broken, malfunction",114
 5,골프,golf,122
 5,곱다,beautiful,123
@@ -517,13 +531,11 @@
 5,냄새,smell,304
 5,넓다,wide,309
 5,넘다,"exceed, more than",310
-5,넣다,put in,312
 5,넷째,fourth,316
 5,녹차,green tea,326
 5,놀다,play,327
 5,농구,basketball,329
 5,높다,high,330
-5,놓다,put,331
 5,눕다,"lie down, sleep",340
 5,뉴스,news,341
 5,느낌,feeling,344
@@ -646,7 +658,6 @@
 5,서쪽,"west, western",792
 5,선배,"elder, senior",794
 5,선수,player,796
-5,세계,world,810
 5,세우다,"set up, formulate",812
 5,센터,center,816
 5,셋째,third,819
@@ -664,7 +675,6 @@
 5,쉬다,rest,857
 5,스물,20,861
 5,시간,time,875
-5,시계,clock,877
 5,시골,countryside,878
 5,시민,citizen,883
 5,시설,facility,884
@@ -679,6 +689,7 @@
 5,싫다,hate,907
 5,싶다,want,914
 5,싸우다,fight,916
+5,쌓이다,"stack up, pile up",919
 5,썰다,"chop, cut",920
 5,쓰이다,"be written, be used",924
 5,씹다,"chew, bite",927
@@ -694,6 +705,8 @@
 5,약사,pharmacist,983
 5,얇다,thin,985
 5,양파,onion,990
+5,어떻게,how,997
+5,어떻다,how,998
 5,어리다,young,1002
 5,어린이,child,1003
 5,어머니,mother,1005
@@ -722,7 +735,6 @@
 5,요즘,"nowadays, around this time, lately",1119
 5,운동,exercise,1127
 5,월세,monthly rent,1145
-5,웬일,"for some reason, What was it?",1147
 5,유럽,Europe,1152
 5,유월,June,1155
 5,유학,study abroad,1156
@@ -731,6 +743,8 @@
 5,음반,record,1164
 5,음식,"food, cooking",1165
 5,이따가,later,1176
+5,이렇게,"like this, so, in this way",1178
+5,이렇다,like this,1179
 5,이메일,e-mail,1181
 5,이모부,maternal uncle,1183
 5,이야기,story,1190
@@ -743,7 +757,6 @@
 5,일월,January,1230
 5,일찍,early,1232
 5,일흔,70,1234
-5,입학,admission,1243
 5,자료,"material, document",1252
 5,자신,"myself, own",1255
 5,자연,nature,1256
@@ -761,7 +774,6 @@
 5,저곳,over there,1292
 5,저분,that person,1297
 5,저쪽,"there, over there",1298
-5,저희,we,1299
 5,적다,"be few, write down",1301
 5,절대,"never, absolutely",1312
 5,젊다,young,1313
@@ -777,7 +789,6 @@
 5,좁다,narrow,1347
 5,종로,Jong-ro,1348
 5,종일,all day,1352
-5,좋다,good,1353
 5,주말,weekend,1359
 5,죽다,die,1374
 5,준비,preparation,1375
@@ -800,7 +811,6 @@
 5,추석,Chusoku (Korean Thanksgiving Day),1463
 5,축구,"football, soccer",1465
 5,축제,festival,1466
-5,축하,celebration,1467
 5,출구,exit,1470
 5,춥다,cold,1477
 5,취미,hobby,1478
@@ -816,7 +826,6 @@
 5,태국,Thailand,1526
 5,태풍,typhoon,1529
 5,택시,taxi,1530
-5,특히,"especially, in particular",1544
 5,틀다,turn on (the switch),1545
 5,팔다,sell,1554
 5,페이지,page,1560
@@ -838,7 +847,6 @@
 5,홍차,black tea,1645
 5,화가,"artist, painter",1647
 5,회사,company,1657
-5,회의,conference,1660
 5,휴가,"vacation, holiday",1664
 5,휴일,holiday,1666
 5,휴지,toilet paper,1667
@@ -858,10 +866,8 @@
 6,경기,"competition, game",87
 6,경주,Gyeongju,90
 6,경치,"view, landscape",94
-6,계단,stairs,96
-6,계란,egg,97
-6,계속,continue,99
-6,계절,season,101
+6,계시다,"be, exist (honorific form)",100
+6,계획,plan,102
 6,고르다,choose,106
 6,고모부,paternal uncle,111
 6,고양이,cat,113
@@ -875,6 +881,7 @@
 6,공책,"notebook, note",135
 6,공항,airport,136
 6,과학,science,142
+6,관계,relation,143
 6,광고,advertisement,146
 6,교실,classroom,151
 6,교통,traffic,153
@@ -886,6 +893,8 @@
 6,그냥,"just, as it is",182
 6,그래서,"so, thus",187
 6,그러나,"but, however",189
+6,그렇게,"like that, so",195
+6,그렇다,"Yes, that's it.",197
 6,그리고,and,201
 6,그리다,draw,202
 6,그저께,day before yesterday,206
@@ -893,9 +902,11 @@
 6,극장,"theater, cinema",210
 6,금방,"soon, a little while ago",214
 6,금연,no smoking,215
+6,급하다,"hurry, urgent",219
 6,기르다,"cultivate, grow",222
 6,기쁘다,happy,226
 6,김밥,Kimbab,239
+6,까맣다,black,244
 6,깜짝,"startled, surprised",246
 6,깨지다,"chip, crack, break",249
 6,꺼내다,take out,250
@@ -910,6 +921,7 @@
 6,내년,next year,296
 6,내리다,go down,300
 6,넥타이,necktie,314
+6,노랗다,yellow,319
 6,녹색,green,325
 6,누르다,"press down, push",335
 6,눈물,tear,337
@@ -924,6 +936,7 @@
 6,다이어트,diet,364
 6,다치다,hurt,365
 6,단점,"disadvantage, shortcoming, drawback",368
+6,닫히다,"shut, close",370
 6,답장,reply,382
 6,당근,carrot,383
 6,당신,you,384
@@ -949,6 +962,7 @@
 6,마르다,dry,491
 6,마시다,drink,493
 6,마치다,"finish, end",496
+6,막히다,"be blocked, be clogged",498
 6,만화,"comic book, cartoon",505
 6,말씀,"words, remarks",509
 6,맞아요,That's right.,519
@@ -960,6 +974,7 @@
 6,목욕,"bath, bathing",556
 6,목적,purpose,558
 6,몸살,"sickness, disease that comes from fatigue",560
+6,못하다,~ can not do,561
 6,몽골,Mongolia,562
 6,문장,sentence,578
 6,문화,culture,580
@@ -1024,7 +1039,6 @@
 6,신발,"shoes, footwear",901
 6,실례,excuse,904
 6,쌀밥,cooked rice,918
-6,쌓이다,"stack up, pile up",919
 6,쓰레기,garbage,923
 6,아버님,father,943
 6,아줌마,"old lady, madame, aunt",952
@@ -1037,8 +1051,6 @@
 6,양복,suit,988
 6,양식,"form, western style",989
 6,어둡다,dark,994
-6,어떻게,how,997
-6,어떻다,how,998
 6,어머님,mother,1006
 6,언제나,"always, anytime",1014
 6,얼마나,how much,1016
@@ -1061,11 +1073,10 @@
 6,울리다,"make cry, chime",1135
 6,웃기다,"funny, make someone laugh",1137
 6,월급,monthly salary,1143
+6,웬일,"for some reason, What was it?",1147
 6,위하다,"for, in favor of, for the sake of",1150
 6,육십,60,1160
 6,음악가,musician,1167
-6,이렇게,"like this, so, in this way",1178
-6,이렇다,like this,1179
 6,이집트,Egypt,1197
 6,인형,doll,1214
 6,일본어,Japanese language,1223
@@ -1078,6 +1089,7 @@
 6,장갑,gloves,1279
 6,장점,advantage,1284
 6,저녁,"dinner, evening, night",1294
+6,저렇게,"like that, in that way",1296
 6,전공,major,1303
 6,전혀,not at all,1307
 6,전화,telephone,1308
@@ -1102,6 +1114,7 @@
 6,직접,"directly, direct",1413
 6,질문,question,1416
 6,차리다,"prepare, arrange",1431
+6,착하다,"be good, friendly",1432
 6,창문,window,1434
 6,책방,bookstore,1440
 6,책상,desk,1441
@@ -1122,6 +1135,7 @@
 6,토요일,Saturday,1537
 6,통장,"bank book, (deposit) passbook",1539
 6,특징,"characteristic, feature",1543
+6,파랗다,blue,1551
 6,팔십,80,1556
 6,팔월,August,1557
 6,패션,fashion,1558
@@ -1129,6 +1143,7 @@
 6,평일,weekday,1567
 6,필름,film,1584
 6,필통,pencil case,1587
+6,하얗다,white,1596
 6,학교,school,1599
 6,학생,student,1602
 6,학원,"academy, school",1604
@@ -1147,6 +1162,7 @@
 6,환자,patient,1656
 6,회색,grey,1659
 6,흐리다,cloudy,1669
+6,흰색,white color,1670
 7,가깝다,close,4
 7,간호사,nurse,28
 7,갑자기,suddenly,45
@@ -1158,33 +1174,25 @@
 7,결혼,marriage,84
 7,경찰,police,91
 7,경험,experience,95
-7,계시다,"be, exist (honorific form)",100
-7,계획,plan,102
 7,고맙다,thank,108
 7,고추장,"Kochujang, red pepper paste",116
-7,관계,relation,143
 7,관심,"attention, interest",145
 7,그동안,"meantime, meanwhile, up to now",183
 7,그런데,"by the way, however",193
-7,그렇게,"like that, so",195
-7,그렇다,"Yes, that's it.",197
 7,글쎄요,"I do not know., well, I guess ~",213
 7,금요일,Friday,216
-7,급하다,"hurry, urgent",219
 7,기숙사,dormitory,228
-7,까맣다,black,244
+7,기억하다,remember,229
 7,끝나다,"finish, end",260
 7,끝내다,finish,261
 7,남기다,leave,281
 7,남편,husband,289
 7,냉면,cold noodle,305
-7,노랗다,yellow,319
 7,노래방,Karaoke shop,321
 7,놀라다,be surprised,328
 7,눈싸움,"staring contest, snowball fight",339
 7,능력,ability,348
 7,다음달,next month,361
-7,닫히다,"shut, close",370
 7,달걀,egg,372
 7,달력,calendar,375
 7,달리다,run,376
@@ -1204,7 +1212,6 @@
 7,똑바로,"upright, straight",481
 7,뜨겁다,hot,483
 7,마지막,last,495
-7,막히다,"be blocked, be clogged",498
 7,만나다,meet,500
 7,만지다,touch,504
 7,말하기,speaking,511
@@ -1217,7 +1224,6 @@
 7,목걸이,necklace,553
 7,목소리,voice,554
 7,목요일,Thursday,555
-7,못하다,~ can not do,561
 7,무겁다,heavy,564
 7,무섭다,scary,569
 7,밀가루,flour,597
@@ -1234,13 +1240,14 @@
 7,브라질,Brazil,701
 7,비행기,airplane,710
 7,빌리다,"borrow, lend",713
+7,빨갛다,red,716
+7,사계절,four seasons,726
 7,사무실,office,734
 7,사진기,camera,748
 7,삼거리,"intersection, three-way intersection",757
 7,상관,relation,762
 7,생기다,"form, arise",776
 7,생활,life,780
-7,서울역,Seoul station,790
 7,설거지,"washing dishes, dish-washing",799
 7,설명,"explanation, description",802
 7,성격,personality,808
@@ -1288,17 +1295,16 @@
 7,작년,last year,1261
 7,잘하다,"do well, good at",1270
 7,잠자다,"sleep, go to bed",1274
-7,저렇게,"like that, in that way",1296
 7,전하다,tell,1306
 7,정하다,"choose, establish",1329
 7,조용히,quietly,1341
+7,좋아하다,like,1354
 7,주차장,parking lot,1370
 7,중국어,Chinese,1381
 7,즐기다,"enjoy, have fun",1391
 7,지난주,last week,1399
 7,지하철,subway,1408
 7,차갑다,cold,1429
-7,착하다,"be good, friendly",1432
 7,찾아오다,come to visit,1437
 7,청바지,blue jeans,1451
 7,청소기,vacuum cleaner,1452
@@ -1310,14 +1316,12 @@
 7,통하다,"pass, lead",1540
 7,틀리다,wrong,1546
 7,티셔츠,t-shirt,1547
-7,파랗다,blue,1551
 7,팔리다,"sell, be sold",1555
 7,퍼센트,percent,1559
 7,평양,Pyongyang,1566
 7,표현,expression,1571
 7,프랑스,France,1575
 7,프린트,print,1577
-7,하얗다,white,1596
 7,하지만,"but, however",1597
 7,학년,"grade, school year",1601
 7,한국어,Korean language,1611
@@ -1329,7 +1333,6 @@
 7,화나다,angry,1648
 7,화내다,get angry,1649
 7,화요일,Tuesday,1650
-7,흰색,white color,1670
 8,가르치다,teach,7
 8,가볍다,light,9
 8,가져오다,bring,18
@@ -1347,10 +1350,11 @@
 8,귀엽다,cute,174
 8,그러니까,"so, because",190
 8,그러면,"then, if so",191
+8,그렇구나,"well, I see.",196
 8,기다리다,wait,221
 8,기뻐하다,"glad, delight",225
-8,기억하다,remember,229
 8,까만색,black color,243
+8,깨끗하다,clean,247
 8,나빠지다,"spoil, deteriorate",269
 8,나타나다,appear,274
 8,내려오다,come down,299
@@ -1360,16 +1364,19 @@
 8,노래하다,sing,322
 8,눈사람,snowman,338
 8,다녀오다,"return, come back",353
+8,대답하다,"answer, reply",387
 8,대사관,embassy,389
 8,대학교,"university, college",391
 8,대학생,college student,392
 8,대학원,graduate school,393
 8,도서관,library,408
 8,도와주다,help,410
+8,도착하다,arrive,413
 8,독서실,reading room,416
 8,돌아가다,"return, go back",420
 8,두부찌개,tofu soup,442
 8,들어가다,"go in, enter",454
+8,따뜻하다,warm,462
 8,따라가다,follow,463
 8,떨어지다,drop,477
 8,똑같다,same,480
@@ -1384,15 +1391,18 @@
 8,발가락,toe(s),625
 8,배고프다,hungry,638
 8,배부르다,be full (I am full.),641
+8,백화점,department store,646
 8,변호사,lawyer,658
 8,볶음밥,fried rice,671
 8,부동산,real estate,677
+8,부탁하다,"beg, ask",690
 8,블라우스,blouse,702
 8,비빔밥,"Bibimbap, mixed rice",707
+8,비슷하다,"similar, like",708
 8,비행장,"airfield, airport",711
-8,빨갛다,red,716
-8,사계절,four seasons,726
 8,사인하다,sign,744
+8,삼계탕,Samgyetang,758
+8,서울역,Seoul station,790
 8,선풍기,fan,798
 8,설악산,Mt. Seorak,804
 8,세수하다,wash,811
@@ -1406,6 +1416,7 @@
 8,숟가락,spoon,855
 8,스트레스,stress,868
 8,시간표,"schedule, timetable",876
+8,시작하다,"start, begin",890
 8,신청서,application forms,902
 8,싫어하다,"dislike, hate",908
 8,십일월,November,912
@@ -1446,8 +1457,8 @@
 8,정거장,"station, depot",1322
 8,조사하다,investigate,1335
 8,조선말,Korean language,1337
+8,졸업하다,graduate,1344
 8,종업원,employee,1350
-8,좋아하다,like,1354
 8,주무시다,"sleep, rest",1361
 8,주차하다,park,1371
 8,즐겁다,"fun, be pleasant",1390
@@ -1459,6 +1470,7 @@
 8,초대하다,invite,1455
 8,초록색,green color,1458
 8,초콜릿,chocolate,1459
+8,축하하다,celebrate,1468
 8,커피숍,coffee shop,1503
 8,컴퓨터,"computer, PC",1504
 8,큰아버지,uncle,1518
@@ -1481,60 +1493,58 @@
 9,건너편,"other side, opposite side",68
 9,경기장,"stadium, arena",88
 9,경찰서,police office,93
+9,계산하다,calculate,98
 9,고속버스,express bus,112
 9,공부하다,study,130
 9,괜찮다,be okay,147
-9,그렇구나,"well, I see.",196
+9,그렇지만,"nevertheless, but",199
 9,김치찌개,Kimchi stew,241
-9,깨끗하다,clean,247
 9,남동생,younger brother,284
 9,남학생,male student,290
 9,내려가다,go down,298
-9,대답하다,"answer, reply",387
-9,도착하다,arrive,413
+9,노력하다,"endeavor, strive",323
 9,독서하다,read,417
 9,돼지고기,pork,433
 9,등산복,mountaineering clothing,458
 9,등산화,"hiking boots, climbing shoes",459
-9,따뜻하다,warm,462
 9,맞은편,"across, the other side, opposite",520
+9,목욕하다,take a bath,557
 9,미술관,"art gallery, art museum",591
 9,민속촌,folk village,596
 9,방송국,broadcast stations,635
-9,백화점,department store,646
+9,복잡하다,"complicated, crowded",669
 9,부드럽다,"soft, friendly",678
-9,부탁하다,"beg, ask",690
-9,비슷하다,"similar, like",708
 9,빨간색,red color,715
 9,사랑하다,love,732
 9,사용하다,use,738
-9,삼계탕,Samgyetang,758
 9,샌드위치,sandwich,772
+9,생각하다,think,775
 9,샤워하다,take a shower,781
 9,선생님,teacher,795
+9,선택하다,"choose, select",797
 9,설렁탕,Seolleongtang,801
 9,센티미터,centimeter,817
 9,수술하다,operate on for,844
 9,슬퍼하다,"sorrow, mourn",871
 9,시끄럽다,noisy,879
 9,시원하다,"cool, refresh",886
-9,시작하다,"start, begin",890
 9,아름답다,beautiful,940
 9,아이스크림,ice cream,948
 9,아침식사,breakfast,956
 9,안전하다,safe,969
 9,엘리베이터,elevator,1023
+9,연습하다,practice,1045
 9,영화배우,movie star,1064
 9,영화표,movie ticket,1065
 9,오래간만,after a long time,1077
 9,오랫동안,for a long time,1081
+9,올려놓다,"put on, place",1095
 9,외출하다,go out,1111
 9,외할머니,maternal grandmother,1112
 9,운동하다,exercise,1131
 9,운전하다,drive,1133
 9,위험하다,dangerous,1151
 9,이야기하다,talk,1191
-9,일본요리,Japanese food,1224
 9,잃어버리다,lose,1238
 9,입원하다,hospitalize,1242
 9,잊어버리다,forget,1246
@@ -1544,7 +1554,6 @@
 9,정리하다,"straighten out, organize",1325
 9,조심하다,"be careful, warn",1339
 9,조용하다,"silent, quiet",1340
-9,졸업하다,graduate,1344
 9,주문하다,order,1362
 9,주황색,orange color,1372
 9,준비하다,prepare,1376
@@ -1553,8 +1562,8 @@
 9,중학교,"middle school, Junior high school",1387
 9,중학생,middle school student,1388
 9,청소하다,"sweep, clean",1453
-9,축하하다,celebrate,1468
 9,취소하다,cancel,1479
+9,취직하다,get a job,1480
 9,치료하다,treat,1483
 9,킬로미터,kilometer,1522
 9,특별히,especially,1542
@@ -1564,6 +1573,7 @@
 9,학생증,student ID card,1603
 9,한국말,Korean language,1609
 9,해외여행,overseas trip,1626
+9,행복하다,happy,1631
 9,화장실,"restroom, toilet, lavatory",1651
 9,화장품,cosmetics,1652
 10,간단하다,"simple, easy",24
@@ -1572,48 +1582,37 @@
 10,건강하다,be healthy,65
 10,결혼식,wedding ceremony,85
 10,경복궁,Gyeongbokgung,89
-10,계산하다,calculate,98
 10,교통사고,traffic accident,154
 10,구경하다,take a look,157
-10,그렇지만,"nevertheless, but",199
-10,노력하다,"endeavor, strive",323
 10,된장국,soybean paste soup,436
 10,말씀하다,talk,510
 10,맞습니다,That's right.,518
-10,목욕하다,take a bath,557
 10,박물관,museum,612
-10,복잡하다,"complicated, crowded",669
-10,생각하다,think,775
-10,선택하다,"choose, select",797
 10,슈퍼마켓,supermarket,860
 10,시작되다,begin,889
 10,신청하다,"put in for, apply for",903
 10,실례하다,be excused,905
-10,연습하다,practice,1045
+10,어떻습니까?,How is it?,999
 10,영어회화,English conversation,1060
 10,영화관,movie theater,1063
-10,올려놓다,"put on, place",1095
 10,외할아버지,maternal grandfather,1113
 10,운동선수,athlete,1129
 10,유명하다,famous,1154
 10,일본사람,Japanese people,1222
+10,일본요리,Japanese food,1224
 10,작은아버지,uncle,1263
 10,작은어머니,aunt,1264
 10,잘생기다,handsome,1269
 10,전자사전,electronic dictionary,1305
 10,죄송하다,sorry,1355
-10,지하철역,subway station,1409
 10,질문하다,ask a question,1417
 10,출근하다,go to work,1471
 10,출발하다,depart,1473
-10,취직하다,get a job,1480
 10,친절하다,be kind,1487
 10,크리스마스,Christmas,1517
 10,킬로그램,kilogram,1521
 10,텔레비전,TV,1535
 10,퇴근하다,leave the office,1541
-10,한국요리,Korean cuisine,1612
-10,행복하다,happy,1631
 10,화장하다,makeup,1653
 10,확인하다,"confirm, check",1654
 11,겨울방학,winter vacation,80
@@ -1622,6 +1621,7 @@
 11,경찰관,police officer,92
 11,고등학교,high school,104
 11,고등학생,high school student,105
+11,그렇습니다,That's right.,198
 11,긴장되다,be nervous,235
 11,김포공항,Gimpo International Airport,242
 11,대학원생,"postgraduate student, graduate student",394
@@ -1633,7 +1633,6 @@
 11,생각되다,"be considered, it seems~",774
 11,설명하다,explain,803
 11,알았습니다,I understood.,974
-11,어떻습니까?,How is it?,999
 11,왜냐하면,because,1104
 11,인터뷰하다,interview,1213
 11,일본드라마,Japanese drama,1220
@@ -1642,10 +1641,13 @@
 11,점심시간,lunchtime,1317
 11,점심식사,lunch,1318
 11,즐거워하다,have fun,1389
+11,지하철역,subway station,1409
 11,초등학교,elementary school,1456
 11,초등학생,elementary student,1457
 11,촬영하다,take a picture,1460
+11,축하합니다,congratulations,1469
 11,한국사람,Korean people,1610
+11,한국요리,Korean cuisine,1612
 11,환영하다,welcome,1655
 11,횡단보도,crosswalk,1661
 11,휴대전화,"cell phone, mobile phone",1665
@@ -1653,12 +1655,10 @@
 12,고맙습니다,Thank you,109
 12,공중전화,"payphone, public phone",133
 12,관광하다,"travel, sightsee",144
-12,그렇습니다,That's right.,198
 12,안녕하세요,"hi, hello",966
 12,일상생활,everyday life,1225
 12,자동차회사,car company,1251
 12,전기자동차,electric car,1304
-12,축하합니다,congratulations,1469
 12,한국드라마,Korean drama,1608
 13,남대문시장,Namdaemun market,283
 13,동대문시장,Dongdaemun market,424
