@@ -40,7 +40,7 @@ interface SessionLog {
 
 const WORDS: WordEntry[] = wordsData as WordEntry[];
 const MAX_PHONEMES = Math.max(...WORDS.map((w) => w.p)); // 18
-const COUNT_OPTIONS = [10, 20, 50, 100];
+const COUNT_OPTIONS = [10, 20, 50, 100, Infinity]; // Infinity = 全単語一気
 
 const ANSWERS_KEY = "word-quiz-answers";
 const SESSIONS_KEY = "word-quiz-sessions";
@@ -289,7 +289,7 @@ export default function WordPhonemeQuizPage() {
                   className={count === n ? "active" : ""}
                   onClick={() => setCount(n)}
                 >
-                  {n}問
+                  {Number.isFinite(n) ? `${n}問` : "全部"}
                 </button>
               ))}
             </div>
