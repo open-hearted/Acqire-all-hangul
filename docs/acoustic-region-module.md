@@ -91,7 +91,9 @@ Phase 1 の骨格は `src/lib/acoustic-region/` に実装されている。
 | localStorage 実装（Phase 1） | `localStorageRepository.ts` |
 | 固定ユーザーID `"local-user"` とファクトリ | `index.ts` |
 | 基本母音クイズのエラー分析 | `vowelAnalysis.ts` |
-| 単語クイズの error_log 連携 | `wordAnalysis.ts` |
+| ハングル→位置つきIPA音素列の変換（標準発音） | `hangulPhonemes.ts` |
+| 語彙マスタ（words.json から実行時導出） | `wordMaster.ts` |
+| 単語クイズの error_log 連携・聞こえ方メモによる自動分類 | `wordAnalysis.ts` |
 | 被覆率の集計（知覚不能順ソート・誤答領域の分布・未分類誤答） | `stats.ts` |
 | 進捗表示ページ | `src/app/regions/page.tsx`（`/regions`） |
 
@@ -109,12 +111,21 @@ Phase 1 の骨格は `src/lib/acoustic-region/` に実装されている。
 
 判定は各問題の初回回答のみ記録する（「もう一度」での再回答は記録しない）。クイズページ既存の localStorage 記録（`hangul-phoneme-stats`）とは独立に追記される。
 
-### 単語クイズの error_log 連携
+### 語彙マスタの位置つき音素列
 
-単語クイズ（`/words`）も全回答を error_log に記録する。ただし語彙マスタの位置つき音素列が未整備のため、単語の誤答は error_regions を**自動導出できない**。
+`hangulPhonemes.ts` がハングルを標準発音ベースの位置つきIPA音素列に変換する。`scripts/count-phonemes.js` の音素数ロジック（激音化・ㅎ脱落・連音・ㄴ挿入・ㅖ/ㅢ単母音化）を音素列生成に拡張したもので、**全1671語で words.json の音素数 p と列長が一致する**ことを検証済み。加えて音素数を変えない音変化（鼻音化・流音化・濃音化・口蓋音化・終声の中和・二重パッチム簡素化）も反映する。
+
+- 位置は発音形の音節構造に基づく（連音した終声は次音節の initial になる。例: 없이 → ʌ / p̚(final) / s͈(initial) / i）
+- 語彙マスタ（`wordMaster.ts`）は words.json から実行時に導出する。静的データの二重管理を避けるため。WordRepository への投入は Supabase 移行時
+- 領域タグは `位置:音素` 形式（例: `final:t̚`, `medial:j`）。`wordsByRegion(tag)` が「同じ音響領域に属する別語彙」の選定キーになる
+
+### 単語クイズの error_log 連携と自動分類
+
+単語クイズ（`/words`）も全回答を error_log に記録する。
 
 - 正答 → 即時記録（errorRegions 空配列。成功率の分母）
-- 誤答 → 聞こえ方メモの確定（次の問題へ進む/終了する）を待ってから記録。errorRegions は未分類（空配列）のまま、`heard_pattern` を後の分類の手がかりとして残す
-- 正誤の判別は `answered_count` と `correct_phoneme_count` の比較で行う（`isErrorRecord`）。未分類の誤答は `/regions` の「未分類の誤答」欄に出る
+- 誤答 → 聞こえ方メモの確定（次の問題へ進む/終了する）を待ってから記録
+- 誤答の分類（`classifyWordAnswer`）: 聞こえ方メモの子母パターンが正解の音素列パターンの**部分列**になっている場合、左から貪欲に対応づけ、対応しなかった音素を誤答領域とする。隣に同じ音素が残る場合は統合（merger、例: 설렁탕の l+l → `l:`）、それ以外は脱落（deletion）。例: 셋(子母子)を「子母」と聞いた → `final:deletion:t̚`
+- メモが無い/部分列にならない（過剰検出・置換）場合は未分類（空配列）のまま記録し、`/regions` の「未分類の誤答」欄に出る。heard_pattern は残るので後から分類ロジックを改良して再分類できる
+- 単語の被覆率（`computeWordCoverage`）: 出題語が含む全領域タグが分母、誤答領域に該当しなかった分が分子。未分類誤答は集計から除外する
 - meaning は Phase 1 のデータ都合で英語（words.json の `e`）。meaning_ja 整備後に置き換える
-- 語彙マスタに位置つき音素列が入れば、heard_pattern と突き合わせた自動分類（どの位置の何が落ちたか）に進める

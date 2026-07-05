@@ -3,9 +3,10 @@
 // 進捗は正答率ではなく「音響領域ごとの検出成功率」で見る。
 // 分母 = その領域が試された回数、分子 = 検出に成功した回数。
 
-import type { ErrorLogRecord, ErrorRegion } from "./types";
+import type { ErrorLogRecord, ErrorRegion, RegionPosition } from "./types";
 import { regionKey } from "./types";
 import { VOWELS } from "./vowelAnalysis";
+import { getWordMaster } from "./wordMaster";
 
 export interface RegionCoverage {
   key: string;
@@ -49,6 +50,64 @@ export function computeVowelCoverage(
     if (!entry.words.includes(r.word)) entry.words.push(r.word);
   }
   return [...map.values()].sort((a, b) => coverageRate(a) - coverageRate(b));
+}
+
+// ─── 単語の被覆率（語彙マスタの領域タグベース） ─────────────────────────────
+
+export interface TagCoverage {
+  /** 領域タグ（例: "final:t̚"） */
+  tag: string;
+  position: RegionPosition;
+  phoneme: string;
+  /** この領域を含む語が出題された回数（分母） */
+  attempts: number;
+  /** この領域で誤答しなかった回数（分子） */
+  detected: number;
+  /** この領域を試した単語（表示用） */
+  words: string[];
+}
+
+export function tagCoverageRate(c: TagCoverage): number {
+  return c.attempts === 0 ? 0 : c.detected / c.attempts;
+}
+
+/** ErrorRegion → 領域タグ（merger の "l:" は基底音素 "l" に落とす） */
+export function errorRegionTag(region: ErrorRegion): string {
+  return `${region.position}:${region.phoneme.replace(/:$/, "")}`;
+}
+
+/**
+ * 単語クイズ由来のレコードから、語彙マスタの領域タグごとの検出成功率を集計する。
+ * 出題された語が含む全領域が分母になり、誤答領域に該当した分だけ分子が減る。
+ * 未分類の誤答（どの領域で失敗したか不明）は集計から除外する。
+ * 知覚不能順（成功率の低い順）で返す。
+ */
+export function computeWordCoverage(
+  records: ErrorLogRecord[]
+): TagCoverage[] {
+  const master = getWordMaster();
+  const map = new Map<string, TagCoverage>();
+  for (const r of records) {
+    const entry = master.get(r.word);
+    if (!entry) continue; // 母音クイズ由来などはここでは扱わない
+    const wrong = r.answeredCount !== r.correctPhonemeCount;
+    if (wrong && r.errorRegions.length === 0) continue; // 未分類誤答は除外
+    const errTags = new Set(r.errorRegions.map(errorRegionTag));
+    for (const tag of entry.regions) {
+      let cov = map.get(tag);
+      if (!cov) {
+        const [position, phoneme] = tag.split(":") as [RegionPosition, string];
+        cov = { tag, position, phoneme, attempts: 0, detected: 0, words: [] };
+        map.set(tag, cov);
+      }
+      cov.attempts += 1;
+      if (!errTags.has(tag)) cov.detected += 1;
+      if (!cov.words.includes(r.word)) cov.words.push(r.word);
+    }
+  }
+  return [...map.values()].sort(
+    (a, b) => tagCoverageRate(a) - tagCoverageRate(b)
+  );
 }
 
 /** 出題結果が誤答かどうか（領域分類の有無に依らない） */
@@ -123,4 +182,9 @@ const TYPE_LABEL: Record<ErrorRegion["type"], string> = {
 /** 例: 中声 /j/ の統合 */
 export function regionLabel(region: ErrorRegion): string {
   return `${POSITION_LABEL[region.position]} /${region.phoneme}/ の${TYPE_LABEL[region.type]}`;
+}
+
+/** 例: 終声 /t̚/ */
+export function tagLabel(c: Pick<TagCoverage, "position" | "phoneme">): string {
+  return `${POSITION_LABEL[c.position]} /${c.phoneme}/`;
 }

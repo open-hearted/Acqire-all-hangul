@@ -26,17 +26,28 @@ export {
   buildVowelErrorLog,
 } from "./vowelAnalysis";
 export type { VowelInfo } from "./vowelAnalysis";
-export { buildWordErrorLog } from "./wordAnalysis";
+export { buildWordErrorLog, classifyWordAnswer } from "./wordAnalysis";
 export type { WordAnswerInput } from "./wordAnalysis";
 export {
+  toPhonemes,
+  toPattern,
+  isVowelPhoneme,
+  regionTags,
+} from "./hangulPhonemes";
+export { getWordMaster, wordsByRegion } from "./wordMaster";
+export {
   computeVowelCoverage,
+  computeWordCoverage,
   tallyErrorRegions,
   coverageRate,
+  tagCoverageRate,
+  errorRegionTag,
   regionLabel,
+  tagLabel,
   isErrorRecord,
   listUnclassifiedErrors,
 } from "./stats";
-export type { RegionCoverage, RegionErrorTally } from "./stats";
+export type { RegionCoverage, RegionErrorTally, TagCoverage } from "./stats";
 
 let repositories: AcousticRegionRepositories | null = null;
 

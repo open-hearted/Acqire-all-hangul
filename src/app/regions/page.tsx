@@ -5,22 +5,40 @@ import Link from "next/link";
 import {
   getRepositories,
   computeVowelCoverage,
+  computeWordCoverage,
   tallyErrorRegions,
   coverageRate,
+  tagCoverageRate,
   regionLabel,
+  tagLabel,
   isErrorRecord,
   listUnclassifiedErrors,
   LOCAL_USER_ID,
   type ErrorLogRecord,
   type RegionCoverage,
+  type TagCoverage,
 } from "@/lib/acoustic-region";
 
 // 検出成功率 → 表示レベル（既存の stats-row のスタイルを流用）
-function coverageLevel(c: RegionCoverage): "good" | "soso" | "weak" {
-  const rate = coverageRate(c);
-  if (rate >= 0.8 && c.attempts >= 3) return "good";
+function levelOf(rate: number, attempts: number): "good" | "soso" | "weak" {
+  if (rate >= 0.8 && attempts >= 3) return "good";
   if (rate >= 0.4) return "soso";
   return "weak";
+}
+
+function coverageLevel(c: RegionCoverage): "good" | "soso" | "weak" {
+  return levelOf(coverageRate(c), c.attempts);
+}
+
+function tagCoverageLevel(c: TagCoverage): "good" | "soso" | "weak" {
+  return levelOf(tagCoverageRate(c), c.attempts);
+}
+
+// 単語リストの表示（多すぎる場合は先頭だけ）
+function wordList(words: string[], max = 4): string {
+  return words.length <= max
+    ? words.join(" ")
+    : `${words.slice(0, max).join(" ")} 他${words.length - max}語`;
 }
 
 function formatDate(iso: string) {
@@ -45,6 +63,7 @@ export default function RegionAnalysisPage() {
   if (records === null) return null;
 
   const coverage = computeVowelCoverage(records);
+  const wordCoverage = computeWordCoverage(records);
   const errorTally = tallyErrorRegions(records);
   const unclassified = listUnclassifiedErrors(records);
   const errorCount = records.filter(isErrorRecord).length;
@@ -90,6 +109,23 @@ export default function RegionAnalysisPage() {
               </span>
               <span className="stats-detail">
                 {regionLabel(c.region)}・検出 {c.detected} / {c.attempts} 回
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {wordCoverage.length > 0 && (
+        <div className="stats-section">
+          <h2>単語の音響領域 被覆率（知覚不能順）</h2>
+          {wordCoverage.map((c) => (
+            <div key={c.tag} className={`stats-row ${tagCoverageLevel(c)}`}>
+              <span className="stats-char">{tagLabel(c)}</span>
+              <span className="stats-level">
+                {Math.round(tagCoverageRate(c) * 100)}%
+              </span>
+              <span className="stats-detail">
+                検出 {c.detected} / {c.attempts} 回・{wordList(c.words)}
               </span>
             </div>
           ))}
