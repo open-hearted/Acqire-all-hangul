@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import wordsData from "@/data/words.json";
+import { buildWordErrorLog, getRepositories } from "@/lib/acoustic-region";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -114,6 +115,13 @@ export default function WordPhonemeQuizPage() {
   const autoNextRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const qStartRef = useRef(Date.now());
   const sessionStartRef = useRef(Date.now());
+  // 音響領域分析用: 聞こえ方メモの確定を待っている誤答（error_log 未記録分）
+  const pendingErrorLogRef = useRef<{
+    word: string;
+    meaning: string;
+    correct: number;
+    answered: number;
+  } | null>(null);
 
   useEffect(() => {
     setSessions(loadJson<SessionLog[]>(SESSIONS_KEY, []));
@@ -169,7 +177,28 @@ export default function WordPhonemeQuizPage() {
     playWord(qs[0].w); // スタートのタップ操作内で再生して自動再生制限を回避
   }
 
+  // 保留中の誤答を（聞こえ方メモの内容とともに）error_log へ記録する
+  function flushPendingErrorLog(heardPattern: string) {
+    const pending = pendingErrorLogRef.current;
+    if (!pending) return;
+    pendingErrorLogRef.current = null;
+    getRepositories()
+      .errorLogs.append(
+        buildWordErrorLog({
+          word: pending.word,
+          meaning: pending.meaning,
+          correctPhonemeCount: pending.correct,
+          answeredCount: pending.answered,
+          heardPattern,
+        })
+      )
+      .catch(() => {
+        // 記録失敗はクイズ進行を妨げない
+      });
+  }
+
   function finishSession(answers: WordAnswer[]) {
+    flushPendingErrorLog(heard);
     const wrong = answers.filter((a) => a.result === "incorrect").length;
     const avgMs = answers.length
       ? Math.round(answers.reduce((s, a) => s + a.ms, 0) / answers.length)
@@ -211,6 +240,7 @@ export default function WordPhonemeQuizPage() {
       clearTimeout(autoNextRef.current);
       autoNextRef.current = null;
     }
+    flushPendingErrorLog(heard);
     setHeard("");
     const nextIndex = index + 1;
     if (nextIndex >= questions.length) {
@@ -245,6 +275,30 @@ export default function WordPhonemeQuizPage() {
     };
     const answers = [...sessionAnswers, answer];
     setSessionAnswers(answers);
+
+    // 音響領域分析用の error_log にも記録する（正答も記録: 成功率の分母になる）。
+    // 誤答は聞こえ方メモの確定（次の問題へ進む/終了する）を待ってから記録する
+    if (result === "correct") {
+      getRepositories()
+        .errorLogs.append(
+          buildWordErrorLog({
+            word: question.w,
+            meaning: question.e,
+            correctPhonemeCount: question.p,
+            answeredCount: choice,
+          })
+        )
+        .catch(() => {
+          // 記録失敗はクイズ進行を妨げない
+        });
+    } else {
+      pendingErrorLogRef.current = {
+        word: question.w,
+        meaning: question.e,
+        correct: question.p,
+        answered: choice,
+      };
+    }
 
     // 全回答ログに追記（削除はしない。進行中のセッションは上限を超えても記録する）
     const all = loadJson<WordAnswer[]>(ANSWERS_KEY, []);
@@ -342,6 +396,9 @@ export default function WordPhonemeQuizPage() {
           <p style={{ fontSize: "0.8rem", color: "#757575" }}>
             回答記録: {answersCount} / {MAX_ANSWERS}件
           </p>
+          <Link href="/regions" className="link-btn">
+            音響領域の分析へ →
+          </Link>
           <Link href="/" className="link-btn">
             ← 母音クイズへ
           </Link>

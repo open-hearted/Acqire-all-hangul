@@ -51,6 +51,27 @@ export function computeVowelCoverage(
   return [...map.values()].sort((a, b) => coverageRate(a) - coverageRate(b));
 }
 
+/** 出題結果が誤答かどうか（領域分類の有無に依らない） */
+export function isErrorRecord(r: ErrorLogRecord): boolean {
+  return r.answeredCount !== r.correctPhonemeCount || r.errorRegions.length > 0;
+}
+
+/**
+ * 誤答だが error_regions が未分類のレコード（新しい順）。
+ * 単語クイズ由来の誤答は音素列マスタが未整備のため自動分類できず、ここに入る。
+ * heard_pattern が後の分類の手がかりになる。
+ */
+export function listUnclassifiedErrors(
+  records: ErrorLogRecord[]
+): ErrorLogRecord[] {
+  return records
+    .filter(
+      (r) =>
+        r.answeredCount !== r.correctPhonemeCount && r.errorRegions.length === 0
+    )
+    .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
+}
+
 export interface RegionErrorTally {
   key: string;
   region: ErrorRegion;

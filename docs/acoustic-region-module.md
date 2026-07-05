@@ -91,7 +91,8 @@ Phase 1 の骨格は `src/lib/acoustic-region/` に実装されている。
 | localStorage 実装（Phase 1） | `localStorageRepository.ts` |
 | 固定ユーザーID `"local-user"` とファクトリ | `index.ts` |
 | 基本母音クイズのエラー分析 | `vowelAnalysis.ts` |
-| 被覆率の集計（知覚不能順ソート・誤答領域の分布） | `stats.ts` |
+| 単語クイズの error_log 連携 | `wordAnalysis.ts` |
+| 被覆率の集計（知覚不能順ソート・誤答領域の分布・未分類誤答） | `stats.ts` |
 | 進捗表示ページ | `src/app/regions/page.tsx`（`/regions`） |
 
 - ドメイン型は TypeScript 慣習の camelCase。Supabase 移行時はリポジトリ実装層で snake_case カラム（`user_id`, `correct_phoneme_count`, `error_regions`, `listening_condition`, `condition_note`, `created_at`, `meaning_ja`, `phoneme_count`, `audio_ref`）へマッピングする
@@ -107,3 +108,13 @@ Phase 1 の骨格は `src/lib/acoustic-region/` に実装されている。
 - meaning には IPA 読みを充てる（単母音に語彙的意味はない。意味ごと投入するのは訓練の出力側で、母音クイズは領域検出の入力側として機能する）
 
 判定は各問題の初回回答のみ記録する（「もう一度」での再回答は記録しない）。クイズページ既存の localStorage 記録（`hangul-phoneme-stats`）とは独立に追記される。
+
+### 単語クイズの error_log 連携
+
+単語クイズ（`/words`）も全回答を error_log に記録する。ただし語彙マスタの位置つき音素列が未整備のため、単語の誤答は error_regions を**自動導出できない**。
+
+- 正答 → 即時記録（errorRegions 空配列。成功率の分母）
+- 誤答 → 聞こえ方メモの確定（次の問題へ進む/終了する）を待ってから記録。errorRegions は未分類（空配列）のまま、`heard_pattern` を後の分類の手がかりとして残す
+- 正誤の判別は `answered_count` と `correct_phoneme_count` の比較で行う（`isErrorRecord`）。未分類の誤答は `/regions` の「未分類の誤答」欄に出る
+- meaning は Phase 1 のデータ都合で英語（words.json の `e`）。meaning_ja 整備後に置き換える
+- 語彙マスタに位置つき音素列が入れば、heard_pattern と突き合わせた自動分類（どの位置の何が落ちたか）に進める

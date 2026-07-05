@@ -26,11 +26,15 @@ export {
   buildVowelErrorLog,
 } from "./vowelAnalysis";
 export type { VowelInfo } from "./vowelAnalysis";
+export { buildWordErrorLog } from "./wordAnalysis";
+export type { WordAnswerInput } from "./wordAnalysis";
 export {
   computeVowelCoverage,
   tallyErrorRegions,
   coverageRate,
   regionLabel,
+  isErrorRecord,
+  listUnclassifiedErrors,
 } from "./stats";
 export type { RegionCoverage, RegionErrorTally } from "./stats";
 

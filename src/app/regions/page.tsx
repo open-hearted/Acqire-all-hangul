@@ -8,6 +8,8 @@ import {
   tallyErrorRegions,
   coverageRate,
   regionLabel,
+  isErrorRecord,
+  listUnclassifiedErrors,
   LOCAL_USER_ID,
   type ErrorLogRecord,
   type RegionCoverage,
@@ -44,7 +46,8 @@ export default function RegionAnalysisPage() {
 
   const coverage = computeVowelCoverage(records);
   const errorTally = tallyErrorRegions(records);
-  const errorCount = records.filter((r) => r.errorRegions.length > 0).length;
+  const unclassified = listUnclassifiedErrors(records);
+  const errorCount = records.filter(isErrorRecord).length;
 
   return (
     <div className="container">
@@ -68,6 +71,9 @@ export default function RegionAnalysisPage() {
         <Link href="/phoneme" className="link-btn">
           音素数クイズ（母音）へ →
         </Link>
+        <Link href="/words" className="link-btn">
+          単語の音素数クイズへ →
+        </Link>
         <Link href="/" className="link-btn">
           ← ホームへ
         </Link>
@@ -87,6 +93,30 @@ export default function RegionAnalysisPage() {
               </span>
             </div>
           ))}
+        </div>
+      )}
+
+      {unclassified.length > 0 && (
+        <div className="stats-section">
+          <h2>未分類の誤答（領域分類待ち・新しい順）</h2>
+          {unclassified.slice(0, 20).map((r) => (
+            <div key={r.id} className="stats-row none">
+              <span className="stats-char">{r.word}</span>
+              <span className="stats-level">
+                {r.answeredCount}/{r.correctPhonemeCount}
+              </span>
+              <span className="stats-detail">
+                {r.meaning}
+                {r.heardPattern ? `・聞こえ: ${r.heardPattern}` : ""}・
+                {formatDate(r.createdAt)}
+              </span>
+            </div>
+          ))}
+          {unclassified.length > 20 && (
+            <p style={{ fontSize: "0.8rem", color: "#757575" }}>
+              ほか {unclassified.length - 20} 件
+            </p>
+          )}
         </div>
       )}
 
