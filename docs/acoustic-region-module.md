@@ -91,6 +91,8 @@ Phase 1 の骨格は `src/lib/acoustic-region/` に実装されている。
 | localStorage 実装（Phase 1） | `localStorageRepository.ts` |
 | 固定ユーザーID `"local-user"` とファクトリ | `index.ts` |
 | 基本母音クイズのエラー分析 | `vowelAnalysis.ts` |
+| 被覆率の集計（知覚不能順ソート・誤答領域の分布） | `stats.ts` |
+| 進捗表示ページ | `src/app/regions/page.tsx`（`/regions`） |
 
 - ドメイン型は TypeScript 慣習の camelCase。Supabase 移行時はリポジトリ実装層で snake_case カラム（`user_id`, `correct_phoneme_count`, `error_regions`, `listening_condition`, `condition_note`, `created_at`, `meaning_ja`, `phoneme_count`, `audio_ref`）へマッピングする
 - `ErrorLogRepository` は設計どおり削除APIを持たない（過去の誤答レコードが出題プールと「過去の自分との対決」の原資のため）

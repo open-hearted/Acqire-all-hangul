@@ -26,6 +26,13 @@ export {
   buildVowelErrorLog,
 } from "./vowelAnalysis";
 export type { VowelInfo } from "./vowelAnalysis";
+export {
+  computeVowelCoverage,
+  tallyErrorRegions,
+  coverageRate,
+  regionLabel,
+} from "./stats";
+export type { RegionCoverage, RegionErrorTally } from "./stats";
 
 let repositories: AcousticRegionRepositories | null = null;
 

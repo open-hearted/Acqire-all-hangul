@@ -479,6 +479,9 @@ export default function PhonemeQuizPage() {
           <button className="btn-reset" onClick={handleStart}>
             スタート
           </button>
+          <Link href="/regions" className="link-btn">
+            音響領域の分析へ →
+          </Link>
           <Link href="/" className="link-btn">
             ← 文字を当てるクイズへ
           </Link>
