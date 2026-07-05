@@ -22,7 +22,13 @@
 | answered_count | int | 2 |
 | heard_pattern | text | 子母 |
 | error_regions | jsonb | 下記の分類の配列 |
+| listening_condition | text (nullable) | `quiet` / `noisy`。任意。セッション単位で選択し、各レコードに非正規化して持つ |
+| condition_note | text (nullable) | 聴取環境の自由メモ（例: 電車内）。任意。集計には使わず補足専用 |
 | created_at | timestamptz | |
+
+聴取環境の記録について:
+- 集計の主役は `listening_condition`（選択式）。自由記述は集計できないため enum に絞る
+- 集計時は noisy を**除外ではなく層別**に使う（騒音下でも検出できる領域 = 写像が確立した領域、静かな環境でしか検出できない領域 = まだ脆い領域）。Phase 1 は「全体 / 静かな環境のみ」の切り替え表示程度で十分
 
 ### 音響領域分類（error_regions の要素）
 位置 × タイプ のマトリクス
@@ -85,5 +91,5 @@ Phase 1 の骨格は `src/lib/acoustic-region/` に実装されている。
 | localStorage 実装（Phase 1） | `localStorageRepository.ts` |
 | 固定ユーザーID `"local-user"` とファクトリ | `index.ts` |
 
-- ドメイン型は TypeScript 慣習の camelCase。Supabase 移行時はリポジトリ実装層で snake_case カラム（`user_id`, `correct_phoneme_count`, `error_regions`, `created_at`, `meaning_ja`, `phoneme_count`, `audio_ref`）へマッピングする
+- ドメイン型は TypeScript 慣習の camelCase。Supabase 移行時はリポジトリ実装層で snake_case カラム（`user_id`, `correct_phoneme_count`, `error_regions`, `listening_condition`, `condition_note`, `created_at`, `meaning_ja`, `phoneme_count`, `audio_ref`）へマッピングする
 - `ErrorLogRepository` は設計どおり削除APIを持たない（過去の誤答レコードが出題プールと「過去の自分との対決」の原資のため）

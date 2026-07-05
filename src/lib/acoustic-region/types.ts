@@ -32,6 +32,16 @@ export function regionKey(region: ErrorRegion): string {
   return `${region.position}:${region.type}:${region.phoneme}`;
 }
 
+// ─── 聴取環境 ────────────────────────────────────────────────────────────
+
+/**
+ * 聴取環境（任意記録）。集計に使うため自由記述ではなく選択式に絞る。
+ * セッション単位で選択し、そのセッション中の全レコードに非正規化して持たせる。
+ * 集計では noisy を除外ではなく層別に使う（騒音下でも検出できる領域 =
+ * 写像が確立した領域、静かな環境でしか検出できない領域 = まだ脆い領域）。
+ */
+export type ListeningCondition = "quiet" | "noisy";
+
 // ─── 誤答ログ（error_log） ────────────────────────────────────────────────
 
 /**
@@ -53,6 +63,10 @@ export interface ErrorLogRecord {
   heardPattern: string;
   /** 知覚できなかった音響領域の配列 */
   errorRegions: ErrorRegion[];
+  /** 聴取環境（任意）。null = 未記録 */
+  listeningCondition: ListeningCondition | null;
+  /** 聴取環境の自由メモ（例: 電車内）。任意。集計には使わず補足専用 */
+  conditionNote: string | null;
   /** ISO 8601 文字列（timestamptz 相当） */
   createdAt: string;
 }
