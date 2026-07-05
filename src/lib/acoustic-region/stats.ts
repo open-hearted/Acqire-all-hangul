@@ -165,6 +165,50 @@ export function tallyErrorRegions(
   return [...map.values()].sort((a, b) => b.count - a.count);
 }
 
+// ─── 再測定の推移（過去の自分との対決） ─────────────────────────────────────
+
+export interface WordProgress {
+  word: string;
+  meaning: string;
+  /** 最新レコード時点の正解音素数 */
+  correctPhonemeCount: number;
+  /** 回答した音素数の時系列（例: [6, 7, 8]） */
+  history: number[];
+  /** 最新の再測定で正解したか */
+  latestCorrect: boolean;
+  lastAt: string;
+}
+
+/**
+ * 同一語の再測定推移（例: 운동화 6/8 → 8/8）。
+ * 2回以上出題され、誤答が1回でもある語だけを対象にする（全勝の語は推移に意味がない）。
+ * 最近測定した順で返す。
+ */
+export function computeWordProgress(
+  records: ErrorLogRecord[]
+): WordProgress[] {
+  const byWord = new Map<string, ErrorLogRecord[]>();
+  for (const r of records) {
+    const list = byWord.get(r.word);
+    if (list) list.push(r);
+    else byWord.set(r.word, [r]);
+  }
+  const out: WordProgress[] = [];
+  for (const list of byWord.values()) {
+    if (list.length < 2 || !list.some(isErrorRecord)) continue;
+    const latest = list[list.length - 1];
+    out.push({
+      word: latest.word,
+      meaning: latest.meaning,
+      correctPhonemeCount: latest.correctPhonemeCount,
+      history: list.map((r) => r.answeredCount),
+      latestCorrect: !isErrorRecord(latest),
+      lastAt: latest.createdAt,
+    });
+  }
+  return out.sort((a, b) => (a.lastAt < b.lastAt ? 1 : -1));
+}
+
 // ─── 表示用ラベル ────────────────────────────────────────────────────────
 
 const POSITION_LABEL: Record<ErrorRegion["position"], string> = {

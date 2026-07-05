@@ -13,6 +13,7 @@ import {
   tagLabel,
   isErrorRecord,
   listUnclassifiedErrors,
+  computeWordProgress,
   LOCAL_USER_ID,
   type ErrorLogRecord,
   type RegionCoverage,
@@ -64,6 +65,7 @@ export default function RegionAnalysisPage() {
 
   const coverage = computeVowelCoverage(records);
   const wordCoverage = computeWordCoverage(records);
+  const progress = computeWordProgress(records);
   const errorTally = tallyErrorRegions(records);
   const unclassified = listUnclassifiedErrors(records);
   const errorCount = records.filter(isErrorRecord).length;
@@ -97,6 +99,28 @@ export default function RegionAnalysisPage() {
           ← ホームへ
         </Link>
       </div>
+
+      {progress.length > 0 && (
+        <div className="stats-section">
+          <h2>⚔️ 過去の自分との対決（再測定の推移）</h2>
+          {progress.slice(0, 20).map((p) => (
+            <div
+              key={p.word}
+              className={`stats-row ${p.latestCorrect ? "good" : "weak"}`}
+            >
+              <span className="stats-char">{p.word}</span>
+              <span className="stats-level">
+                {p.history[p.history.length - 1]}/{p.correctPhonemeCount}
+                {p.latestCorrect ? " 勝" : ""}
+              </span>
+              <span className="stats-detail">
+                {p.history.join(" → ")}（正解 {p.correctPhonemeCount}）・
+                {p.meaning}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
 
       {coverage.length > 0 && (
         <div className="stats-section">

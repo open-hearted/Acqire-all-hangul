@@ -3,7 +3,13 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import wordsData from "@/data/words.json";
-import { buildWordErrorLog, getRepositories } from "@/lib/acoustic-region";
+import {
+  buildWordErrorLog,
+  getRepositories,
+  isErrorRecord,
+  LOCAL_USER_ID,
+  type ErrorLogRecord,
+} from "@/lib/acoustic-region";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -14,7 +20,7 @@ interface WordEntry {
 }
 
 type AnswerResult = "correct" | "incorrect" | null;
-type QuizMode = "all" | "wrong";
+type QuizMode = "all" | "wrong" | "duel";
 type Phase = "setup" | "quiz" | "result";
 
 // 1問ごとの記録
@@ -41,6 +47,7 @@ interface SessionLog {
 // ─── Constants ───────────────────────────────────────────────────────────────
 
 const WORDS: WordEntry[] = wordsData as WordEntry[];
+const WORD_SET = new Set(WORDS.map((w) => w.w));
 const MAX_PHONEMES = Math.max(...WORDS.map((w) => w.p)); // 18
 const COUNT_OPTIONS = [10, 20, 50, 100, Infinity]; // Infinity = 全単語一気
 
@@ -110,6 +117,10 @@ export default function WordPhonemeQuizPage() {
   const [wrongPool, setWrongPool] = useState<string[]>([]);
   const [sessionAnswers, setSessionAnswers] = useState<WordAnswer[]>([]);
   const [answersCount, setAnswersCount] = useState(0);
+  // 過去の自分との対決: error_log の最新レコードが誤答のままの語 → その誤答レコード
+  const [duelPool, setDuelPool] = useState<Map<string, ErrorLogRecord>>(
+    new Map()
+  );
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const autoNextRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -136,6 +147,25 @@ export default function WordPhonemeQuizPage() {
     };
   }, []);
 
+  // 設定画面に戻るたびに対決プールを再計算する（誤答→後で正解した語は外れる）
+  useEffect(() => {
+    if (!hydrated || phase !== "setup") return;
+    getRepositories()
+      .errorLogs.listByUser(LOCAL_USER_ID)
+      .then((recs) => {
+        const latest = new Map<string, ErrorLogRecord>();
+        for (const r of recs) {
+          if (WORD_SET.has(r.word)) latest.set(r.word, r);
+        }
+        const pool = new Map<string, ErrorLogRecord>();
+        for (const [w, r] of latest) {
+          if (isErrorRecord(r)) pool.set(w, r);
+        }
+        setDuelPool(pool);
+      })
+      .catch(() => {});
+  }, [hydrated, phase]);
+
   const question = questions[index];
 
   // ── Audio ─────────────────────────────────────────────────────────────────
@@ -161,7 +191,9 @@ export default function WordPhonemeQuizPage() {
     const source =
       selectedMode === "all"
         ? WORDS
-        : WORDS.filter((w) => wrongPool.includes(w.w));
+        : selectedMode === "duel"
+          ? WORDS.filter((w) => duelPool.has(w.w))
+          : WORDS.filter((w) => wrongPool.includes(w.w));
     if (source.length === 0) return;
     const qs = shuffle(source).slice(0, count);
     setMode(selectedMode);
@@ -393,6 +425,17 @@ export default function WordPhonemeQuizPage() {
           >
             間違えた単語だけ（{wrongPool.length}語）
           </button>
+          <button
+            className="btn-reset"
+            style={{ background: "#6a1b9a" }}
+            onClick={() => startSession("duel")}
+            disabled={duelPool.size === 0 || logFull}
+          >
+            ⚔️ 過去の自分と対決（{duelPool.size}語）
+          </button>
+          <p style={{ fontSize: "0.8rem", color: "#757575" }}>
+            対決 = 以前聞き取れなかった単語の再測定。以前の自分の回答と聞こえ方が表示されます
+          </p>
           <p style={{ fontSize: "0.8rem", color: "#757575" }}>
             回答記録: {answersCount} / {MAX_ANSWERS}件
           </p>
@@ -448,6 +491,11 @@ export default function WordPhonemeQuizPage() {
             {correctCount}{" "}
             <span>/ {sessionAnswers.length} 正解・平均{avgSec}秒</span>
           </div>
+          {mode === "duel" && (
+            <p style={{ fontSize: "1.05rem", color: "#6a1b9a", fontWeight: 600 }}>
+              ⚔️ 過去の自分との対決: {correctCount}勝{wrongAnswers.length}敗
+            </p>
+          )}
           <button className="btn-reset" onClick={() => startSession(mode)}>
             もう一度（同じ設定）
           </button>
@@ -458,6 +506,9 @@ export default function WordPhonemeQuizPage() {
           >
             設定に戻る
           </button>
+          <Link href="/regions" className="link-btn">
+            音響領域の分析へ →
+          </Link>
         </div>
 
         {wrongAnswers.length > 0 && (
@@ -509,7 +560,7 @@ export default function WordPhonemeQuizPage() {
       <div className="card">
         <div className="question-label">
           問題 {index + 1}
-          {mode === "wrong" ? "（復習）" : ""}
+          {mode === "wrong" ? "（復習）" : mode === "duel" ? "（対決）" : ""}
         </div>
 
         <button className="btn-audio" onClick={() => playWord(question.w)}>
@@ -556,6 +607,25 @@ export default function WordPhonemeQuizPage() {
               : `❌ 不正解。${question.w}（${question.e}）は ${question.p}音素`}
           </div>
         )}
+
+        {/* 過去の自分との対決: 以前の誤答レコードをそのまま提示 */}
+        {checked &&
+          mode === "duel" &&
+          (() => {
+            const past = duelPool.get(question.w);
+            if (!past) return null;
+            return (
+              <div className="past-self">
+                ⚔️ 以前のあなた（{formatDate(new Date(past.createdAt).getTime())}）:
+                「{past.answeredCount}音素」と回答
+                {past.heardPattern ? `・聞こえ: ${past.heardPattern}` : ""}
+                <br />
+                {feedback === "correct"
+                  ? "今回は正解。過去の自分に勝ちました！"
+                  : `今回は「${chosen}音素」。決着はまた次の再測定で`}
+              </div>
+            );
+          })()}
 
         {feedback === "incorrect" && (
           <>

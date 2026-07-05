@@ -94,8 +94,9 @@ Phase 1 の骨格は `src/lib/acoustic-region/` に実装されている。
 | ハングル→位置つきIPA音素列の変換（標準発音） | `hangulPhonemes.ts` |
 | 語彙マスタ（words.json から実行時導出） | `wordMaster.ts` |
 | 単語クイズの error_log 連携・聞こえ方メモによる自動分類 | `wordAnalysis.ts` |
-| 被覆率の集計（知覚不能順ソート・誤答領域の分布・未分類誤答） | `stats.ts` |
+| 被覆率の集計（知覚不能順ソート・誤答領域の分布・未分類誤答・再測定推移） | `stats.ts` |
 | 進捗表示ページ | `src/app/regions/page.tsx`（`/regions`） |
+| 「過去の自分との対決」（単語クイズの対決モード） | `src/app/words/page.tsx` |
 
 - ドメイン型は TypeScript 慣習の camelCase。Supabase 移行時はリポジトリ実装層で snake_case カラム（`user_id`, `correct_phoneme_count`, `error_regions`, `listening_condition`, `condition_note`, `created_at`, `meaning_ja`, `phoneme_count`, `audio_ref`）へマッピングする
 - `ErrorLogRepository` は設計どおり削除APIを持たない（過去の誤答レコードが出題プールと「過去の自分との対決」の原資のため）
@@ -129,3 +130,10 @@ Phase 1 の骨格は `src/lib/acoustic-region/` に実装されている。
 - メモが無い/部分列にならない（過剰検出・置換）場合は未分類（空配列）のまま記録し、`/regions` の「未分類の誤答」欄に出る。heard_pattern は残るので後から分類ロジックを改良して再分類できる
 - 単語の被覆率（`computeWordCoverage`）: 出題語が含む全領域タグが分母、誤答領域に該当しなかった分が分子。未分類誤答は集計から除外する
 - meaning は Phase 1 のデータ都合で英語（words.json の `e`）。meaning_ja 整備後に置き換える
+
+### 過去の自分との対決（実装）
+
+- 対決プール = error_log の**最新レコードが誤答のままの語**。以前誤答して、その後の再測定で正解した語はプールから外れる（レコード自体は削除しない）
+- 単語クイズの対決モードで再出題し、判定後に以前の誤答レコードをそのまま提示する（「以前のあなた: 6音素と回答・聞こえ: 母子母」）。正解すれば「過去の自分に勝ちました」
+- 対決の回答も通常どおり error_log に追記されるので、再測定の履歴が積み上がる
+- `/regions` の「再測定の推移」に同一語の回答音素数の時系列を表示（예: 운동화 6 → 7 → 8）。対象は2回以上出題され誤答が1回でもある語、最近測定した順

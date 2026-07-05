@@ -46,8 +46,14 @@ export {
   tagLabel,
   isErrorRecord,
   listUnclassifiedErrors,
+  computeWordProgress,
 } from "./stats";
-export type { RegionCoverage, RegionErrorTally, TagCoverage } from "./stats";
+export type {
+  RegionCoverage,
+  RegionErrorTally,
+  TagCoverage,
+  WordProgress,
+} from "./stats";
 
 let repositories: AcousticRegionRepositories | null = null;
 
