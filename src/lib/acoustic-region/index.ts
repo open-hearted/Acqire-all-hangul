@@ -19,6 +19,13 @@ export {
   createMemoryStore,
 } from "./localStorageRepository";
 export type { JsonStore } from "./localStorageRepository";
+export {
+  VOWELS,
+  vowelPhonemeCount,
+  classifyVowelAnswer,
+  buildVowelErrorLog,
+} from "./vowelAnalysis";
+export type { VowelInfo } from "./vowelAnalysis";
 
 let repositories: AcousticRegionRepositories | null = null;
 

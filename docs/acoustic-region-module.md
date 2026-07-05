@@ -90,6 +90,18 @@ Phase 1 の骨格は `src/lib/acoustic-region/` に実装されている。
 | リポジトリ抽象（Phase 2 で Supabase 実装に差し替える境界） | `repository.ts` |
 | localStorage 実装（Phase 1） | `localStorageRepository.ts` |
 | 固定ユーザーID `"local-user"` とファクトリ | `index.ts` |
+| 基本母音クイズのエラー分析 | `vowelAnalysis.ts` |
 
 - ドメイン型は TypeScript 慣習の camelCase。Supabase 移行時はリポジトリ実装層で snake_case カラム（`user_id`, `correct_phoneme_count`, `error_regions`, `listening_condition`, `condition_note`, `created_at`, `meaning_ja`, `phoneme_count`, `audio_ref`）へマッピングする
 - `ErrorLogRepository` は設計どおり削除APIを持たない（過去の誤答レコードが出題プールと「過去の自分との対決」の原資のため）
+
+### 基本母音クイズのエラー分析
+
+母音クイズ（`/phoneme`）は1音節・回答が音素数のみなので、聞こえ方メモなしで error_regions を一意に自動導出できる。位置は常に `medial`。
+
+- 2音素（わたり音+母音）を1と回答 → `{position: "medial", type: "merger", phoneme: "j"|"w"|"ɰ"}`。日本語音韻体系はわたり音を拗音として母音と一体のモーラ単位で扱うため、/ja/ 等を1つの音として写像する
+- 1音素を2と回答 → `{position: "medial", type: "insertion", phoneme: <当該母音のIPA>}`
+- 正答も error_log に記録する（errorRegions は空配列。領域ごとの検出成功率の分母になる）
+- meaning には IPA 読みを充てる（単母音に語彙的意味はない。意味ごと投入するのは訓練の出力側で、母音クイズは領域検出の入力側として機能する）
+
+判定は各問題の初回回答のみ記録する（「もう一度」での再回答は記録しない）。クイズページ既存の localStorage 記録（`hangul-phoneme-stats`）とは独立に追記される。
