@@ -14,6 +14,7 @@ import {
   isErrorRecord,
   listUnclassifiedErrors,
   computeWordProgress,
+  tallyConfusions,
   LOCAL_USER_ID,
   type ErrorLogRecord,
   type RegionCoverage,
@@ -66,6 +67,7 @@ export default function RegionAnalysisPage() {
   const coverage = computeVowelCoverage(records);
   const wordCoverage = computeWordCoverage(records);
   const progress = computeWordProgress(records);
+  const confusions = tallyConfusions(records);
   const errorTally = tallyErrorRegions(records);
   const unclassified = listUnclassifiedErrors(records);
   const errorCount = records.filter(isErrorRecord).length;
@@ -94,6 +96,9 @@ export default function RegionAnalysisPage() {
         </Link>
         <Link href="/words" className="link-btn">
           単語の音素数クイズへ →
+        </Link>
+        <Link href="/transcribe" className="link-btn">
+          IPA転写クイズ（精密測定）へ →
         </Link>
         <Link href="/" className="link-btn">
           ← ホームへ
@@ -150,6 +155,23 @@ export default function RegionAnalysisPage() {
               </span>
               <span className="stats-detail">
                 検出 {c.detected} / {c.attempts} 回・{wordList(c.words)}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {confusions.length > 0 && (
+        <div className="stats-section">
+          <h2>混同ペア（何を何と聞いたか・IPA転写）</h2>
+          {confusions.map((c) => (
+            <div key={`${c.phoneme}→${c.heard}`} className="stats-row weak">
+              <span className="stats-char">
+                /{c.phoneme}/ → {c.heard === "母" || c.heard === "子" ? `${c.heard}?` : `/${c.heard}/`}
+              </span>
+              <span className="stats-level">{c.count}回</span>
+              <span className="stats-detail">
+                {wordList(c.words)}・最終 {formatDate(c.lastAt)}
               </span>
             </div>
           ))}

@@ -10,18 +10,26 @@
 /** 音節内の位置: 初声 / 中声 / 終声 */
 export type RegionPosition = "initial" | "medial" | "final";
 
-/** 知覚エラーのタイプ: 脱落 / 統合（2音素を1音に） / 過剰検出 */
-export type RegionErrorType = "deletion" | "merger" | "insertion";
+/**
+ * 知覚エラーのタイプ: 脱落 / 統合（2音素を1音に） / 過剰検出 / 置換。
+ * substitution は IPA転写クイズで取れる同定エラー（例: /ʌ/ を /o/ と知覚 =
+ * L1カテゴリへの吸収）。検出はできているが写像が間違っているため、
+ * 被覆率上は失敗として扱う。
+ */
+export type RegionErrorType = "deletion" | "merger" | "insertion" | "substitution";
 
 /**
  * 1つの音響領域 = 位置 × タイプ × 音素。
  * 例: 셋 の終声 t̚ を落とした → { position: "final", type: "deletion", phoneme: "t̚" }
+ * 例: ʌ を o と聞いた → { position: "medial", type: "substitution", phoneme: "ʌ", heard: "o" }
  */
 export interface ErrorRegion {
   position: RegionPosition;
   type: RegionErrorType;
-  /** 落ちた/統合された/過剰検出された具体的な音素（IPA。例: t̚, l, ŋ, h, w） */
+  /** 落ちた/統合された/過剰検出された/置換された具体的な音素（IPA。例: t̚, l, ŋ, h, w） */
   phoneme: string;
+  /** substitution のとき: 何に聞こえたか（IPA または ワイルドカード 母/子） */
+  heard?: string;
 }
 
 /**
@@ -63,6 +71,16 @@ export interface ErrorLogRecord {
   heardPattern: string;
   /** 知覚できなかった音響領域の配列 */
   errorRegions: ErrorRegion[];
+  /**
+   * IPA転写クイズの回答列（任意）。null = 転写なし（カウント方式の出題）。
+   * 要素は IPA記号 または ワイルドカード "母"/"子"（聞こえたが同定できず）
+   */
+  heardPhonemes: string[] | null;
+  /**
+   * 「この単語は知っていた」（任意）。null = 未回答。
+   * true なのに転写できない語 = 音韻表現の再結線が必要な語
+   */
+  wordKnown: boolean | null;
   /** 聴取環境（任意）。null = 未記録 */
   listeningCondition: ListeningCondition | null;
   /** 聴取環境の自由メモ（例: 電車内）。任意。集計には使わず補足専用 */

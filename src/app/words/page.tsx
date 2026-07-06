@@ -439,6 +439,9 @@ export default function WordPhonemeQuizPage() {
           <p style={{ fontSize: "0.8rem", color: "#757575" }}>
             回答記録: {answersCount} / {MAX_ANSWERS}件
           </p>
+          <Link href="/transcribe" className="link-btn">
+            IPA転写クイズ（精密測定）へ →
+          </Link>
           <Link href="/regions" className="link-btn">
             音響領域の分析へ →
           </Link>

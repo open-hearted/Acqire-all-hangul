@@ -77,6 +77,8 @@ export function buildWordErrorLog(input: WordAnswerInput): NewErrorLog {
     answeredCount: input.answeredCount,
     heardPattern: input.heardPattern ?? "",
     errorRegions,
+    heardPhonemes: null,
+    wordKnown: null,
     listeningCondition: null,
     conditionNote: null,
   };

@@ -546,6 +546,9 @@ export default function QuizPage() {
           <Link href="/words" className="link-btn">
             単語の音素数クイズへ →
           </Link>
+          <Link href="/transcribe" className="link-btn">
+            IPA転写クイズ（精密測定）へ →
+          </Link>
           <Link href="/regions" className="link-btn">
             音響領域の分析へ →
           </Link>

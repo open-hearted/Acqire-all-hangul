@@ -165,6 +165,47 @@ export function tallyErrorRegions(
   return [...map.values()].sort((a, b) => b.count - a.count);
 }
 
+// ─── 混同ペア（IPA転写クイズの置換エラー） ──────────────────────────────────
+
+export interface ConfusionPair {
+  /** 正解の音素 */
+  phoneme: string;
+  /** 何に聞こえたか（IPA または ワイルドカード 母/子） */
+  heard: string;
+  count: number;
+  lastAt: string;
+  words: string[];
+}
+
+/**
+ * 置換エラー（何を何と聞いたか）の集計。L1カテゴリへの吸収パターンが見える
+ * （例: ʌ→o が5回 = ㅓをオに吸収している）。出現回数順。
+ */
+export function tallyConfusions(records: ErrorLogRecord[]): ConfusionPair[] {
+  const map = new Map<string, ConfusionPair>();
+  for (const r of records) {
+    for (const region of r.errorRegions) {
+      if (region.type !== "substitution" || !region.heard) continue;
+      const key = `${region.phoneme}→${region.heard}`;
+      let entry = map.get(key);
+      if (!entry) {
+        entry = {
+          phoneme: region.phoneme,
+          heard: region.heard,
+          count: 0,
+          lastAt: r.createdAt,
+          words: [],
+        };
+        map.set(key, entry);
+      }
+      entry.count += 1;
+      if (r.createdAt > entry.lastAt) entry.lastAt = r.createdAt;
+      if (!entry.words.includes(r.word)) entry.words.push(r.word);
+    }
+  }
+  return [...map.values()].sort((a, b) => b.count - a.count);
+}
+
 // ─── 再測定の推移（過去の自分との対決） ─────────────────────────────────────
 
 export interface WordProgress {
@@ -221,11 +262,15 @@ const TYPE_LABEL: Record<ErrorRegion["type"], string> = {
   deletion: "脱落",
   merger: "統合",
   insertion: "過剰検出",
+  substitution: "置換",
 };
 
-/** 例: 中声 /j/ の統合 */
+/** 例: 中声 /j/ の統合、中声 /ʌ/ の置換（→ /o/） */
 export function regionLabel(region: ErrorRegion): string {
-  return `${POSITION_LABEL[region.position]} /${region.phoneme}/ の${TYPE_LABEL[region.type]}`;
+  const base = `${POSITION_LABEL[region.position]} /${region.phoneme}/ の${TYPE_LABEL[region.type]}`;
+  return region.type === "substitution" && region.heard
+    ? `${base}（→ /${region.heard}/）`
+    : base;
 }
 
 /** 例: 終声 /t̚/ */

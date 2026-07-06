@@ -22,6 +22,8 @@
 | answered_count | int | 2 |
 | heard_pattern | text | 子母 |
 | error_regions | jsonb | 下記の分類の配列 |
+| heard_phonemes | jsonb (nullable) | IPA転写クイズの回答列（IPA記号 または ワイルドカード `母`/`子`）。null = カウント方式の出題 |
+| word_known | boolean (nullable) | 「この単語は知っていた」。null = 未回答。true なのに転写できない語 = 音韻表現の再結線が必要な語 |
 | listening_condition | text (nullable) | `quiet` / `noisy`。任意。セッション単位で選択し、各レコードに非正規化して持つ |
 | condition_note | text (nullable) | 聴取環境の自由メモ（例: 電車内）。任意。集計には使わず補足専用 |
 | created_at | timestamptz | |
@@ -34,8 +36,9 @@
 位置 × タイプ のマトリクス
 
 - 位置: `initial`（初声）/ `medial`（中声）/ `final`（終声）
-- タイプ: `deletion`（脱落）/ `merger`（統合: 2音素を1音に）/ `insertion`(過剰検出)
+- タイプ: `deletion`（脱落）/ `merger`（統合: 2音素を1音に）/ `insertion`(過剰検出) / `substitution`（置換: 別の音として知覚。`heard` フィールドに何に聞こえたかを持つ）
 - 音素: 落ちた/統合された具体的な音素（例: `t̚`, `l`, `ŋ`, `h`, `w`）
+- substitution は IPA転写クイズで取れる同定エラー（例: /ʌ/→/o/ = ㅓをL1のオに吸収）。検出はできているが写像が間違っているため、被覆率上は失敗として扱う
 
 例: 셋 → `[{position: "final", type: "deletion", phoneme: "t̚"}]`
 例: 설렁탕 → `[{position: "medial", type: "merger", phoneme: "l:"}, {position: "final", type: "deletion", phoneme: "ŋ"}]`
@@ -97,6 +100,8 @@ Phase 1 の骨格は `src/lib/acoustic-region/` に実装されている。
 | 被覆率の集計（知覚不能順ソート・誤答領域の分布・未分類誤答・再測定推移） | `stats.ts` |
 | 進捗表示ページ | `src/app/regions/page.tsx`（`/regions`） |
 | 「過去の自分との対決」（単語クイズの対決モード） | `src/app/words/page.tsx` |
+| IPA転写の判定（アラインメント・混同ペア） | `transcriptionAnalysis.ts` |
+| IPA転写クイズページ | `src/app/transcribe/page.tsx`（`/transcribe`） |
 
 - ドメイン型は TypeScript 慣習の camelCase。Supabase 移行時はリポジトリ実装層で snake_case カラム（`user_id`, `correct_phoneme_count`, `error_regions`, `listening_condition`, `condition_note`, `created_at`, `meaning_ja`, `phoneme_count`, `audio_ref`）へマッピングする
 - `ErrorLogRepository` は設計どおり削除APIを持たない（過去の誤答レコードが出題プールと「過去の自分との対決」の原資のため）
@@ -130,6 +135,18 @@ Phase 1 の骨格は `src/lib/acoustic-region/` に実装されている。
 - メモが無い/部分列にならない（過剰検出・置換）場合は未分類（空配列）のまま記録し、`/regions` の「未分類の誤答」欄に出る。heard_pattern は残るので後から分類ロジックを改良して再分類できる
 - 単語の被覆率（`computeWordCoverage`）: 出題語が含む全領域タグが分母、誤答領域に該当しなかった分が分子。未分類誤答は集計から除外する
 - meaning は Phase 1 のデータ都合で英語（words.json の `e`）。meaning_ja 整備後に置き換える
+
+### IPA転写クイズ（/transcribe・精密測定）
+
+聞こえた音を1音素ずつIPAボタンで書き取る。カウント方式が安価な全数スクリーニング、こちらが精密測定という二段構え。
+
+- キーボードは IPA 全表ではなく**韓国語の音素目録に絞る**（記号知識の混入を減らす）
+- 「母?」「子?」ワイルドカード: どのIPAか分からないが聞こえている時に使う。**検出と同定を分離**し、当てずっぽうによる偽の混同データを防ぐ
+- 判定は説明調3段階: **完全一致**（IPAも全部合っている）/ **配置一致**（子母の並びは合っている。ワイルドカード・置換の内訳を提示）/ **配置不一致**（脱落・挿入の位置を提示）
+- 判定はローカルの決定的アラインメント（置換込み編集距離、タイブレーク固定）。**AI APIは使わない** — 判定器は測定器なので決定性・再現性・オフライン動作が必須
+- 被覆率上の扱い: ワイルドカードの種類一致 = 検出成功（誤答領域にしない）、置換 = 失敗（L1カテゴリへの吸収 = 未獲得領域）
+- 「この単語は知っていた」ボタン → word_known。レコードは永久保存なので初日から取る
+- 置換エラーは `/regions` の**混同ペア**（/ʌ/→/o/ が何回、どの単語で）に集計される
 
 ### 過去の自分との対決（実装）
 

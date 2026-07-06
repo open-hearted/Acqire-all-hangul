@@ -97,6 +97,8 @@ export function buildVowelErrorLog(
     answeredCount,
     heardPattern: "",
     errorRegions,
+    heardPhonemes: null,
+    wordKnown: null,
     listeningCondition: null,
     conditionNote: null,
   };

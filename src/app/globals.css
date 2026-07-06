@@ -752,3 +752,147 @@ body {
   line-height: 1.6;
   text-align: left;
 }
+
+/* IPA転写クイズ */
+.ipa-group-label {
+  font-size: 0.78rem;
+  color: #757575;
+  margin: 10px 0 4px;
+  text-align: left;
+}
+
+.ipa-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: flex-start;
+}
+
+.ipa-btn {
+  min-width: 46px;
+  padding: 10px 8px;
+  font-size: 1.05rem;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.ipa-btn.vowel {
+  background: #fff8e1;
+}
+
+.ipa-btn.wildcard {
+  border-style: dashed;
+  color: #6a1b9a;
+  font-weight: 600;
+}
+
+.ipa-btn:active {
+  transform: scale(0.95);
+}
+
+.ipa-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.heard-line {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-height: 44px;
+  align-items: center;
+  padding: 8px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  margin: 10px 0;
+  background: #fafafa;
+}
+
+.heard-empty {
+  font-size: 0.8rem;
+  color: #bdbdbd;
+}
+
+.heard-chip {
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: #e3f2fd;
+  font-size: 1.05rem;
+}
+
+/* 判定後のスロット表示: 上段=聞こえた音, 下段=正解 */
+.slot-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 12px 0;
+}
+
+.slot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 46px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  border: 2px solid transparent;
+}
+
+.slot .slot-heard {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.slot .slot-actual {
+  font-size: 0.72rem;
+  color: #616161;
+}
+
+.slot.match {
+  background: #e8f5e9;
+  border-color: #66bb6a;
+}
+
+.slot.category {
+  background: #fff8e1;
+  border-color: #ffb300;
+}
+
+.slot.substitution {
+  background: #ffebee;
+  border-color: #ef5350;
+}
+
+.slot.deletion {
+  background: #f5f5f5;
+  border-color: #bdbdbd;
+  border-style: dashed;
+}
+
+.slot.insertion {
+  background: #ffebee;
+  border-color: #ef5350;
+  border-style: dashed;
+}
+
+.known-btn {
+  display: block;
+  width: 100%;
+  margin: 10px 0 0;
+  padding: 10px;
+  border: 2px solid #e0e0e0;
+  border-radius: 10px;
+  background: #fff;
+  color: #757575;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.known-btn.active {
+  border-color: #2e7d32;
+  background: #e8f5e9;
+  color: #2e7d32;
+  font-weight: 600;
+}

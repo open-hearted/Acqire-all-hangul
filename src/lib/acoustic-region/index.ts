@@ -36,6 +36,23 @@ export {
 } from "./hangulPhonemes";
 export { getWordMaster, wordsByRegion } from "./wordMaster";
 export {
+  WILDCARD_VOWEL,
+  WILDCARD_CONSONANT,
+  isWildcard,
+  KEYBOARD_VOWELS,
+  KEYBOARD_CONSONANTS,
+  alignTranscription,
+  judgeTranscription,
+  buildTranscriptionErrorLog,
+} from "./transcriptionAnalysis";
+export type {
+  AlignedSlot,
+  SlotKind,
+  TranscriptionGrade,
+  TranscriptionJudgement,
+  TranscriptionAnswerInput,
+} from "./transcriptionAnalysis";
+export {
   computeVowelCoverage,
   computeWordCoverage,
   tallyErrorRegions,
@@ -47,12 +64,14 @@ export {
   isErrorRecord,
   listUnclassifiedErrors,
   computeWordProgress,
+  tallyConfusions,
 } from "./stats";
 export type {
   RegionCoverage,
   RegionErrorTally,
   TagCoverage,
   WordProgress,
+  ConfusionPair,
 } from "./stats";
 
 let repositories: AcousticRegionRepositories | null = null;
