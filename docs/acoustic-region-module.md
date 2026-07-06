@@ -102,6 +102,7 @@ Phase 1 の骨格は `src/lib/acoustic-region/` に実装されている。
 | 「過去の自分との対決」（単語クイズの対決モード） | `src/app/words/page.tsx` |
 | IPA転写の判定（アラインメント・混同ペア） | `transcriptionAnalysis.ts` |
 | IPA転写クイズページ | `src/app/transcribe/page.tsx`（`/transcribe`） |
+| 分析用エクスポート（AIチャット貼り付け用サマリ / 生JSON） | `exportSummary.ts`・`/regions` のエクスポート欄 |
 
 - ドメイン型は TypeScript 慣習の camelCase。Supabase 移行時はリポジトリ実装層で snake_case カラム（`user_id`, `correct_phoneme_count`, `error_regions`, `listening_condition`, `condition_note`, `created_at`, `meaning_ja`, `phoneme_count`, `audio_ref`）へマッピングする
 - `ErrorLogRepository` は設計どおり削除APIを持たない（過去の誤答レコードが出題プールと「過去の自分との対決」の原資のため）

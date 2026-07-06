@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import {
   getRepositories,
@@ -15,6 +15,7 @@ import {
   listUnclassifiedErrors,
   computeWordProgress,
   tallyConfusions,
+  buildExportSummary,
   LOCAL_USER_ID,
   type ErrorLogRecord,
   type RegionCoverage,
@@ -54,13 +55,42 @@ function formatDate(iso: string) {
 
 export default function RegionAnalysisPage() {
   const [records, setRecords] = useState<ErrorLogRecord[] | null>(null);
+  const [copied, setCopied] = useState<"summary" | "json" | null>(null);
+  const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     getRepositories()
       .errorLogs.listByUser(LOCAL_USER_ID)
       .then(setRecords)
       .catch(() => setRecords([]));
+    return () => {
+      if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
+    };
   }, []);
+
+  async function copyText(kind: "summary" | "json", text: string) {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(kind);
+      if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
+      copyTimerRef.current = setTimeout(() => setCopied(null), 2000);
+    } catch {
+      // クリップボードが使えない環境ではダウンロードを案内する
+      window.alert("コピーできませんでした。「JSONをダウンロード」を使ってください。");
+    }
+  }
+
+  function downloadJson(recs: ErrorLogRecord[]) {
+    const blob = new Blob([JSON.stringify(recs, null, 1)], {
+      type: "application/json",
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `acoustic-region-log-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
 
   if (records === null) return null;
 
@@ -199,6 +229,36 @@ export default function RegionAnalysisPage() {
               ほか {unclassified.length - 20} 件
             </p>
           )}
+        </div>
+      )}
+
+      {records.length > 0 && (
+        <div className="stats-section">
+          <h2>データのエクスポート</h2>
+          <p style={{ fontSize: "0.85rem", color: "#616161" }}>
+            「分析用サマリ」はデータの意味説明つきのテキストです。
+            AIチャットにそのまま貼り付けると、優先訓練領域と練習方法を相談できます。
+          </p>
+          <button
+            className="btn-reset"
+            onClick={() => copyText("summary", buildExportSummary(records))}
+          >
+            {copied === "summary" ? "✔ コピーしました" : "分析用サマリをコピー"}
+          </button>
+          <button
+            className="btn-reset"
+            style={{ background: "#455a64" }}
+            onClick={() => copyText("json", JSON.stringify(records))}
+          >
+            {copied === "json" ? "✔ コピーしました" : "全レコードをコピー（JSON）"}
+          </button>
+          <button
+            className="btn-reset"
+            style={{ background: "transparent", color: "#757575", border: "1px solid #e0e0e0" }}
+            onClick={() => downloadJson(records)}
+          >
+            JSONをダウンロード
+          </button>
         </div>
       )}
 

@@ -35,6 +35,7 @@ export {
   regionTags,
 } from "./hangulPhonemes";
 export { getWordMaster, wordsByRegion } from "./wordMaster";
+export { buildExportSummary } from "./exportSummary";
 export {
   WILDCARD_VOWEL,
   WILDCARD_CONSONANT,
