@@ -3,6 +3,13 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import wordsData from "@/data/words.json";
+import {
+  buildWordErrorLog,
+  getRepositories,
+  isErrorRecord,
+  LOCAL_USER_ID,
+  type ErrorLogRecord,
+} from "@/lib/acoustic-region";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -13,7 +20,7 @@ interface WordEntry {
 }
 
 type AnswerResult = "correct" | "incorrect" | null;
-type QuizMode = "all" | "wrong";
+type QuizMode = "all" | "wrong" | "duel";
 type Phase = "setup" | "quiz" | "result";
 
 // 1問ごとの記録
@@ -40,6 +47,7 @@ interface SessionLog {
 // ─── Constants ───────────────────────────────────────────────────────────────
 
 const WORDS: WordEntry[] = wordsData as WordEntry[];
+const WORD_SET = new Set(WORDS.map((w) => w.w));
 const MAX_PHONEMES = Math.max(...WORDS.map((w) => w.p)); // 18
 const COUNT_OPTIONS = [10, 20, 50, 100, Infinity]; // Infinity = 全単語一気
 
@@ -109,11 +117,22 @@ export default function WordPhonemeQuizPage() {
   const [wrongPool, setWrongPool] = useState<string[]>([]);
   const [sessionAnswers, setSessionAnswers] = useState<WordAnswer[]>([]);
   const [answersCount, setAnswersCount] = useState(0);
+  // 過去の自分との対決: error_log の最新レコードが誤答のままの語 → その誤答レコード
+  const [duelPool, setDuelPool] = useState<Map<string, ErrorLogRecord>>(
+    new Map()
+  );
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const autoNextRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const qStartRef = useRef(Date.now());
   const sessionStartRef = useRef(Date.now());
+  // 音響領域分析用: 聞こえ方メモの確定を待っている誤答（error_log 未記録分）
+  const pendingErrorLogRef = useRef<{
+    word: string;
+    meaning: string;
+    correct: number;
+    answered: number;
+  } | null>(null);
 
   useEffect(() => {
     setSessions(loadJson<SessionLog[]>(SESSIONS_KEY, []));
@@ -127,6 +146,25 @@ export default function WordPhonemeQuizPage() {
       if (autoNextRef.current) clearTimeout(autoNextRef.current);
     };
   }, []);
+
+  // 設定画面に戻るたびに対決プールを再計算する（誤答→後で正解した語は外れる）
+  useEffect(() => {
+    if (!hydrated || phase !== "setup") return;
+    getRepositories()
+      .errorLogs.listByUser(LOCAL_USER_ID)
+      .then((recs) => {
+        const latest = new Map<string, ErrorLogRecord>();
+        for (const r of recs) {
+          if (WORD_SET.has(r.word)) latest.set(r.word, r);
+        }
+        const pool = new Map<string, ErrorLogRecord>();
+        for (const [w, r] of latest) {
+          if (isErrorRecord(r)) pool.set(w, r);
+        }
+        setDuelPool(pool);
+      })
+      .catch(() => {});
+  }, [hydrated, phase]);
 
   const question = questions[index];
 
@@ -153,7 +191,9 @@ export default function WordPhonemeQuizPage() {
     const source =
       selectedMode === "all"
         ? WORDS
-        : WORDS.filter((w) => wrongPool.includes(w.w));
+        : selectedMode === "duel"
+          ? WORDS.filter((w) => duelPool.has(w.w))
+          : WORDS.filter((w) => wrongPool.includes(w.w));
     if (source.length === 0) return;
     const qs = shuffle(source).slice(0, count);
     setMode(selectedMode);
@@ -169,7 +209,28 @@ export default function WordPhonemeQuizPage() {
     playWord(qs[0].w); // スタートのタップ操作内で再生して自動再生制限を回避
   }
 
+  // 保留中の誤答を（聞こえ方メモの内容とともに）error_log へ記録する
+  function flushPendingErrorLog(heardPattern: string) {
+    const pending = pendingErrorLogRef.current;
+    if (!pending) return;
+    pendingErrorLogRef.current = null;
+    getRepositories()
+      .errorLogs.append(
+        buildWordErrorLog({
+          word: pending.word,
+          meaning: pending.meaning,
+          correctPhonemeCount: pending.correct,
+          answeredCount: pending.answered,
+          heardPattern,
+        })
+      )
+      .catch(() => {
+        // 記録失敗はクイズ進行を妨げない
+      });
+  }
+
   function finishSession(answers: WordAnswer[]) {
+    flushPendingErrorLog(heard);
     const wrong = answers.filter((a) => a.result === "incorrect").length;
     const avgMs = answers.length
       ? Math.round(answers.reduce((s, a) => s + a.ms, 0) / answers.length)
@@ -211,6 +272,7 @@ export default function WordPhonemeQuizPage() {
       clearTimeout(autoNextRef.current);
       autoNextRef.current = null;
     }
+    flushPendingErrorLog(heard);
     setHeard("");
     const nextIndex = index + 1;
     if (nextIndex >= questions.length) {
@@ -245,6 +307,30 @@ export default function WordPhonemeQuizPage() {
     };
     const answers = [...sessionAnswers, answer];
     setSessionAnswers(answers);
+
+    // 音響領域分析用の error_log にも記録する（正答も記録: 成功率の分母になる）。
+    // 誤答は聞こえ方メモの確定（次の問題へ進む/終了する）を待ってから記録する
+    if (result === "correct") {
+      getRepositories()
+        .errorLogs.append(
+          buildWordErrorLog({
+            word: question.w,
+            meaning: question.e,
+            correctPhonemeCount: question.p,
+            answeredCount: choice,
+          })
+        )
+        .catch(() => {
+          // 記録失敗はクイズ進行を妨げない
+        });
+    } else {
+      pendingErrorLogRef.current = {
+        word: question.w,
+        meaning: question.e,
+        correct: question.p,
+        answered: choice,
+      };
+    }
 
     // 全回答ログに追記（削除はしない。進行中のセッションは上限を超えても記録する）
     const all = loadJson<WordAnswer[]>(ANSWERS_KEY, []);
@@ -339,9 +425,26 @@ export default function WordPhonemeQuizPage() {
           >
             間違えた単語だけ（{wrongPool.length}語）
           </button>
+          <button
+            className="btn-reset"
+            style={{ background: "#6a1b9a" }}
+            onClick={() => startSession("duel")}
+            disabled={duelPool.size === 0 || logFull}
+          >
+            ⚔️ 過去の自分と対決（{duelPool.size}語）
+          </button>
+          <p style={{ fontSize: "0.8rem", color: "#757575" }}>
+            対決 = 以前聞き取れなかった単語の再測定。以前の自分の回答と聞こえ方が表示されます
+          </p>
           <p style={{ fontSize: "0.8rem", color: "#757575" }}>
             回答記録: {answersCount} / {MAX_ANSWERS}件
           </p>
+          <Link href="/transcribe" className="link-btn">
+            IPA転写クイズ（精密測定）へ →
+          </Link>
+          <Link href="/regions" className="link-btn">
+            音響領域の分析へ →
+          </Link>
           <Link href="/" className="link-btn">
             ← 母音クイズへ
           </Link>
@@ -391,6 +494,11 @@ export default function WordPhonemeQuizPage() {
             {correctCount}{" "}
             <span>/ {sessionAnswers.length} 正解・平均{avgSec}秒</span>
           </div>
+          {mode === "duel" && (
+            <p style={{ fontSize: "1.05rem", color: "#6a1b9a", fontWeight: 600 }}>
+              ⚔️ 過去の自分との対決: {correctCount}勝{wrongAnswers.length}敗
+            </p>
+          )}
           <button className="btn-reset" onClick={() => startSession(mode)}>
             もう一度（同じ設定）
           </button>
@@ -401,6 +509,9 @@ export default function WordPhonemeQuizPage() {
           >
             設定に戻る
           </button>
+          <Link href="/regions" className="link-btn">
+            音響領域の分析へ →
+          </Link>
         </div>
 
         {wrongAnswers.length > 0 && (
@@ -452,7 +563,7 @@ export default function WordPhonemeQuizPage() {
       <div className="card">
         <div className="question-label">
           問題 {index + 1}
-          {mode === "wrong" ? "（復習）" : ""}
+          {mode === "wrong" ? "（復習）" : mode === "duel" ? "（対決）" : ""}
         </div>
 
         <button className="btn-audio" onClick={() => playWord(question.w)}>
@@ -499,6 +610,25 @@ export default function WordPhonemeQuizPage() {
               : `❌ 不正解。${question.w}（${question.e}）は ${question.p}音素`}
           </div>
         )}
+
+        {/* 過去の自分との対決: 以前の誤答レコードをそのまま提示 */}
+        {checked &&
+          mode === "duel" &&
+          (() => {
+            const past = duelPool.get(question.w);
+            if (!past) return null;
+            return (
+              <div className="past-self">
+                ⚔️ 以前のあなた（{formatDate(new Date(past.createdAt).getTime())}）:
+                「{past.answeredCount}音素」と回答
+                {past.heardPattern ? `・聞こえ: ${past.heardPattern}` : ""}
+                <br />
+                {feedback === "correct"
+                  ? "今回は正解。過去の自分に勝ちました！"
+                  : `今回は「${chosen}音素」。決着はまた次の再測定で`}
+              </div>
+            );
+          })()}
 
         {feedback === "incorrect" && (
           <>

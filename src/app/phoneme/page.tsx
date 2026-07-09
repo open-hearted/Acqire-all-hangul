@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import lessonsData from "@/data/lessons.json";
+import { buildVowelErrorLog, getRepositories, VOWELS } from "@/lib/acoustic-region";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -53,31 +54,6 @@ const STORAGE_KEY = "hangul-phoneme-progress";
 const STATS_KEY = "hangul-phoneme-stats";
 const MAX_LOG = 500;
 const RECENT_N = 5;
-
-// 各母音のIPA表記（フィードバック表示用）
-const IPA: Record<string, string> = {
-  "ㅏ": "a",
-  "ㅑ": "ja",
-  "ㅓ": "ʌ",
-  "ㅕ": "jʌ",
-  "ㅗ": "o",
-  "ㅛ": "jo",
-  "ㅜ": "u",
-  "ㅠ": "ju",
-  "ㅡ": "ɯ",
-  "ㅣ": "i",
-  "ㅐ": "ɛ",
-  "ㅒ": "jɛ",
-  "ㅔ": "e",
-  "ㅖ": "je",
-  "ㅘ": "wa",
-  "ㅙ": "wɛ",
-  "ㅚ": "we",
-  "ㅝ": "wʌ",
-  "ㅞ": "we",
-  "ㅟ": "wi",
-  "ㅢ": "ɰi",
-};
 
 // Fisher-Yates shuffle
 function shuffleIndices(): number[] {
@@ -364,6 +340,16 @@ export default function PhonemeQuizPage() {
         result: result === "correct" ? "correct" : "incorrect",
         ms: Date.now() - qStartRef.current,
       };
+      // 音響領域分析用の error_log にも初回判定を記録する
+      // （正答も記録: 領域ごとの検出成功率の分母になる）
+      const errorLog = buildVowelErrorLog(lesson.answer, choice);
+      if (errorLog) {
+        getRepositories()
+          .errorLogs.append(errorLog)
+          .catch(() => {
+            // 記録失敗はクイズ進行を妨げない
+          });
+      }
     }
 
     const newHistory = [...progress.history];
@@ -433,7 +419,7 @@ export default function PhonemeQuizPage() {
 
   // 正解の説明文（例: ㅑ /ja/ は 2音素）
   function answerText(target: Lesson) {
-    return `${target.answer} /${IPA[target.answer] ?? "?"}/ は ${target.phonemes}音素`;
+    return `${target.answer} /${VOWELS[target.answer]?.ipa ?? "?"}/ は ${target.phonemes}音素`;
   }
 
   // 音ごとの習熟度（スタート画面と結果画面で表示）
@@ -493,6 +479,9 @@ export default function PhonemeQuizPage() {
           <button className="btn-reset" onClick={handleStart}>
             スタート
           </button>
+          <Link href="/regions" className="link-btn">
+            音響領域の分析へ →
+          </Link>
           <Link href="/" className="link-btn">
             ← 文字を当てるクイズへ
           </Link>
