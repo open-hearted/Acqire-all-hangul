@@ -931,6 +931,7 @@ body {
 .heard-slot {
   display: flex;
   align-items: stretch;
+  flex-wrap: wrap;
   overflow: hidden;
   border: 2px solid transparent;
   border-radius: 8px;
@@ -940,6 +941,11 @@ body {
 .heard-slot.active {
   border-color: var(--color-primary);
   box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.15);
+}
+
+.heard-slot.or-active {
+  border-color: #7b1fa2;
+  box-shadow: 0 0 0 3px rgba(123, 31, 162, 0.18);
 }
 
 .heard-slot.empty {
@@ -975,12 +981,43 @@ body {
   font-size: 1rem;
 }
 
+.heard-candidate-editor {
+  display: flex;
+  flex-basis: 100%;
+  flex-wrap: wrap;
+  gap: 3px;
+  padding: 3px 5px 5px;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.heard-candidate-delete {
+  padding: 2px 5px;
+  border: 1px solid #ce93d8;
+  border-radius: 999px;
+  background: #f3e5f5;
+  color: #6a1b9a;
+  font-size: 0.72rem;
+  cursor: pointer;
+}
+
+.heard-candidate-delete:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
 .heard-append-btn {
   padding: 7px 9px;
   border: 1px solid #bdbdbd;
   border-radius: 7px;
   color: #616161;
   font-size: 0.75rem;
+}
+
+.heard-append-btn.active {
+  border-color: #7b1fa2;
+  background: #f3e5f5;
+  color: #6a1b9a;
+  font-weight: 700;
 }
 
 .heard-edit-help {
@@ -1072,6 +1109,11 @@ body {
   background: #e8f5e9;
   color: #2e7d32;
   font-weight: 600;
+}
+
+.slot.alternative {
+  background: #f3e5f5;
+  border-color: #ab47bc;
 }
 
 /* IPA転写クイズ: PCでは横幅を使い、スクロールなしで回答を完結させる */

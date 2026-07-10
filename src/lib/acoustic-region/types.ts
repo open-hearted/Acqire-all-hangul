@@ -30,6 +30,11 @@ export interface ErrorRegion {
   phoneme: string;
   /** substitution のとき: 何に聞こえたか（IPA または ワイルドカード 母/子） */
   heard?: string;
+  /**
+   * ORで入力された候補。複数候補のときは heard に代表値を捏造せず、
+   * こちらに入力どおり保存する。
+   */
+  heardCandidates?: string[];
 }
 
 /**
@@ -76,6 +81,11 @@ export interface ErrorLogRecord {
    * 要素は IPA記号 または ワイルドカード "母"/"子"（聞こえたが同定できず）
    */
   heardPhonemes: string[] | null;
+  /**
+   * IPA転写クイズのOR候補を含む回答スロット（任意）。
+   * 旧記録はこのフィールドを持たず、heardPhonemes を単一候補として読む。
+   */
+  heardCandidateSlots?: string[][] | null;
   /**
    * 「この単語は知っていた」（任意）。null = 未回答。
    * true なのに転写できない語 = 音韻表現の再結線が必要な語

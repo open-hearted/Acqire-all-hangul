@@ -17,6 +17,7 @@ import {
   type TranscriptionJudgement,
   type TranscriptionGrade,
 } from "@/lib/acoustic-region";
+import type { AnswerSlot } from "@/lib/acoustic-region/transcriptionAnalysis";
 
 // ─── Types / Constants ───────────────────────────────────────────────────────
 
@@ -34,7 +35,8 @@ interface QuestionResult {
   grade: TranscriptionGrade;
   summary: string;
   correctPhonemes: string[];
-  answerSlots: Array<string | null>;
+  answerSlots: AnswerSlot[];
+  alternativeMatchCount: number;
 }
 
 interface VowelButtonInfo {
@@ -76,12 +78,27 @@ const GLIDES: VowelButtonInfo[] = [
   { phoneme: "ɰ", hangul: "例 ㅢ", audioFile: "ㅢ.mp3", area: "" },
 ];
 
-function formatAnswerSlots(slots: Array<string | null>): string {
+function formatAnswerSlots(slots: AnswerSlot[]): string {
   return slots
-    .map((phoneme) =>
-      phoneme === null ? "□" : isWildcard(phoneme) ? `${phoneme}?` : phoneme
-    )
+    .map((slot) => {
+      if (slot === null || slot.candidates.length === 0) return "□";
+      const candidates = slot.candidates.map((phoneme) =>
+        isWildcard(phoneme) ? `${phoneme}?` : phoneme
+      );
+      return candidates.length === 1 ? candidates[0] : `[${candidates.join("|")}]`;
+    })
     .join(" ");
+}
+
+function formatSlotCandidates(candidates: string[]): string {
+  const text = candidates.map((phoneme) =>
+    isWildcard(phoneme) ? `${phoneme}?` : phoneme
+  );
+  return text.length > 1 ? `[${text.join(" | ")}]` : text[0] ?? "空欄";
+}
+
+function isVowelAnswer(phoneme: string): boolean {
+  return phoneme === WILDCARD_VOWEL || KEYBOARD_VOWELS.includes(phoneme);
 }
 
 function audioSrc(word: string) {
@@ -108,8 +125,9 @@ export default function TranscribeQuizPage() {
 
   const [questions, setQuestions] = useState<WordEntry[]>([]);
   const [index, setIndex] = useState(0);
-  const [heard, setHeard] = useState<Array<string | null>>([]);
+  const [heard, setHeard] = useState<AnswerSlot[]>([]);
   const [activeSlot, setActiveSlot] = useState<number | null>(null);
+  const [orMode, setOrMode] = useState(false);
   const [judgement, setJudgement] = useState<TranscriptionJudgement | null>(
     null
   );
@@ -152,6 +170,7 @@ export default function TranscribeQuizPage() {
     setIndex(0);
     setHeard([]);
     setActiveSlot(null);
+    setOrMode(false);
     setJudgement(null);
     setKnown(null);
     setResults([]);
@@ -161,23 +180,26 @@ export default function TranscribeQuizPage() {
 
   // 判定（1問につき1回。ここではまだ記録しない: 「知っていた」の入力を待つ）
   function handleJudge() {
-    const heardPhonemes = heard.filter((p): p is string => p !== null);
-    if (!question || judgement || heardPhonemes.length === 0) return;
+    const answeredSlots = heard.filter(
+      (slot): slot is Exclude<AnswerSlot, null> =>
+        slot !== null && slot.candidates.length > 0
+    );
+    if (!question || judgement || answeredSlots.length === 0) return;
     const entry = getWordMaster().get(question.w);
     if (!entry) return;
     setActiveSlot(null);
-    setJudgement(judgeTranscription(entry.phonemes, heardPhonemes));
+    setOrMode(false);
+    setJudgement(judgeTranscription(entry.phonemes, heard));
   }
 
   // 記録して次へ（判定済みの問題のみ記録する）
   function recordCurrent(): QuestionResult[] {
     if (!question || !judgement) return results;
-    const heardPhonemes = heard.filter((p): p is string => p !== null);
     const wordMaster = getWordMaster().get(question.w);
     if (!wordMaster) return results;
     const built = buildTranscriptionErrorLog({
       word: question.w,
-      heard: heardPhonemes,
+      heard,
       wordKnown: known,
     });
     if (built) {
@@ -196,6 +218,7 @@ export default function TranscribeQuizPage() {
         summary: judgement.summary,
         correctPhonemes: wordMaster.phonemes.map((p) => p.phoneme),
         answerSlots: [...heard],
+        alternativeMatchCount: judgement.alternativeMatchCount,
       },
     ];
     setResults(next);
@@ -207,6 +230,7 @@ export default function TranscribeQuizPage() {
     const nextIndex = index + 1;
     setHeard([]);
     setActiveSlot(null);
+    setOrMode(false);
     setJudgement(null);
     setKnown(null);
     if (nextIndex >= questions.length) {
@@ -223,6 +247,7 @@ export default function TranscribeQuizPage() {
     recordCurrent();
     setHeard([]);
     setActiveSlot(null);
+    setOrMode(false);
     setJudgement(null);
     setKnown(null);
     setPhase("result");
@@ -245,12 +270,30 @@ export default function TranscribeQuizPage() {
 
   function inputPhoneme(phoneme: string) {
     if (judgement) return;
+    if (orMode && activeSlot !== null) {
+      const target = heard[activeSlot];
+      const candidates = target?.candidates ?? [];
+      const sameCategory = candidates.every(
+        (candidate) => isVowelAnswer(candidate) === isVowelAnswer(phoneme)
+      );
+      if (
+        candidates.length >= 3 ||
+        candidates.includes(phoneme) ||
+        !sameCategory
+      ) {
+        return;
+      }
+      const next = [...heard];
+      next[activeSlot] = { candidates: [...candidates, phoneme] };
+      setHeard(next);
+      return;
+    }
     if (activeSlot === null) {
-      setHeard([...heard, phoneme]);
+      setHeard([...heard, { candidates: [phoneme] }]);
       return;
     }
     const next = [...heard];
-    next[activeSlot] = phoneme;
+    next[activeSlot] = { candidates: [phoneme] };
     setHeard(next);
     setActiveSlot(null);
   }
@@ -261,16 +304,38 @@ export default function TranscribeQuizPage() {
     next[slotIndex] = null;
     setHeard(next);
     setActiveSlot(slotIndex);
+    setOrMode(false);
+  }
+
+  function deleteCandidate(slotIndex: number, candidate: string) {
+    if (judgement || heard[slotIndex] === null) return;
+    const next = [...heard];
+    const candidates = next[slotIndex]!.candidates.filter((p) => p !== candidate);
+    next[slotIndex] = candidates.length > 0 ? { candidates } : null;
+    setHeard(next);
+    setActiveSlot(slotIndex);
   }
 
   function deleteLastPhoneme() {
     if (judgement) return;
     for (let i = heard.length - 1; i >= 0; i--) {
-      if (heard[i] !== null) {
+      if (heard[i] !== null && heard[i]!.candidates.length > 0) {
         deleteSlot(i);
         return;
       }
     }
+  }
+
+  function isInputDisabled(phoneme: string): boolean {
+    if (judgement) return true;
+    if (!orMode || activeSlot === null) return false;
+    const candidates = heard[activeSlot]?.candidates ?? [];
+    return (
+      candidates.length >= 3 ||
+      candidates.includes(phoneme) ||
+      (candidates.length > 0 &&
+        isVowelAnswer(candidates[0]) !== isVowelAnswer(phoneme))
+    );
   }
 
   function renderVowelChoice(info: VowelButtonInfo, isGlide = false) {
@@ -283,7 +348,7 @@ export default function TranscribeQuizPage() {
         <button
           type="button"
           className="vowel-answer-btn"
-          disabled={judgement !== null}
+          disabled={isInputDisabled(info.phoneme)}
           onClick={() => inputPhoneme(info.phoneme)}
           aria-label={`${info.hangul}、IPA ${info.phoneme} を回答に入れる`}
         >
@@ -349,11 +414,15 @@ export default function TranscribeQuizPage() {
 
   function renderKeyboard() {
     const disabled = judgement !== null;
+    const activeCandidateCount =
+      activeSlot === null ? 0 : heard[activeSlot]?.candidates.length ?? 0;
     return (
       <div className="input-wrap transcription-keyboard">
         <div className="keyboard-toolbar" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
           <span className="input-label" style={{ marginBottom: 0 }}>
-            聞こえた順に1音素ずつタップ。分からないけど聞こえている音は「母?」「子?」
+            {orMode
+              ? `${activeSlot! + 1}番目のスロットにOR候補を追加中（${activeCandidateCount}/3個）`
+              : "聞こえた順に1音素ずつタップ。分からないけど聞こえている音は「母?」「子?」"}
           </span>
           <button
             type="button"
@@ -412,7 +481,7 @@ export default function TranscribeQuizPage() {
             <button
               type="button"
               className="ipa-btn vowel wildcard unknown-vowel-btn"
-              disabled={disabled}
+              disabled={isInputDisabled(WILDCARD_VOWEL)}
               onClick={() => inputPhoneme(WILDCARD_VOWEL)}
             >
               母?　母音は聞こえたが分からない
@@ -428,7 +497,7 @@ export default function TranscribeQuizPage() {
                 key={p}
                 type="button"
                 className="ipa-btn"
-                disabled={disabled}
+                disabled={isInputDisabled(p)}
                 onClick={() => inputPhoneme(p)}
               >
                 {p}
@@ -437,7 +506,7 @@ export default function TranscribeQuizPage() {
             <button
               type="button"
               className="ipa-btn wildcard"
-              disabled={disabled}
+              disabled={isInputDisabled(WILDCARD_CONSONANT)}
               onClick={() => inputPhoneme(WILDCARD_CONSONANT)}
             >
               子?
@@ -447,7 +516,7 @@ export default function TranscribeQuizPage() {
             <button
               type="button"
               className="ipa-btn"
-              disabled={disabled || heard.every((p) => p === null)}
+              disabled={disabled || heard.every((slot) => slot === null)}
               onClick={deleteLastPhoneme}
             >
               ⌫ 最後の音素を空欄にする
@@ -462,13 +531,11 @@ export default function TranscribeQuizPage() {
     return (
       <div className="slot-row">
         {j.slots.map((slot, i) => (
-          <div key={i} className={`slot ${slot.kind}`}>
+          <div key={i} className={`slot ${slot.isAlternativeMatch ? "alternative" : slot.kind}`}>
             <span className="slot-heard">
               {slot.kind === "deletion"
                 ? "―"
-                : isWildcard(slot.heard ?? "")
-                  ? `${slot.heard}?`
-                  : slot.heard}
+                : formatSlotCandidates(slot.heardCandidates ?? (slot.heard ? [slot.heard] : []))}
             </span>
             <span className="slot-actual">
               {slot.kind === "insertion" ? "余分" : slot.actual?.phoneme}
@@ -554,6 +621,9 @@ export default function TranscribeQuizPage() {
   if (phase === "result") {
     const byGrade = (g: TranscriptionGrade) =>
       results.filter((r) => r.grade === g).length;
+    const alternativeCount = results.filter(
+      (r) => r.alternativeMatchCount > 0
+    ).length;
     return (
       <div className="container">
         {header}
@@ -562,7 +632,7 @@ export default function TranscribeQuizPage() {
           <div className="result-score">
             {byGrade("perfect")}{" "}
             <span>
-              / {results.length} 完全一致・配置一致 {byGrade("pattern")}・
+              / {results.length} 完全一致・候補内一致 {alternativeCount}・配置一致 {byGrade("pattern") - alternativeCount}・
               配置不一致 {byGrade("mismatch")}
             </span>
           </div>
@@ -590,6 +660,8 @@ export default function TranscribeQuizPage() {
                 className={`stats-row ${
                   r.grade === "perfect"
                     ? "good"
+                    : r.alternativeMatchCount > 0
+                      ? "soso"
                     : r.grade === "pattern"
                       ? "soso"
                       : "weak"
@@ -602,7 +674,9 @@ export default function TranscribeQuizPage() {
                 >
                   {r.word} 🔊
                 </button>
-                <span className="stats-level">{GRADE_LABEL[r.grade]}</span>
+                <span className="stats-level">
+                  {r.alternativeMatchCount > 0 ? "候補内一致" : GRADE_LABEL[r.grade]}
+                </span>
                 <div className="stats-detail transcription-result-detail">
                   <span>{r.meaning}・{r.summary}</span>
                   <span><strong>正解：</strong>/{r.correctPhonemes.join(" ")}/</span>
@@ -617,7 +691,7 @@ export default function TranscribeQuizPage() {
   }
 
   // Quiz
-  const answeredPhonemeCount = heard.filter((p) => p !== null).length;
+  const answeredPhonemeCount = heard.filter((slot) => slot !== null).length;
   return (
     <div className="container transcribe-quiz-page">
       {header}
@@ -655,49 +729,81 @@ export default function TranscribeQuizPage() {
           {heard.length === 0 ? (
             <span className="heard-empty">（ここに入力した音素が並びます）</span>
           ) : (
-            heard.map((h, i) => (
+            heard.map((slot, i) => (
               <div
                 key={i}
-                className={`heard-slot ${h === null ? "empty" : ""} ${
+                className={`heard-slot ${slot === null ? "empty" : ""} ${
                   activeSlot === i ? "active" : ""
-                }`}
+                } ${orMode && activeSlot === i ? "or-active" : ""}`}
               >
                 <button
                   type="button"
                   className="heard-slot-value"
-                  disabled={judgement !== null}
-                  onClick={() => setActiveSlot(i)}
+                  disabled={judgement !== null || orMode}
+                  onClick={() => {
+                    setActiveSlot(i);
+                    setOrMode(false);
+                  }}
                   aria-label={`${i + 1}番目のスロットを選択`}
                 >
-                  {h === null ? "空欄" : isWildcard(h) ? `${h}?` : h}
+                  {slot === null ? "空欄" : formatSlotCandidates(slot.candidates)}
                 </button>
-                {h !== null && (
+                {slot !== null && (
                   <button
                     type="button"
                     className="heard-slot-delete"
-                    disabled={judgement !== null}
+                    disabled={judgement !== null || (orMode && activeSlot !== i)}
                     onClick={() => deleteSlot(i)}
                     aria-label={`${i + 1}番目の音素を削除して空欄にする`}
                   >
                     ×
                   </button>
                 )}
+                {slot !== null && activeSlot === i && slot.candidates.length > 1 && (
+                  <div className="heard-candidate-editor" aria-label={`${i + 1}番目の候補を削除`}>
+                    {slot.candidates.map((candidate) => (
+                      <button
+                        key={candidate}
+                        type="button"
+                        className="heard-candidate-delete"
+                        disabled={judgement !== null}
+                        onClick={() => deleteCandidate(i, candidate)}
+                        aria-label={`${candidate} を候補から削除`}
+                      >
+                        {isWildcard(candidate) ? `${candidate}?` : candidate} ×
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             ))
           )}
           {activeSlot !== null && (
-            <button
-              type="button"
-              className="heard-append-btn"
-              onClick={() => setActiveSlot(null)}
-            >
-              ＋ 末尾に追加へ戻る
-            </button>
+            <>
+              <button
+                type="button"
+                className={`heard-append-btn ${orMode ? "active" : ""}`}
+                onClick={() => setOrMode(!orMode)}
+                aria-pressed={orMode}
+              >
+                {orMode ? "OR入力を終了" : "OR候補を追加"}
+              </button>
+              <button
+                type="button"
+                className="heard-append-btn"
+                onClick={() => {
+                  setActiveSlot(null);
+                  setOrMode(false);
+                }}
+              >
+                ＋ 末尾に追加へ戻る
+              </button>
+            </>
           )}
         </div>
         {!judgement && heard.length > 0 && (
           <p className="heard-edit-help">
-            スロットを選んで音素ボタンを押すと置換できます。×で消しても空欄は残ります。
+            スロットを選んで音素ボタンを押すと置換できます。OR候補を追加すると同じスロットに最大3個まで入ります。×で消しても空欄は残ります。
           </p>
         )}
 
@@ -717,7 +823,11 @@ export default function TranscribeQuizPage() {
           <>
             <div
               className={`feedback ${
-                judgement.grade === "perfect" ? "correct" : "incorrect"
+                judgement.grade === "perfect"
+                  ? "correct"
+                  : judgement.alternativeMatchCount > 0
+                    ? "unset"
+                    : "incorrect"
               }`}
               role="alert"
               aria-live="polite"

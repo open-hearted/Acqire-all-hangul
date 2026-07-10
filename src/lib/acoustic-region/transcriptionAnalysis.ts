@@ -70,7 +70,15 @@ export interface AlignedSlot {
   actual?: PositionedPhoneme;
   /** 回答側の記号（deletion のとき undefined） */
   heard?: string;
+  /** 回答時に選択した候補。OR入力では複数の候補をそのまま保持する。 */
+  heardCandidates?: string[];
+  /** 正解を含む複数候補の回答（完全一致ではない） */
+  isAlternativeMatch?: boolean;
 }
+
+/** 画面上の回答スロット。null は削除後も残す空欄。 */
+export type AnswerSlot = { candidates: string[] } | null;
+type AnswerSlotInput = string | AnswerSlot;
 
 const COST_MATCH = 0;
 const COST_CATEGORY = 0.25; // ワイルドカードで種類が合う
@@ -96,16 +104,50 @@ function slotKind(actual: PositionedPhoneme, heard: string): SlotKind {
   return "substitution";
 }
 
+function normalizeAnswerSlots(heard: AnswerSlotInput[]): string[][] {
+  return heard.flatMap((slot) => {
+    if (slot === null) return [];
+    if (typeof slot === "string") return [[slot]];
+    return slot.candidates.length > 0 ? [[...slot.candidates]] : [];
+  });
+}
+
+function candidatesCost(actual: PositionedPhoneme, candidates: string[]): number {
+  return Math.min(...candidates.map((heard) => slotCost(actual, heard)));
+}
+
+function bestCandidate(actual: PositionedPhoneme, candidates: string[]): string {
+  return candidates.reduce((best, candidate) =>
+    slotCost(actual, candidate) < slotCost(actual, best) ? candidate : best
+  );
+}
+
+function makeAlignedSlot(
+  actual: PositionedPhoneme,
+  candidates: string[]
+): AlignedSlot {
+  const exact = candidates.includes(actual.phoneme);
+  const best = bestCandidate(actual, candidates);
+  return {
+    kind: slotKind(actual, best),
+    actual,
+    heard: candidates.length === 1 ? candidates[0] : undefined,
+    heardCandidates: candidates,
+    isAlternativeMatch: candidates.length > 1 && exact,
+  };
+}
+
 /**
  * 正解の音素列と回答列を対応づける。
  * DPのタイブレークは 対角（一致/置換）> 上（脱落）> 左（挿入）で決定的。
  */
 export function alignTranscription(
   actual: PositionedPhoneme[],
-  heard: string[]
+  heard: AnswerSlotInput[]
 ): AlignedSlot[] {
+  const heardSlots = normalizeAnswerSlots(heard);
   const n = actual.length;
-  const m = heard.length;
+  const m = heardSlots.length;
   const dp: number[][] = Array.from({ length: n + 1 }, () =>
     Array(m + 1).fill(0)
   );
@@ -114,7 +156,7 @@ export function alignTranscription(
   for (let i = 1; i <= n; i++) {
     for (let j = 1; j <= m; j++) {
       dp[i][j] = Math.min(
-        dp[i - 1][j - 1] + slotCost(actual[i - 1], heard[j - 1]),
+        dp[i - 1][j - 1] + candidatesCost(actual[i - 1], heardSlots[j - 1]),
         dp[i - 1][j] + COST_GAP,
         dp[i][j - 1] + COST_GAP
       );
@@ -128,20 +170,22 @@ export function alignTranscription(
     if (
       i > 0 &&
       j > 0 &&
-      dp[i][j] === dp[i - 1][j - 1] + slotCost(actual[i - 1], heard[j - 1])
+      dp[i][j] ===
+        dp[i - 1][j - 1] + candidatesCost(actual[i - 1], heardSlots[j - 1])
     ) {
-      slots.push({
-        kind: slotKind(actual[i - 1], heard[j - 1]),
-        actual: actual[i - 1],
-        heard: heard[j - 1],
-      });
+      slots.push(makeAlignedSlot(actual[i - 1], heardSlots[j - 1]));
       i--;
       j--;
     } else if (i > 0 && dp[i][j] === dp[i - 1][j] + COST_GAP) {
       slots.push({ kind: "deletion", actual: actual[i - 1] });
       i--;
     } else {
-      slots.push({ kind: "insertion", heard: heard[j - 1] });
+      const candidates = heardSlots[j - 1];
+      slots.push({
+        kind: "insertion",
+        heard: candidates.length === 1 ? candidates[0] : undefined,
+        heardCandidates: candidates,
+      });
       j--;
     }
   }
@@ -162,6 +206,8 @@ export interface TranscriptionJudgement {
   slots: AlignedSlot[];
   grade: TranscriptionGrade;
   errorRegions: ErrorRegion[];
+  /** 正解を含む複数候補の数。完全一致には数えない。 */
+  alternativeMatchCount: number;
   /** 説明調のフィードバック文 */
   summary: string;
 }
@@ -181,7 +227,7 @@ function insertionPosition(slots: AlignedSlot[], index: number): RegionPosition 
 
 export function judgeTranscription(
   actual: PositionedPhoneme[],
-  heard: string[]
+  heard: AnswerSlotInput[]
 ): TranscriptionJudgement {
   const slots = alignTranscription(actual, heard);
   const errorRegions: ErrorRegion[] = [];
@@ -189,20 +235,28 @@ export function judgeTranscription(
   const dels: string[] = [];
   const inss: string[] = [];
   let categoryCount = 0;
+  let alternativeMatchCount = 0;
 
   slots.forEach((slot, idx) => {
     if (slot.kind === "category") categoryCount++;
-    if (slot.kind === "substitution" && slot.actual && slot.heard) {
+    if (slot.isAlternativeMatch) alternativeMatchCount++;
+    if (slot.kind === "substitution" && slot.actual && slot.heardCandidates) {
       errorRegions.push({
         position: slot.actual.position,
         type: "substitution",
         phoneme: slot.actual.phoneme,
-        heard: slot.heard,
+        ...(slot.heard ? { heard: slot.heard } : {}),
+        ...(slot.heardCandidates.length > 1
+          ? { heardCandidates: slot.heardCandidates }
+          : {}),
       });
+      const heardLabel = slot.heardCandidates.length > 1
+        ? `候補 /${slot.heardCandidates.join(" | ")}/`
+        : isWildcard(slot.heardCandidates[0])
+          ? `「${slot.heardCandidates[0]}?」`
+          : `/${slot.heardCandidates[0]}/`;
       subs.push(
-        `${positionLabel(slot.actual.position)} /${slot.actual.phoneme}/ を${
-          isWildcard(slot.heard) ? `「${slot.heard}?」` : ` /${slot.heard}/ `
-        }と知覚`
+        `${positionLabel(slot.actual.position)} /${slot.actual.phoneme}/ を${heardLabel}と知覚`
       );
     }
     if (slot.kind === "deletion" && slot.actual) {
@@ -221,15 +275,28 @@ export function judgeTranscription(
       );
       dels.push(`${positionLabel(ph.position)} /${ph.phoneme}/ が欠落`);
     }
-    if (slot.kind === "insertion" && slot.heard) {
+    if (slot.kind === "insertion" && slot.heardCandidates) {
       const position = insertionPosition(slots, idx);
       errorRegions.push({
         position,
         type: "insertion",
-        phoneme: isWildcard(slot.heard) ? "?" : slot.heard,
+        phoneme:
+          slot.heardCandidates.length === 1
+            ? isWildcard(slot.heardCandidates[0])
+              ? "?"
+              : slot.heardCandidates[0]
+            : "?",
+        ...(slot.heardCandidates.length > 1
+          ? { heardCandidates: slot.heardCandidates }
+          : {}),
       });
+      const heardLabel = slot.heardCandidates.length > 1
+        ? `候補 /${slot.heardCandidates.join(" | ")}/ が余分`
+        : isWildcard(slot.heardCandidates[0])
+          ? `「${slot.heardCandidates[0]}?」が余分`
+          : `/${slot.heardCandidates[0]}/ が余分`;
       inss.push(
-        isWildcard(slot.heard) ? `「${slot.heard}?」が余分` : `/${slot.heard}/ が余分`
+        heardLabel
       );
     }
   });
@@ -237,7 +304,7 @@ export function judgeTranscription(
   const hasGap = dels.length > 0 || inss.length > 0;
   const grade: TranscriptionGrade = hasGap
     ? "mismatch"
-    : subs.length === 0 && categoryCount === 0
+    : subs.length === 0 && categoryCount === 0 && alternativeMatchCount === 0
       ? "perfect"
       : "pattern";
 
@@ -246,6 +313,9 @@ export function judgeTranscription(
     parts.push("完全一致！IPAも全部合っています");
   } else if (grade === "pattern") {
     parts.push("子音・母音の配置は合っています");
+    if (alternativeMatchCount > 0) {
+      parts.push(`${alternativeMatchCount}音素は候補内一致`);
+    }
     if (categoryCount > 0) parts.push(`${categoryCount}音素は種類まで特定せず`);
     if (subs.length > 0) parts.push(subs.join("、"));
   } else {
@@ -255,14 +325,20 @@ export function judgeTranscription(
     if (subs.length > 0) parts.push(subs.join("、"));
   }
 
-  return { slots, grade, errorRegions, summary: parts.join("。") };
+  return {
+    slots,
+    grade,
+    errorRegions,
+    alternativeMatchCount,
+    summary: parts.join("。"),
+  };
 }
 
 // ─── error_log レコードの組み立て ─────────────────────────────────────────
 
 export interface TranscriptionAnswerInput {
   word: string;
-  heard: string[];
+  heard: AnswerSlotInput[];
   wordKnown: boolean | null;
   userId?: string;
 }
@@ -276,6 +352,7 @@ export function buildTranscriptionErrorLog(
 ): { log: NewErrorLog; judgement: TranscriptionJudgement } | null {
   const entry = getWordMaster().get(input.word);
   if (!entry) return null;
+  const heardCandidateSlots = normalizeAnswerSlots(input.heard);
   const judgement = judgeTranscription(entry.phonemes, input.heard);
   return {
     judgement,
@@ -284,12 +361,17 @@ export function buildTranscriptionErrorLog(
       word: input.word,
       meaning: entry.meaningJa,
       correctPhonemeCount: entry.phonemeCount,
-      answeredCount: input.heard.length,
-      heardPattern: input.heard
-        .map((h) => (heardIsVowel(h) ? "母" : "子"))
+      answeredCount: heardCandidateSlots.length,
+      heardPattern: heardCandidateSlots
+        .map((candidates) =>
+          candidates.some((h) => heardIsVowel(h)) ? "母" : "子"
+        )
         .join(""),
       errorRegions: judgement.errorRegions,
-      heardPhonemes: input.heard,
+      // 旧フィールドには互換用の先頭候補だけを残す。候補の完全な記録は
+      // heardCandidateSlots を正として利用する。
+      heardPhonemes: heardCandidateSlots.map((candidates) => candidates[0]),
+      heardCandidateSlots,
       wordKnown: input.wordKnown,
       listeningCondition: null,
       conditionNote: null,
