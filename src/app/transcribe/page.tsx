@@ -998,21 +998,22 @@ export default function TranscribeQuizPage() {
       <div className="card transcribe-quiz-card">
         <div className="question-label">問題 {index + 1}（IPA転写）</div>
 
-        <button className="btn-audio" onClick={() => playWord(question.w)}>
-          <svg
-            width="22"
-            height="22"
-            viewBox="0 0 24 24"
-            fill="currentColor"
-            aria-hidden="true"
-          >
-            <path d="M8 5v14l11-7z" />
-          </svg>
-          音声を再生する
-        </button>
+        <div className="transcribe-audio-answer-row">
+          <button className="btn-audio" onClick={() => playWord(question.w)}>
+            <svg
+              width="22"
+              height="22"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+              aria-hidden="true"
+            >
+              <path d="M8 5v14l11-7z" />
+            </svg>
+            音声を再生する
+          </button>
 
-        {/* 入力中の列 */}
-        <div className="heard-line" aria-label="回答音素スロット">
+          {/* 入力中の列 */}
+          <div className="heard-line" aria-label="回答音素スロット">
           {heard.length === 0 ? (
             <span className="heard-empty">（ここに入力した音素が並びます）</span>
           ) : (
@@ -1089,6 +1090,7 @@ export default function TranscribeQuizPage() {
               </button>
             </>
           )}
+          </div>
         </div>
         {!judgement && heard.length > 0 && (
           <p className="heard-edit-help">

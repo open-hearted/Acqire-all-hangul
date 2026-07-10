@@ -904,6 +904,12 @@ body {
   width: 100%;
 }
 
+.transcribe-audio-answer-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 .consonant-family-row {
   display: flex;
   flex-wrap: wrap;
@@ -1226,6 +1232,17 @@ body {
     font-size: 0.9rem;
   }
 
+  .transcribe-audio-answer-row {
+    display: grid;
+    grid-template-columns: minmax(230px, 0.38fr) minmax(0, 0.62fr);
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .transcribe-audio-answer-row .heard-line {
+    margin: 0;
+  }
+
   .transcribe-quiz-card .heard-line {
     min-height: 38px;
     margin: 2px 0;
@@ -1244,8 +1261,8 @@ body {
 
   .transcription-keyboard {
     display: grid;
-    grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
-    column-gap: 18px;
+    grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr);
+    column-gap: 10px;
     row-gap: 2px;
   }
 
@@ -1277,7 +1294,7 @@ body {
 
   .transcription-keyboard .vowel-map,
   .transcription-keyboard .glide-grid {
-    gap: 5px;
+    gap: 3px;
   }
 
   .transcription-keyboard .vowel-answer-btn {
@@ -1338,12 +1355,12 @@ body {
   }
 
   .transcription-keyboard .consonant-hangul {
-    font-size: 1rem;
+    font-size: 1.08rem;
   }
 
   .transcription-keyboard .consonant-ipa {
     margin-top: 1px;
-    font-size: 0.74rem;
+    font-size: 0.8rem;
   }
 
   .keyboard-delete-row {
