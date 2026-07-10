@@ -466,7 +466,7 @@ export default function TranscribeQuizPage() {
           >
             設定に戻る
           </button>
-          <Link href="/regions" className="link-btn">
+          <Link href="/regions" className="link-btn link-btn-disabled" aria-disabled="true" tabIndex={-1} onClick={(event) => event.preventDefault()}>
             音響領域の分析へ →
           </Link>
         </div>
