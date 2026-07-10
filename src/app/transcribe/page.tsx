@@ -33,6 +33,15 @@ interface QuestionResult {
   meaning: string;
   grade: TranscriptionGrade;
   summary: string;
+  correctPhonemes: string[];
+  answerSlots: Array<string | null>;
+}
+
+interface VowelButtonInfo {
+  phoneme: string;
+  hangul: string;
+  audioFile: string;
+  area: string;
 }
 
 const WORDS: WordEntry[] = wordsData as WordEntry[];
@@ -49,6 +58,31 @@ const GRADE_LABEL: Record<TranscriptionGrade, string> = {
   pattern: "配置一致",
   mismatch: "配置不一致",
 };
+
+const BASIC_VOWELS: VowelButtonInfo[] = [
+  { phoneme: "i", hangul: "ㅣ", audioFile: "ㅣ.mp3", area: "vowel-i" },
+  { phoneme: "ɯ", hangul: "ㅡ", audioFile: "ㅡ.mp3", area: "vowel-eu" },
+  { phoneme: "u", hangul: "ㅜ", audioFile: "ㅜ.mp3", area: "vowel-u" },
+  { phoneme: "e", hangul: "ㅔ", audioFile: "ㅔ.mp3", area: "vowel-e" },
+  { phoneme: "ɛ", hangul: "ㅐ", audioFile: "ㅐ.mp3", area: "vowel-ae" },
+  { phoneme: "ʌ", hangul: "ㅓ", audioFile: "ㅓ.mp3", area: "vowel-eo" },
+  { phoneme: "o", hangul: "ㅗ", audioFile: "ㅗ.mp3", area: "vowel-o" },
+  { phoneme: "a", hangul: "ㅏ", audioFile: "ㅏ.mp3", area: "vowel-a" },
+];
+
+const GLIDES: VowelButtonInfo[] = [
+  { phoneme: "j", hangul: "例 ㅑ", audioFile: "ㅑ.mp3", area: "" },
+  { phoneme: "w", hangul: "例 ㅘ", audioFile: "ㅘ.mp3", area: "" },
+  { phoneme: "ɰ", hangul: "例 ㅢ", audioFile: "ㅢ.mp3", area: "" },
+];
+
+function formatAnswerSlots(slots: Array<string | null>): string {
+  return slots
+    .map((phoneme) =>
+      phoneme === null ? "□" : isWildcard(phoneme) ? `${phoneme}?` : phoneme
+    )
+    .join(" ");
+}
 
 function audioSrc(word: string) {
   const file = word.replace(/\?/g, "").replace(/ /g, "_");
@@ -74,7 +108,8 @@ export default function TranscribeQuizPage() {
 
   const [questions, setQuestions] = useState<WordEntry[]>([]);
   const [index, setIndex] = useState(0);
-  const [heard, setHeard] = useState<string[]>([]);
+  const [heard, setHeard] = useState<Array<string | null>>([]);
+  const [activeSlot, setActiveSlot] = useState<number | null>(null);
   const [judgement, setJudgement] = useState<TranscriptionJudgement | null>(
     null
   );
@@ -116,6 +151,7 @@ export default function TranscribeQuizPage() {
     setQuestions(qs);
     setIndex(0);
     setHeard([]);
+    setActiveSlot(null);
     setJudgement(null);
     setKnown(null);
     setResults([]);
@@ -125,18 +161,23 @@ export default function TranscribeQuizPage() {
 
   // 判定（1問につき1回。ここではまだ記録しない: 「知っていた」の入力を待つ）
   function handleJudge() {
-    if (!question || judgement || heard.length === 0) return;
+    const heardPhonemes = heard.filter((p): p is string => p !== null);
+    if (!question || judgement || heardPhonemes.length === 0) return;
     const entry = getWordMaster().get(question.w);
     if (!entry) return;
-    setJudgement(judgeTranscription(entry.phonemes, heard));
+    setActiveSlot(null);
+    setJudgement(judgeTranscription(entry.phonemes, heardPhonemes));
   }
 
   // 記録して次へ（判定済みの問題のみ記録する）
   function recordCurrent(): QuestionResult[] {
     if (!question || !judgement) return results;
+    const heardPhonemes = heard.filter((p): p is string => p !== null);
+    const wordMaster = getWordMaster().get(question.w);
+    if (!wordMaster) return results;
     const built = buildTranscriptionErrorLog({
       word: question.w,
-      heard,
+      heard: heardPhonemes,
       wordKnown: known,
     });
     if (built) {
@@ -153,6 +194,8 @@ export default function TranscribeQuizPage() {
         meaning: question.e,
         grade: judgement.grade,
         summary: judgement.summary,
+        correctPhonemes: wordMaster.phonemes.map((p) => p.phoneme),
+        answerSlots: [...heard],
       },
     ];
     setResults(next);
@@ -163,6 +206,7 @@ export default function TranscribeQuizPage() {
     const nextResults = recordCurrent();
     const nextIndex = index + 1;
     setHeard([]);
+    setActiveSlot(null);
     setJudgement(null);
     setKnown(null);
     if (nextIndex >= questions.length) {
@@ -178,6 +222,7 @@ export default function TranscribeQuizPage() {
   function handleQuit() {
     recordCurrent();
     setHeard([]);
+    setActiveSlot(null);
     setJudgement(null);
     setKnown(null);
     setPhase("result");
@@ -196,6 +241,66 @@ export default function TranscribeQuizPage() {
       audioRef.current.load();
     }
     audioRef.current.play().catch(() => {});
+  }
+
+  function inputPhoneme(phoneme: string) {
+    if (judgement) return;
+    if (activeSlot === null) {
+      setHeard([...heard, phoneme]);
+      return;
+    }
+    const next = [...heard];
+    next[activeSlot] = phoneme;
+    setHeard(next);
+    setActiveSlot(null);
+  }
+
+  function deleteSlot(slotIndex: number) {
+    if (judgement) return;
+    const next = [...heard];
+    next[slotIndex] = null;
+    setHeard(next);
+    setActiveSlot(slotIndex);
+  }
+
+  function deleteLastPhoneme() {
+    if (judgement) return;
+    for (let i = heard.length - 1; i >= 0; i--) {
+      if (heard[i] !== null) {
+        deleteSlot(i);
+        return;
+      }
+    }
+  }
+
+  function renderVowelChoice(info: VowelButtonInfo, isGlide = false) {
+    return (
+      <div
+        key={info.phoneme}
+        className={`vowel-choice ${isGlide ? "glide" : ""}`}
+        style={info.area ? { gridArea: info.area } : undefined}
+      >
+        <button
+          type="button"
+          className="vowel-answer-btn"
+          disabled={judgement !== null}
+          onClick={() => inputPhoneme(info.phoneme)}
+          aria-label={`${info.hangul}、IPA ${info.phoneme} を回答に入れる`}
+        >
+          <span className="vowel-hangul">{info.hangul}</span>
+          <span className="vowel-ipa">/{info.phoneme}/</span>
+        </button>
+        <button
+          type="button"
+          className="vowel-audio-btn"
+          onClick={() => playGuideAudio(info.audioFile)}
+          aria-label={`${info.hangul} の発音例を再生`}
+          title={isGlide ? "わたり音を含む発音例" : "発音例を再生"}
+        >
+          🔊
+        </button>
+      </div>
+    );
   }
 
   function renderGuideSection(isOpen: boolean, onToggle: () => void) {
@@ -290,26 +395,26 @@ export default function TranscribeQuizPage() {
           </div>
         )}
 
-        <div className="ipa-group-label">母音・わたり音</div>
-        <div className="ipa-grid">
-          {KEYBOARD_VOWELS.map((p) => (
-            <button
-              key={p}
-              type="button"
-              className="ipa-btn vowel"
-              disabled={disabled}
-              onClick={() => setHeard([...heard, p])}
-            >
-              {p}
-            </button>
-          ))}
+        <div className="ipa-group-label">基本母音（ハングル / IPA）</div>
+        <p className="ipa-input-help">文字部分は回答、🔊は発音例だけを再生します。</p>
+        <div className="vowel-map">
+          {BASIC_VOWELS.map((info) => renderVowelChoice(info))}
+        </div>
+
+        <div className="ipa-group-label">わたり音</div>
+        <p className="ipa-input-help">単独音ではありません。🔊は母音と組み合わせた発音例です。</p>
+        <div className="glide-grid">
+          {GLIDES.map((info) => renderVowelChoice(info, true))}
+        </div>
+
+        <div className="unknown-vowel-row">
           <button
             type="button"
-            className="ipa-btn vowel wildcard"
+            className="ipa-btn vowel wildcard unknown-vowel-btn"
             disabled={disabled}
-            onClick={() => setHeard([...heard, WILDCARD_VOWEL])}
+            onClick={() => inputPhoneme(WILDCARD_VOWEL)}
           >
-            母?
+            母?　母音は聞こえたが分からない
           </button>
         </div>
         <div className="ipa-group-label">子音</div>
@@ -320,7 +425,7 @@ export default function TranscribeQuizPage() {
               type="button"
               className="ipa-btn"
               disabled={disabled}
-              onClick={() => setHeard([...heard, p])}
+              onClick={() => inputPhoneme(p)}
             >
               {p}
             </button>
@@ -329,7 +434,7 @@ export default function TranscribeQuizPage() {
             type="button"
             className="ipa-btn wildcard"
             disabled={disabled}
-            onClick={() => setHeard([...heard, WILDCARD_CONSONANT])}
+            onClick={() => inputPhoneme(WILDCARD_CONSONANT)}
           >
             子?
           </button>
@@ -338,10 +443,10 @@ export default function TranscribeQuizPage() {
           <button
             type="button"
             className="ipa-btn"
-            disabled={disabled || heard.length === 0}
-            onClick={() => setHeard(heard.slice(0, -1))}
+            disabled={disabled || heard.every((p) => p === null)}
+            onClick={deleteLastPhoneme}
           >
-            ⌫ 消す
+            ⌫ 最後の音素を空欄にする
           </button>
         </div>
       </div>
@@ -493,9 +598,11 @@ export default function TranscribeQuizPage() {
                   {r.word} 🔊
                 </button>
                 <span className="stats-level">{GRADE_LABEL[r.grade]}</span>
-                <span className="stats-detail">
-                  {r.meaning}・{r.summary}
-                </span>
+                <div className="stats-detail transcription-result-detail">
+                  <span>{r.meaning}・{r.summary}</span>
+                  <span><strong>正解：</strong>/{r.correctPhonemes.join(" ")}/</span>
+                  <span><strong>回答：</strong>/{formatAnswerSlots(r.answerSlots)}/</span>
+                </div>
               </div>
             ))}
           </div>
@@ -505,6 +612,7 @@ export default function TranscribeQuizPage() {
   }
 
   // Quiz
+  const answeredPhonemeCount = heard.filter((p) => p !== null).length;
   return (
     <div className="container">
       {header}
@@ -538,17 +646,55 @@ export default function TranscribeQuizPage() {
         </button>
 
         {/* 入力中の列 */}
-        <div className="heard-line">
+        <div className="heard-line" aria-label="回答音素スロット">
           {heard.length === 0 ? (
             <span className="heard-empty">（ここに入力した音素が並びます）</span>
           ) : (
             heard.map((h, i) => (
-              <span key={i} className="heard-chip">
-                {isWildcard(h) ? `${h}?` : h}
-              </span>
+              <div
+                key={i}
+                className={`heard-slot ${h === null ? "empty" : ""} ${
+                  activeSlot === i ? "active" : ""
+                }`}
+              >
+                <button
+                  type="button"
+                  className="heard-slot-value"
+                  disabled={judgement !== null}
+                  onClick={() => setActiveSlot(i)}
+                  aria-label={`${i + 1}番目のスロットを選択`}
+                >
+                  {h === null ? "空欄" : isWildcard(h) ? `${h}?` : h}
+                </button>
+                {h !== null && (
+                  <button
+                    type="button"
+                    className="heard-slot-delete"
+                    disabled={judgement !== null}
+                    onClick={() => deleteSlot(i)}
+                    aria-label={`${i + 1}番目の音素を削除して空欄にする`}
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
             ))
           )}
+          {activeSlot !== null && (
+            <button
+              type="button"
+              className="heard-append-btn"
+              onClick={() => setActiveSlot(null)}
+            >
+              ＋ 末尾に追加へ戻る
+            </button>
+          )}
         </div>
+        {!judgement && heard.length > 0 && (
+          <p className="heard-edit-help">
+            スロットを選んで音素ボタンを押すと置換できます。×で消しても空欄は残ります。
+          </p>
+        )}
 
         {!judgement && renderKeyboard()}
 
@@ -556,9 +702,9 @@ export default function TranscribeQuizPage() {
           <button
             className="btn-reset"
             onClick={handleJudge}
-            disabled={heard.length === 0}
+            disabled={answeredPhonemeCount === 0}
           >
-            判定する（{heard.length}音素）
+            判定する（{answeredPhonemeCount}音素）
           </button>
         )}
 
@@ -581,6 +727,9 @@ export default function TranscribeQuizPage() {
                 ?.phonemes.map((p) => p.phoneme)
                 .join(" ")}
               /
+            </p>
+            <p style={{ fontSize: "0.9rem", color: "#424242" }}>
+              回答: /{formatAnswerSlots(heard)}/
             </p>
             <button
               type="button"
