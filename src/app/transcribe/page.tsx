@@ -253,7 +253,7 @@ export default function TranscribeQuizPage() {
           <button
             type="button"
             className="btn-reset"
-            style={{ fontSize: "0.8rem", padding: "4px 8px", background: "#f5f5f5", color: "#333", marginLeft: "10px", flexShrink: 0 }}
+            style={{ width: "auto", fontSize: "0.8rem", padding: "4px 8px", background: "#f5f5f5", color: "#333", marginLeft: "10px", flexShrink: 0 }}
             onClick={() => setGuideOpen(!guideOpen)}
           >
             {guideOpen ? "閉じる" : "？IPAの読み方"}
