@@ -28,6 +28,7 @@ export {
 export type { VowelInfo } from "./vowelAnalysis";
 export { buildWordErrorLog, classifyWordAnswer } from "./wordAnalysis";
 export type { WordAnswerInput } from "./wordAnalysis";
+export * from "./phonemeGuide";
 export {
   toPhonemes,
   toPattern,

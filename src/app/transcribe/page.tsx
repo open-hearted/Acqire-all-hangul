@@ -13,6 +13,7 @@ import {
   KEYBOARD_CONSONANTS,
   WILDCARD_VOWEL,
   WILDCARD_CONSONANT,
+  PHONEME_GUIDE,
   type TranscriptionJudgement,
   type TranscriptionGrade,
 } from "@/lib/acoustic-region";
@@ -79,6 +80,8 @@ export default function TranscribeQuizPage() {
   );
   const [known, setKnown] = useState<boolean | null>(null);
   const [results, setResults] = useState<QuestionResult[]>([]);
+  const [guideOpen, setGuideOpen] = useState(false);
+  const [setupGuideOpen, setSetupGuideOpen] = useState(false);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -183,13 +186,110 @@ export default function TranscribeQuizPage() {
 
   // ── Render helpers ────────────────────────────────────────────────────────
 
+  function playGuideAudio(audioFile: string) {
+    const src = `/audio/${encodeURIComponent(audioFile)}`;
+    if (!audioRef.current) {
+      audioRef.current = new Audio(src);
+    } else {
+      audioRef.current.pause();
+      audioRef.current.src = src;
+      audioRef.current.load();
+    }
+    audioRef.current.play().catch(() => {});
+  }
+
+  function renderGuideSection(isOpen: boolean, onToggle: () => void) {
+    return (
+      <div className="stats-section" style={{ marginTop: "1rem" }}>
+        <button
+          className="btn-reset"
+          style={{ width: "100%", textAlign: "left", display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px", background: "transparent", color: "inherit" }}
+          onClick={onToggle}
+        >
+          <span style={{ fontWeight: "bold", fontSize: "1.1rem" }}>IPA一覧（解説つき）</span>
+          <span>{isOpen ? "▲ 閉じる" : "▼ 開く"}</span>
+        </button>
+        {isOpen && (
+          <div style={{ marginTop: "10px" }}>
+            <div className="ipa-group-label" style={{ marginTop: "0" }}>母音・わたり音</div>
+            {KEYBOARD_VOWELS.map(p => {
+              const guide = PHONEME_GUIDE[p];
+              if (!guide) return null;
+              return (
+                <div key={p} className="stats-row" style={{ cursor: guide.audioExample ? "pointer" : "default" }} onClick={() => guide.audioExample && playGuideAudio(guide.audioExample)}>
+                  <span className="stats-char vowel">{p} {guide.audioExample ? "🔊" : ""}</span>
+                  <span className="stats-level">{guide.label}</span>
+                  <span className="stats-detail">{guide.hint}</span>
+                </div>
+              );
+            })}
+            
+            <div className="ipa-group-label" style={{ marginTop: "1rem" }}>子音</div>
+            {KEYBOARD_CONSONANTS.map(p => {
+              const guide = PHONEME_GUIDE[p];
+              if (!guide) return null;
+              return (
+                <div key={p} className="stats-row">
+                  <span className="stats-char">{p}</span>
+                  <span className="stats-level">{guide.label}</span>
+                  <span className="stats-detail">{guide.hint}</span>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    );
+  }
+
   function renderKeyboard() {
     const disabled = judgement !== null;
     return (
       <div className="input-wrap">
-        <span className="input-label">
-          聞こえた順に1音素ずつタップ。分からないけど聞こえている音は「母?」「子?」
-        </span>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+          <span className="input-label" style={{ marginBottom: 0 }}>
+            聞こえた順に1音素ずつタップ。分からないけど聞こえている音は「母?」「子?」
+          </span>
+          <button
+            type="button"
+            className="btn-reset"
+            style={{ fontSize: "0.8rem", padding: "4px 8px", background: "#f5f5f5", color: "#333", marginLeft: "10px", flexShrink: 0 }}
+            onClick={() => setGuideOpen(!guideOpen)}
+          >
+            {guideOpen ? "閉じる" : "？IPAの読み方"}
+          </button>
+        </div>
+        
+        {guideOpen && (
+          <div style={{ marginBottom: "16px", padding: "10px", background: "#fafafa", borderRadius: "8px", border: "1px solid #ddd" }}>
+            <div className="ipa-group-label" style={{ marginTop: "0" }}>母音・わたり音</div>
+            {KEYBOARD_VOWELS.map(p => {
+              const guide = PHONEME_GUIDE[p];
+              if (!guide) return null;
+              return (
+                <div key={p} className="stats-row" style={{ padding: "8px", background: "#fff", cursor: guide.audioExample ? "pointer" : "default" }} onClick={() => guide.audioExample && playGuideAudio(guide.audioExample)}>
+                  <span className="stats-char vowel" style={{ fontSize: "1.2rem" }}>{p} {guide.audioExample ? <span style={{fontSize: "0.9rem"}}>🔊</span> : ""}</span>
+                  <span className="stats-level" style={{ fontSize: "0.9rem" }}>{guide.label}</span>
+                  <span className="stats-detail" style={{ fontSize: "0.85rem" }}>{guide.hint}</span>
+                </div>
+              );
+            })}
+            
+            <div className="ipa-group-label" style={{ marginTop: "1rem" }}>子音</div>
+            {KEYBOARD_CONSONANTS.map(p => {
+              const guide = PHONEME_GUIDE[p];
+              if (!guide) return null;
+              return (
+                <div key={p} className="stats-row" style={{ padding: "8px", background: "#fff" }}>
+                  <span className="stats-char" style={{ fontSize: "1.2rem" }}>{p}</span>
+                  <span className="stats-level" style={{ fontSize: "0.9rem" }}>{guide.label}</span>
+                  <span className="stats-detail" style={{ fontSize: "0.85rem" }}>{guide.hint}</span>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
         <div className="ipa-group-label">母音・わたり音</div>
         <div className="ipa-grid">
           {KEYBOARD_VOWELS.map((p) => (
@@ -326,6 +426,9 @@ export default function TranscribeQuizPage() {
           <button className="btn-reset" onClick={startSession}>
             スタート
           </button>
+          
+          {renderGuideSection(setupGuideOpen, () => setSetupGuideOpen(!setupGuideOpen))}
+
           <Link href="/regions" className="link-btn">
             音響領域の分析へ →
           </Link>
