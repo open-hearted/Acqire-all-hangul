@@ -36,7 +36,7 @@ interface QuestionResult {
 }
 
 const WORDS: WordEntry[] = wordsData as WordEntry[];
-const COUNT_OPTIONS = [5, 10, 20];
+const COUNT_OPTIONS = [1, 5, 10, 20];
 const MAXLEN_OPTIONS: { label: string; value: number }[] = [
   { label: "〜4音素", value: 4 },
   { label: "〜6音素", value: 6 },
