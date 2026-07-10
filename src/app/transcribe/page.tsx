@@ -746,14 +746,14 @@ export default function TranscribeQuizPage() {
   function renderNotes(notes: TranscriptionNote[]) {
     if (notes.length === 0) return null;
     return (
-      <div style={{ marginTop: "0.75rem" }}>
+      <div className="transcribe-note-list">
         {notes.map((note) => (
-          <div key={note.id} className="stats-row none" style={{ marginBottom: "0.4rem" }}>
+          <div key={note.id} className="stats-row none transcribe-note-item">
             <span className="stats-level">{notePhaseLabel(note.phase)}</span>
-            <span className="stats-char" style={{ minWidth: "auto", fontSize: "0.8rem" }}>
+            <span className="stats-char transcribe-note-time">
               {formatNoteTimestamp(note.createdAt)}
             </span>
-            <span className="stats-detail" style={{ whiteSpace: "pre-wrap" }}>
+            <span className="stats-detail transcribe-note-text">
               {note.text}
             </span>
           </div>
@@ -903,76 +903,79 @@ export default function TranscribeQuizPage() {
       (r) => r.alternativeMatchCount > 0
     ).length;
     return (
-      <div className="container">
+      <div className="container transcribe-result-page">
         {header}
-        <div className="result-card">
-          <h2>クイズ完了！</h2>
-          <div className="result-score">
-            {byGrade("perfect")}{" "}
-            <span>
-              / {results.length} 完全一致・候補内一致 {alternativeCount}・配置一致 {byGrade("pattern") - alternativeCount}・
-              配置不一致 {byGrade("mismatch")}
-            </span>
+        <div className="transcribe-result-layout">
+          <div className="result-card transcribe-result-summary">
+            <h2>クイズ完了！</h2>
+            <div className="result-score">
+              {byGrade("perfect")} {" "}
+              <span>
+                / {results.length} 完全一致・候補内一致 {alternativeCount}・配置一致 {byGrade("pattern") - alternativeCount}・
+                配置不一致 {byGrade("mismatch")}
+              </span>
+            </div>
+            <button className="btn-reset" onClick={startSession}>
+              もう一度（同じ設定）
+            </button>
+            <button
+              className="btn-reset btn-muted"
+              onClick={() => setPhase("setup")}
+            >
+              IPA転写クイズトップに戻る
+            </button>
+            <Link href="/regions" className="link-btn link-btn-disabled" aria-disabled="true" tabIndex={-1} onClick={(event) => event.preventDefault()}>
+              音響領域の分析へ →
+            </Link>
           </div>
-          <button className="btn-reset" onClick={startSession}>
-            もう一度（同じ設定）
-          </button>
-          <button
-            className="btn-reset"
-            style={{ background: "transparent", color: "#757575", border: "1px solid #e0e0e0" }}
-            onClick={() => setPhase("setup")}
-          >
-            IPA転写クイズトップに戻る
-          </button>
-          <Link href="/regions" className="link-btn link-btn-disabled" aria-disabled="true" tabIndex={-1} onClick={(event) => event.preventDefault()}>
-            音響領域の分析へ →
-          </Link>
-        </div>
 
-        {results.length > 0 && (
-          <div className="stats-section">
-            <h2>内訳</h2>
-            {results.map((r, i) => (
-              <div
-                key={i}
-                className={`stats-row ${
-                  r.grade === "perfect"
-                    ? "good"
-                    : r.alternativeMatchCount > 0
-                      ? "soso"
-                    : r.grade === "pattern"
-                      ? "soso"
-                      : "weak"
-                }`}
-              >
-                <button
-                  className="stats-char"
-                  onClick={() => playWord(r.word)}
-                  title="タップで音を聞く"
-                >
-                  {r.word} 🔊
-                </button>
-                <span className="stats-level">
-                  {r.alternativeMatchCount > 0 ? "候補内一致" : GRADE_LABEL[r.grade]}
-                </span>
-                <div className="stats-detail transcription-result-detail">
-                  <span>{r.meaning}・{r.summary}</span>
-                  <span><strong>正解：</strong>/{r.correctPhonemes.join(" ")}/</span>
-                  <span><strong>回答：</strong>/{formatAnswerSlots(r.answerSlots)}/</span>
-                  {r.transcriptionNotes.length > 0 && (
-                    <div style={{ marginTop: "0.4rem" }}>
-                      {r.transcriptionNotes.map((note) => (
-                        <div key={note.id} style={{ whiteSpace: "pre-wrap" }}>
-                          <strong>{notePhaseLabel(note.phase)}:</strong> {note.text}
+          {results.length > 0 && (
+            <div className="stats-section transcribe-result-breakdown">
+              <h2>内訳</h2>
+              <div className="transcribe-result-list">
+                {results.map((r, i) => (
+                  <div
+                    key={i}
+                    className={`stats-row ${
+                      r.grade === "perfect"
+                        ? "good"
+                        : r.alternativeMatchCount > 0
+                          ? "soso"
+                        : r.grade === "pattern"
+                          ? "soso"
+                          : "weak"
+                    }`}
+                  >
+                    <button
+                      className="stats-char"
+                      onClick={() => playWord(r.word)}
+                      title="タップで音を聞く"
+                    >
+                      {r.word} 🔊
+                    </button>
+                    <span className="stats-level">
+                      {r.alternativeMatchCount > 0 ? "候補内一致" : GRADE_LABEL[r.grade]}
+                    </span>
+                    <div className="stats-detail transcription-result-detail">
+                      <span>{r.meaning}・{r.summary}</span>
+                      <span><strong>正解：</strong>/{r.correctPhonemes.join(" ")}/</span>
+                      <span><strong>回答：</strong>/{formatAnswerSlots(r.answerSlots)}/</span>
+                      {r.transcriptionNotes.length > 0 && (
+                        <div className="transcribe-result-note-list">
+                          {r.transcriptionNotes.map((note) => (
+                            <div key={note.id} className="transcribe-result-note-item">
+                              <strong>{notePhaseLabel(note.phase)}:</strong> {note.text}
+                            </div>
+                          ))}
                         </div>
-                      ))}
+                      )}
                     </div>
-                  )}
-                </div>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-        )}
+            </div>
+          )}
+        </div>
       </div>
     );
   }
@@ -983,7 +986,7 @@ export default function TranscribeQuizPage() {
     <div className="container transcribe-quiz-page">
       {header}
 
-      <div>
+      <div className="transcribe-progress-block">
         <div className="progress-wrap">
           <div
             className="progress-bar"
@@ -1101,31 +1104,29 @@ export default function TranscribeQuizPage() {
         {!judgement && renderKeyboard()}
 
         {!judgement && (
-          <div className="input-wrap" style={{ marginTop: "0.5rem" }}>
-            <label className="input-label" htmlFor="transcription-during-note">
-              聞こえた感じメモ（任意）
-            </label>
-            <textarea
-              id="transcription-during-note"
-              className="heard-note-area"
-              placeholder="例:「イヤギ」って感じに聞こえた"
-              value={duringAnswerNote}
-              maxLength={1000}
-              onChange={(event) => setDuringAnswerNote(event.target.value)}
-              rows={3}
-              style={{ width: "100%", resize: "vertical", whiteSpace: "pre-wrap" }}
-            />
+          <div className="transcribe-note-judge-row">
+            <div className="input-wrap transcribe-during-note-wrap">
+              <label className="input-label" htmlFor="transcription-during-note">
+                聞こえた感じメモ（任意）
+              </label>
+              <textarea
+                id="transcription-during-note"
+                className="heard-note-area transcribe-during-note"
+                placeholder="例:「イヤギ」って感じに聞こえた"
+                value={duringAnswerNote}
+                maxLength={1000}
+                onChange={(event) => setDuringAnswerNote(event.target.value)}
+                rows={3}
+              />
+            </div>
+            <button
+              className="btn-reset transcribe-judge"
+              onClick={handleJudge}
+              disabled={answeredPhonemeCount === 0}
+            >
+              判定する（{answeredPhonemeCount}音素）
+            </button>
           </div>
-        )}
-
-        {!judgement && (
-          <button
-            className="btn-reset transcribe-judge"
-            onClick={handleJudge}
-            disabled={answeredPhonemeCount === 0}
-          >
-            判定する（{answeredPhonemeCount}音素）
-          </button>
         )}
 
         {judgement && (
@@ -1143,70 +1144,83 @@ export default function TranscribeQuizPage() {
             >
               {judgement.summary}
             </div>
-            {renderSlots(judgement)}
-            <p style={{ fontSize: "0.9rem", color: "#424242" }}>
-              正解: {question.w}（{question.e}）＝ /
-              {getWordMaster()
-                .get(question.w)
-                ?.phonemes.map((p) => p.phoneme)
-                .join(" ")}
-              /
-            </p>
-            <p style={{ fontSize: "0.9rem", color: "#424242" }}>
-              回答: /{formatAnswerSlots(heard)}/
-            </p>
-            <button
-              type="button"
-              className={`known-btn ${known ? "active" : ""}`}
-              onClick={() => setKnown(known ? null : true)}
-            >
-              ✔ この単語は知っていた
-            </button>
-            <div className="input-wrap" style={{ marginTop: "0.8rem" }}>
-              <label className="input-label" htmlFor="transcription-after-note">
-                判定後のメモを追加（任意）
-              </label>
-              <textarea
-                id="transcription-after-note"
-                className="heard-note-area"
-                value={afterJudgementDraft}
-                maxLength={1000}
-                onChange={(event) => setAfterJudgementDraft(event.target.value)}
-                rows={3}
-                style={{ width: "100%", resize: "vertical", whiteSpace: "pre-wrap" }}
-              />
+            <div className="transcribe-post-judge-grid">
+              <div className="transcribe-post-main">
+                {renderSlots(judgement)}
+                <p className="transcribe-answer-line">
+                  正解: {question.w}（{question.e}）＝ /
+                  {getWordMaster()
+                    .get(question.w)
+                    ?.phonemes.map((p) => p.phoneme)
+                    .join(" ")}
+                  /
+                </p>
+                <p className="transcribe-answer-line">
+                  回答: /{formatAnswerSlots(heard)}/
+                </p>
+              </div>
+              <div className="transcribe-post-note-panel">
+                <div className="input-wrap transcribe-after-note-wrap">
+                  <label className="input-label" htmlFor="transcription-after-note">
+                    判定後のメモを追加（任意）
+                  </label>
+                  <div className="transcribe-after-note-controls">
+                    <textarea
+                      id="transcription-after-note"
+                      className="heard-note-area transcribe-after-note"
+                      value={afterJudgementDraft}
+                      maxLength={1000}
+                      onChange={(event) => setAfterJudgementDraft(event.target.value)}
+                      rows={3}
+                    />
+                    <button
+                      type="button"
+                      className="btn-reset transcribe-note-add"
+                      onClick={() => {
+                        const normalized = trimNoteText(afterJudgementDraft);
+                        if (!normalized) return;
+                        appendNote("after_judgement", normalized);
+                        setAfterJudgementDraft("");
+                      }}
+                      disabled={trimNoteText(afterJudgementDraft).length === 0}
+                    >
+                      メモを追加
+                    </button>
+                  </div>
+                </div>
+                <div className="transcribe-note-panel-scroll">{renderNotes(currentNotes)}</div>
+              </div>
+            </div>
+            <div className="transcribe-post-actions">
               <button
                 type="button"
-                className="btn-reset"
-                style={{ marginTop: "0.4rem" }}
-                onClick={() => {
-                  const normalized = trimNoteText(afterJudgementDraft);
-                  if (!normalized) return;
-                  appendNote("after_judgement", normalized);
-                  setAfterJudgementDraft("");
-                }}
-                disabled={trimNoteText(afterJudgementDraft).length === 0}
+                className={`known-btn ${known ? "active" : ""}`}
+                onClick={() => setKnown(known ? null : true)}
               >
-                メモを追加
+                ✔ この単語は知っていた
               </button>
-            </div>
-            {renderNotes(currentNotes)}
-            <div className="btn-row">
-              <button className="btn-next" onClick={handleNext}>
+              <button className="btn-next transcribe-next" onClick={handleNext}>
                 {index + 1 < questions.length ? "次の問題 →" : "結果を見る"}
+              </button>
+              <button
+                className="btn-reset transcribe-quit transcribe-quit-inline btn-muted"
+                onClick={handleQuit}
+              >
+                ここで終了する
               </button>
             </div>
           </>
         )}
       </div>
 
-      <button
-        className="btn-reset transcribe-quit"
-        onClick={handleQuit}
-        style={{ background: "transparent", color: "#757575", border: "1px solid #e0e0e0" }}
-      >
-        ここで終了する
-      </button>
+      {!judgement && (
+        <button
+          className="btn-reset transcribe-quit btn-muted"
+          onClick={handleQuit}
+        >
+          ここで終了する
+        </button>
+      )}
     </div>
   );
 }

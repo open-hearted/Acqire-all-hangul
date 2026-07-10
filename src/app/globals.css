@@ -1191,79 +1191,164 @@ body {
   border-color: #ab47bc;
 }
 
+.btn-muted {
+  background: transparent;
+  color: #616161;
+  border: 1px solid #d8d8d8;
+}
+
+.transcribe-answer-line {
+  font-size: 0.95rem;
+  color: #424242;
+  overflow-wrap: anywhere;
+}
+
+.transcribe-result-note-list {
+  margin-top: 6px;
+}
+
+.transcribe-result-note-item {
+  white-space: pre-wrap;
+}
+
+.transcribe-note-list {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.transcribe-note-item {
+  margin-bottom: 0;
+}
+
+.transcribe-note-time {
+  min-width: auto;
+  font-size: 0.82rem;
+}
+
+.transcribe-note-text {
+  white-space: pre-wrap;
+}
+
+.transcribe-note-panel-scroll {
+  min-height: 0;
+}
+
+.heard-note-area {
+  width: 100%;
+  resize: vertical;
+  white-space: pre-wrap;
+  border: 1px solid #cfcfcf;
+  border-radius: 8px;
+  padding: 8px;
+  font-size: 0.95rem;
+  line-height: 1.4;
+  color: #212121;
+}
+
+.transcribe-after-note-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.transcribe-note-add {
+  width: 100%;
+}
+
+.transcribe-post-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.transcribe-post-actions .known-btn,
+.transcribe-post-actions .btn-next,
+.transcribe-post-actions .transcribe-quit-inline {
+  margin: 0;
+}
+
 /* IPA転写クイズ: PCでは横幅を使い、スクロールなしで回答を完結させる */
 @media (min-width: 900px) {
   .transcribe-quiz-page {
-    max-width: 1100px;
-    min-height: 100vh;
-    padding: 6px 16px;
-    gap: 6px;
+    max-width: 1180px;
+    padding: 8px 14px 10px;
+    gap: 8px;
   }
 
   .transcribe-quiz-page .header {
-    padding: 0;
+    padding: 2px 0;
   }
 
   .transcribe-quiz-page .header h1 {
-    font-size: 1.2rem;
+    font-size: 1.32rem;
   }
 
   .transcribe-quiz-page .header p {
-    margin-top: 0;
-    font-size: 0.75rem;
+    margin-top: 2px;
+    font-size: 0.92rem;
+  }
+
+  .transcribe-progress-block {
+    margin-top: -2px;
   }
 
   .transcribe-quiz-page .progress-label {
-    margin-top: 1px;
-    font-size: 0.72rem;
+    margin-top: 3px;
+    font-size: 0.88rem;
   }
 
   .transcribe-quiz-card {
-    padding: 10px 14px;
-    gap: 7px;
+    padding: 12px 14px;
+    gap: 8px;
   }
 
   .transcribe-quiz-card .question-label {
-    font-size: 0.78rem;
+    font-size: 0.86rem;
   }
 
   .transcribe-quiz-card .btn-audio {
-    padding: 8px;
-    font-size: 0.9rem;
+    height: 50px;
+    padding: 10px;
+    font-size: 1rem;
   }
 
   .transcribe-audio-answer-row {
     display: grid;
-    grid-template-columns: minmax(230px, 0.38fr) minmax(0, 0.62fr);
+    grid-template-columns: minmax(250px, 0.35fr) minmax(0, 0.65fr);
     align-items: stretch;
     gap: 10px;
   }
 
   .transcribe-audio-answer-row .heard-line {
     margin: 0;
+    align-content: center;
   }
 
   .transcribe-quiz-card .heard-line {
-    min-height: 38px;
-    margin: 2px 0;
-    padding: 4px 6px;
+    min-height: 50px;
+    padding: 6px 8px;
   }
 
   .transcribe-quiz-card .heard-slot-value {
-    min-width: 40px;
-    padding: 5px 7px;
-    font-size: 0.95rem;
+    min-width: 50px;
+    min-height: 42px;
+    padding: 7px 10px;
+    font-size: 1rem;
   }
 
   .transcribe-quiz-card .heard-edit-help {
-    margin: -2px 0 2px;
+    margin: -2px 0 0;
+    font-size: 0.88rem;
+    line-height: 1.35;
   }
 
   .transcription-keyboard {
     display: grid;
-    grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr);
-    column-gap: 10px;
-    row-gap: 2px;
+    grid-template-columns: minmax(0, 0.4fr) minmax(0, 0.6fr);
+    column-gap: 9px;
+    row-gap: 4px;
   }
 
   .keyboard-toolbar,
@@ -1272,7 +1357,18 @@ body {
   }
 
   .keyboard-toolbar {
-    margin-bottom: 0 !important;
+    margin-bottom: 2px !important;
+    gap: 8px;
+  }
+
+  .keyboard-toolbar .input-label {
+    font-size: 0.92rem;
+    line-height: 1.35;
+  }
+
+  .keyboard-toolbar .btn-reset {
+    min-height: 42px;
+    font-size: 0.9rem;
   }
 
   .vowel-input-panel {
@@ -1285,11 +1381,13 @@ body {
 
   .transcription-keyboard .ipa-group-label {
     margin: 4px 0 2px;
+    font-size: 0.88rem;
   }
 
   .transcription-keyboard .ipa-input-help {
-    margin-bottom: 3px;
-    font-size: 0.68rem;
+    margin-bottom: 4px;
+    font-size: 0.82rem;
+    line-height: 1.35;
   }
 
   .transcription-keyboard .vowel-map,
@@ -1298,16 +1396,16 @@ body {
   }
 
   .transcription-keyboard .vowel-answer-btn {
-    min-height: 43px;
-    padding: 2px;
+    min-height: 50px;
+    padding: 4px;
   }
 
   .transcription-keyboard .vowel-hangul {
-    font-size: 0.95rem;
+    font-size: 1.02rem;
   }
 
   .transcription-keyboard .vowel-ipa {
-    font-size: 0.78rem;
+    font-size: 0.9rem;
   }
 
   .transcription-keyboard .vowel-choice {
@@ -1334,61 +1432,261 @@ body {
     margin-bottom: 3px;
   }
 
-  .transcription-keyboard .consonant-family-btn {
-    min-height: 35px;
+    min-height: 42px;
+    padding: 7px;
+    font-size: 0.9rem;
     padding: 2px 4px;
     font-size: 0.72rem;
   }
 
   .transcription-keyboard .consonant-family-hangul {
-    font-size: 0.57rem;
+    gap: 5px;
   }
 
   .transcription-keyboard .consonant-individual-label {
-    margin-top: 4px;
-  }
+    gap: 5px;
+    margin-bottom: 4px;
 
   .consonant-grid .consonant-choice {
     min-width: 0;
-    min-height: 47px;
-    padding: 3px 1px;
-  }
+    min-height: 42px;
+    padding: 4px 6px;
+    font-size: 1rem;
 
   .transcription-keyboard .consonant-hangul {
     font-size: 1.08rem;
-  }
+    font-size: 0.82rem;
 
   .transcription-keyboard .consonant-ipa {
     margin-top: 1px;
-    font-size: 0.8rem;
+    margin-top: 5px;
   }
 
   .keyboard-delete-row {
     margin-top: 6px;
-  }
-
+    min-height: 42px;
+    padding: 4px 2px;
   .keyboard-delete-row .ipa-btn {
     width: 100%;
     padding: 7px;
-    font-size: 0.78rem;
+    font-size: 1.15rem;
   }
 
   .transcribe-judge,
   .transcribe-quit {
-    padding: 8px;
+    font-size: 0.95rem;
+    color: #4c4c4c;
+  }
+
+  .transcription-keyboard .ipa-btn {
+    min-height: 42px;
+    font-size: 0.96rem;
     font-size: 0.88rem;
   }
 
-  .ipa-inline-guide {
+    margin-top: 4px;
     position: fixed;
     z-index: 300;
     top: 44px;
     left: 50%;
-    width: min(760px, calc(100vw - 40px));
-    max-height: calc(100vh - 70px);
+    min-height: 42px;
+    padding: 7px;
+    font-size: 0.9rem;
+  }
+
+  .transcribe-note-judge-row {
+    display: grid;
+    grid-template-columns: minmax(0, 0.74fr) minmax(0, 0.26fr);
+    align-items: end;
+    gap: 10px;
+    margin-top: 2px;
+  }
+
+  .transcribe-during-note-wrap {
+    gap: 6px;
+  }
+
+  .transcribe-during-note-wrap .input-label {
+    font-size: 0.9rem;
+  }
+
+  .transcribe-during-note {
+    min-height: 64px;
+    max-height: 88px;
+    font-size: 0.94rem;
+  }
+
+  .transcribe-judge {
+    min-height: 64px;
+    font-size: 1rem;
+    font-weight: 700;
+    padding: 10px;
+    margin: 0;
+  }
+
+  .feedback {
+    font-size: 1rem;
+    line-height: 1.35;
+    padding: 8px 10px;
+  }
+
+  .transcribe-post-judge-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 0.58fr) minmax(0, 0.42fr);
+    gap: 10px;
+    align-items: start;
+  }
+
+  .transcribe-post-main {
+    min-width: 0;
+  }
+
+  .transcribe-post-note-panel {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .transcribe-after-note-wrap .input-label {
+    font-size: 0.9rem;
+  }
+
+  .transcribe-after-note-controls {
+    display: grid;
+    grid-template-columns: minmax(0, 0.72fr) minmax(0, 0.28fr);
+    gap: 8px;
+    align-items: stretch;
+  }
+
+  .transcribe-after-note {
+    min-height: 72px;
+    font-size: 0.94rem;
+  }
+
+  .transcribe-note-add {
+    min-height: 72px;
+    font-size: 0.95rem;
+  }
+
+  .transcribe-note-panel-scroll {
+    max-height: 220px;
+    overflow-y: auto;
+    padding-right: 2px;
+  }
+
+  .transcribe-note-item {
+    padding: 8px 10px;
+  }
+
+  .transcribe-note-time {
+    font-size: 0.86rem;
+  }
+
+  .transcribe-note-text {
+    font-size: 0.92rem;
+    line-height: 1.35;
+  }
+
+  .slot-row {
+    margin: 8px 0;
+  }
+
+  .slot {
+    min-width: 56px;
+    padding: 7px 8px;
+  }
+
+  .slot .slot-heard {
+    font-size: 1rem;
+  }
+
+  .slot .slot-actual {
+    font-size: 0.85rem;
+    color: #4f4f4f;
+  }
+
+  .transcribe-answer-line {
+    font-size: 0.95rem;
+    line-height: 1.35;
+  }
+
+  .transcribe-post-actions {
+    display: grid;
+    grid-template-columns: minmax(0, 0.3fr) minmax(0, 0.55fr) minmax(0, 0.15fr);
+    gap: 8px;
+    align-items: stretch;
+  }
+
+  .transcribe-post-actions .known-btn,
+  .transcribe-post-actions .transcribe-next,
+  .transcribe-post-actions .transcribe-quit-inline {
+    width: 100%;
+    min-height: 44px;
+    padding: 9px 8px;
+    font-size: 0.95rem;
+  }
+
+  .transcribe-post-actions .transcribe-next {
+    background: #e3f2fd;
+    font-weight: 700;
+  }
+
+  .transcribe-quit {
+    min-height: 42px;
+    font-size: 0.9rem;
+    padding: 8px;
+  }
+
+  .transcribe-result-page {
+    max-width: 1180px;
+    padding: 10px 14px;
+    gap: 10px;
+  }
+
+  .transcribe-result-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 0.38fr) minmax(0, 0.62fr);
+    gap: 10px;
+    align-items: start;
+  }
+
+  .transcribe-result-summary {
+    position: sticky;
+    top: 8px;
+    gap: 10px;
+    padding: 16px;
+  }
+
+  .transcribe-result-breakdown {
+    margin: 0;
+    padding: 14px;
+  }
+
+  .transcribe-result-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: min(54vh, 440px);
+    overflow-y: auto;
+    padding-right: 2px;
+  }
+
+  .transcription-result-detail {
+    gap: 4px;
+    font-size: 0.92rem;
+    line-height: 1.35;
     margin: 0 !important;
     overflow-y: auto;
     transform: translateX(-50%);
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.22);
+  }
+}
+
+@media (max-width: 899px) {
+  .transcribe-post-actions .known-btn,
+  .transcribe-post-actions .btn-next,
+  .transcribe-post-actions .transcribe-quit-inline {
+    width: 100%;
   }
 }
