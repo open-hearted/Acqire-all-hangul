@@ -429,10 +429,10 @@ export default function TranscribeQuizPage() {
           
           {renderGuideSection(setupGuideOpen, () => setSetupGuideOpen(!setupGuideOpen))}
 
-          <Link href="/regions" className="link-btn">
+          <Link href="/regions" className="link-btn link-btn-disabled" aria-disabled="true" tabIndex={-1} onClick={(event) => event.preventDefault()}>
             音響領域の分析へ →
           </Link>
-          <Link href="/words" className="link-btn">
+          <Link href="/words" className="link-btn link-btn-disabled" aria-disabled="true" tabIndex={-1} onClick={(event) => event.preventDefault()}>
             ← 単語の音素数クイズへ
           </Link>
         </div>
