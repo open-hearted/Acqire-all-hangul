@@ -555,6 +555,23 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 
+/* Temporary feature gate on the home screen. Remove the disabled classes
+   when the other quiz entry points are ready to be re-enabled. */
+.link-btn-disabled,
+.btn-disabled {
+  opacity: 0.45;
+  filter: grayscale(1);
+  cursor: not-allowed;
+}
+
+.link-btn-disabled {
+  pointer-events: auto;
+}
+
+.btn-disabled:disabled {
+  cursor: not-allowed;
+}
+
 .link-btn:active {
   background: #e3f2fd;
 }

@@ -537,19 +537,19 @@ export default function QuizPage() {
             問の音声を聞いて、同じ音の母音ボタンを選んで答えます。
             「🔊 聞く / ✏️ 答える」の切り替えで、聞き比べと回答を分けて操作できます。
           </p>
-          <button className="btn-reset" onClick={handleStart}>
+          <button className="btn-reset btn-disabled" onClick={handleStart} disabled>
             スタート
           </button>
-          <Link href="/phoneme" className="link-btn">
+          <Link href="/phoneme" className="link-btn link-btn-disabled" aria-disabled="true" tabIndex={-1} onClick={(event) => event.preventDefault()}>
             音素数クイズ（母音）へ →
           </Link>
-          <Link href="/words" className="link-btn">
+          <Link href="/words" className="link-btn link-btn-disabled" aria-disabled="true" tabIndex={-1} onClick={(event) => event.preventDefault()}>
             単語の音素数クイズへ →
           </Link>
           <Link href="/transcribe" className="link-btn">
             IPA転写クイズ（精密測定）へ →
           </Link>
-          <Link href="/regions" className="link-btn">
+          <Link href="/regions" className="link-btn link-btn-disabled" aria-disabled="true" tabIndex={-1} onClick={(event) => event.preventDefault()}>
             音響領域の分析へ →
           </Link>
         </div>
