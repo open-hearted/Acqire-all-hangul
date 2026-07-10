@@ -52,6 +52,18 @@ interface VowelButtonInfo {
   area: string;
 }
 
+interface ConsonantButtonInfo {
+  phoneme: string;
+  hangul: string;
+  hint: string;
+}
+
+interface ConsonantFamilyInfo {
+  label: string;
+  candidates: string[];
+  hangul: string;
+}
+
 const WORDS: WordEntry[] = wordsData as WordEntry[];
 const COUNT_OPTIONS = [1, 5, 10, 20];
 const MAXLEN_OPTIONS: { label: string; value: number }[] = [
@@ -82,6 +94,40 @@ const GLIDES: VowelButtonInfo[] = [
   { phoneme: "j", hangul: "例 ㅑ", audioFile: "ㅑ.mp3", area: "" },
   { phoneme: "w", hangul: "例 ㅘ", audioFile: "ㅘ.mp3", area: "" },
   { phoneme: "ɰ", hangul: "例 ㅢ", audioFile: "ㅢ.mp3", area: "" },
+];
+
+const CONSONANT_FAMILIES: ConsonantFamilyInfo[] = [
+  { label: "k系", candidates: ["k", "kʰ", "k͈"], hangul: "ㄱ・ㅋ・ㄲ" },
+  { label: "t系", candidates: ["t", "tʰ", "t͈"], hangul: "ㄷ・ㅌ・ㄸ" },
+  { label: "p系", candidates: ["p", "pʰ", "p͈"], hangul: "ㅂ・ㅍ・ㅃ" },
+  { label: "s系", candidates: ["s", "s͈"], hangul: "ㅅ・ㅆ" },
+  { label: "チ系", candidates: ["tɕ", "tɕʰ", "tɕ͈"], hangul: "ㅈ・ㅊ・ㅉ" },
+];
+
+const CONSONANTS: ConsonantButtonInfo[] = [
+  { phoneme: "k", hangul: "ㄱ", hint: "平音" },
+  { phoneme: "t", hangul: "ㄷ", hint: "平音" },
+  { phoneme: "p", hangul: "ㅂ", hint: "平音" },
+  { phoneme: "s", hangul: "ㅅ", hint: "平音" },
+  { phoneme: "tɕ", hangul: "ㅈ", hint: "平音" },
+  { phoneme: "h", hangul: "ㅎ", hint: "" },
+  { phoneme: "n", hangul: "ㄴ", hint: "" },
+  { phoneme: "ɾ", hangul: "ㄹ", hint: "語頭・語中" },
+  { phoneme: "m", hangul: "ㅁ", hint: "" },
+  { phoneme: "kʰ", hangul: "ㅋ", hint: "激音" },
+  { phoneme: "tʰ", hangul: "ㅌ", hint: "激音" },
+  { phoneme: "pʰ", hangul: "ㅍ", hint: "激音" },
+  { phoneme: "tɕʰ", hangul: "ㅊ", hint: "激音" },
+  { phoneme: "k͈", hangul: "ㄲ", hint: "濃音" },
+  { phoneme: "t͈", hangul: "ㄸ", hint: "濃音" },
+  { phoneme: "p͈", hangul: "ㅃ", hint: "濃音" },
+  { phoneme: "s͈", hangul: "ㅆ", hint: "濃音" },
+  { phoneme: "tɕ͈", hangul: "ㅉ", hint: "濃音" },
+  { phoneme: "l", hangul: "ㄹ", hint: "終声" },
+  { phoneme: "ŋ", hangul: "ㅇ", hint: "終声" },
+  { phoneme: "k̚", hangul: "ㄱ系", hint: "終声" },
+  { phoneme: "t̚", hangul: "ㄷ系", hint: "終声" },
+  { phoneme: "p̚", hangul: "ㅂ系", hint: "終声" },
 ];
 
 function formatAnswerSlots(slots: AnswerSlot[]): string {
@@ -415,6 +461,19 @@ export default function TranscribeQuizPage() {
     setActiveSlot(null);
   }
 
+  function inputConsonantFamily(candidates: string[]) {
+    if (judgement || orMode) return;
+    const next = [...heard];
+    const slot: AnswerSlot = { candidates: [...candidates] };
+    if (activeSlot === null) {
+      next.push(slot);
+    } else {
+      next[activeSlot] = slot;
+      setActiveSlot(null);
+    }
+    setHeard(next);
+  }
+
   function deleteSlot(slotIndex: number) {
     if (judgement) return;
     const next = [...heard];
@@ -608,16 +667,37 @@ export default function TranscribeQuizPage() {
 
         <div className="consonant-input-panel">
           <div className="ipa-group-label">子音</div>
-          <div className="ipa-grid consonant-grid">
-            {KEYBOARD_CONSONANTS.map((p) => (
+          <p className="ipa-input-help">「か・た・ぱ」系まで聞こえた時は、系ボタンを押すと候補をまとめて1音素分に記録します。</p>
+          <div className="consonant-family-row" aria-label="子音の系を候補として回答">
+            {CONSONANT_FAMILIES.map((family) => (
               <button
-                key={p}
+                key={family.label}
                 type="button"
-                className="ipa-btn"
-                disabled={isInputDisabled(p)}
-                onClick={() => inputPhoneme(p)}
+                className="consonant-family-btn"
+                disabled={disabled || orMode}
+                onClick={() => inputConsonantFamily(family.candidates)}
+                aria-label={`${family.label}、${family.hangul}、候補 ${family.candidates.join("、")} を1音素分として回答に入れる`}
+                title={`${family.hangul}：/${family.candidates.join(" | ")}/ を候補にする`}
               >
-                {p}
+                <span>{family.label}</span>
+                <span className="consonant-family-hangul">{family.hangul}</span>
+              </button>
+            ))}
+          </div>
+          <div className="ipa-group-label consonant-individual-label">個別に選ぶ（ハングル / IPA）</div>
+          <div className="ipa-grid consonant-grid">
+            {CONSONANTS.map((consonant) => (
+              <button
+                key={consonant.phoneme}
+                type="button"
+                className="ipa-btn consonant-choice"
+                disabled={isInputDisabled(consonant.phoneme)}
+                onClick={() => inputPhoneme(consonant.phoneme)}
+                aria-label={`${consonant.hangul}、IPA ${consonant.phoneme}${consonant.hint ? `、${consonant.hint}` : ""} を回答に入れる`}
+                title={consonant.hint ? `${consonant.hangul} ${consonant.hint}` : consonant.hangul}
+              >
+                <span className="consonant-hangul">{consonant.hangul}</span>
+                <span className="consonant-ipa">/{consonant.phoneme}/</span>
               </button>
             ))}
             <button
@@ -987,14 +1067,16 @@ export default function TranscribeQuizPage() {
           )}
           {activeSlot !== null && (
             <>
-              <button
-                type="button"
-                className={`heard-append-btn ${orMode ? "active" : ""}`}
-                onClick={() => setOrMode(!orMode)}
-                aria-pressed={orMode}
-              >
-                {orMode ? "OR入力を終了" : "OR候補を追加"}
-              </button>
+              {(heard[activeSlot] === null || isVowelAnswer(heard[activeSlot]!.candidates[0])) && (
+                <button
+                  type="button"
+                  className={`heard-append-btn ${orMode ? "active" : ""}`}
+                  onClick={() => setOrMode(!orMode)}
+                  aria-pressed={orMode}
+                >
+                  {orMode ? "OR入力を終了" : "OR候補を追加"}
+                </button>
+              )}
               <button
                 type="button"
                 className="heard-append-btn"
