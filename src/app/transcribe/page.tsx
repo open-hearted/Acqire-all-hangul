@@ -102,6 +102,7 @@ const CONSONANT_FAMILIES: ConsonantFamilyInfo[] = [
   { label: "p系", candidates: ["p", "pʰ", "p͈"], hangul: "ㅂ・ㅍ・ㅃ" },
   { label: "s系", candidates: ["s", "s͈"], hangul: "ㅅ・ㅆ" },
   { label: "チ系", candidates: ["tɕ", "tɕʰ", "tɕ͈"], hangul: "ㅈ・ㅊ・ㅉ" },
+  { label: "n系", candidates: ["n", "ŋ"], hangul: "ㄴ・ㅇ（終声）" },
 ];
 
 const CONSONANTS: ConsonantButtonInfo[] = [
