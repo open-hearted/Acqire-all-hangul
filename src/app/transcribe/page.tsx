@@ -14,10 +14,15 @@ import {
   WILDCARD_VOWEL,
   WILDCARD_CONSONANT,
   PHONEME_GUIDE,
+  LOCAL_USER_ID,
   type TranscriptionJudgement,
   type TranscriptionGrade,
 } from "@/lib/acoustic-region";
 import type { AnswerSlot } from "@/lib/acoustic-region/transcriptionAnalysis";
+import type {
+  ErrorLogRecord,
+  TranscriptionNote,
+} from "@/lib/acoustic-region/types";
 
 // ─── Types / Constants ───────────────────────────────────────────────────────
 
@@ -37,6 +42,7 @@ interface QuestionResult {
   correctPhonemes: string[];
   answerSlots: AnswerSlot[];
   alternativeMatchCount: number;
+  transcriptionNotes: TranscriptionNote[];
 }
 
 interface VowelButtonInfo {
@@ -115,6 +121,41 @@ function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
+function newNoteId(): string {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+    return crypto.randomUUID();
+  }
+  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
+function trimNoteText(text: string): string {
+  return text.trim().slice(0, 1000);
+}
+
+function notePhaseLabel(phase: TranscriptionNote["phase"]): string {
+  return phase === "during_answer" ? "回答中のメモ" : "判定後のメモ";
+}
+
+function formatNoteTimestamp(iso: string): string {
+  return new Date(iso).toLocaleString("ja-JP", {
+    month: "numeric",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function formatOrCandidates(slots?: string[][] | null): string {
+  if (!slots || slots.length === 0) return "なし";
+  const multi = slots
+    .map((candidates, idx) => ({ candidates, idx }))
+    .filter((slot) => slot.candidates.length > 1);
+  if (multi.length === 0) return "なし";
+  return multi
+    .map((slot) => `#${slot.idx + 1}[${slot.candidates.join(" | ")}]`)
+    .join(" ");
+}
+
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export default function TranscribeQuizPage() {
@@ -133,6 +174,11 @@ export default function TranscribeQuizPage() {
   );
   const [known, setKnown] = useState<boolean | null>(null);
   const [results, setResults] = useState<QuestionResult[]>([]);
+  const [duringAnswerNote, setDuringAnswerNote] = useState("");
+  const [afterJudgementDraft, setAfterJudgementDraft] = useState("");
+  const [currentNotes, setCurrentNotes] = useState<TranscriptionNote[]>([]);
+  const [memoHistoryOpen, setMemoHistoryOpen] = useState(false);
+  const [memoHistory, setMemoHistory] = useState<ErrorLogRecord[]>([]);
   const [guideOpen, setGuideOpen] = useState(false);
   const [setupGuideOpen, setSetupGuideOpen] = useState(false);
 
@@ -141,6 +187,27 @@ export default function TranscribeQuizPage() {
   useEffect(() => {
     setHydrated(true);
   }, []);
+
+  useEffect(() => {
+    if (!hydrated || phase !== "setup") return;
+    getRepositories()
+      .errorLogs.listByUser(LOCAL_USER_ID)
+      .then((records) => {
+        const withNotes = records
+          .filter(
+            (record) =>
+              Array.isArray(record.transcriptionNotes) &&
+              record.transcriptionNotes.length > 0 &&
+              Array.isArray(record.heardPhonemes)
+          )
+          .sort(
+            (a, b) =>
+              new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          );
+        setMemoHistory(withNotes);
+      })
+      .catch(() => setMemoHistory([]));
+  }, [hydrated, phase]);
 
   const question = questions[index];
 
@@ -174,8 +241,42 @@ export default function TranscribeQuizPage() {
     setJudgement(null);
     setKnown(null);
     setResults([]);
+    setDuringAnswerNote("");
+    setAfterJudgementDraft("");
+    setCurrentNotes([]);
     setPhase("quiz");
     playWord(qs[0].w);
+  }
+
+  function appendNote(
+    phaseType: TranscriptionNote["phase"],
+    text: string,
+    notes: TranscriptionNote[] = currentNotes
+  ): TranscriptionNote[] {
+    const normalized = trimNoteText(text);
+    if (!normalized) return notes;
+    const next = [
+      ...notes,
+      {
+        id: newNoteId(),
+        phase: phaseType,
+        text: normalized,
+        createdAt: new Date().toISOString(),
+      },
+    ];
+    setCurrentNotes(next);
+    return next;
+  }
+
+  function flushAfterJudgementDraft(
+    notes: TranscriptionNote[] = currentNotes
+  ): TranscriptionNote[] {
+    if (!judgement) return notes;
+    const normalized = trimNoteText(afterJudgementDraft);
+    if (!normalized) return notes;
+    const next = appendNote("after_judgement", normalized, notes);
+    setAfterJudgementDraft("");
+    return next;
   }
 
   // 判定（1問につき1回。ここではまだ記録しない: 「知っていた」の入力を待つ）
@@ -187,6 +288,13 @@ export default function TranscribeQuizPage() {
     if (!question || judgement || answeredSlots.length === 0) return;
     const entry = getWordMaster().get(question.w);
     if (!entry) return;
+    const during = trimNoteText(duringAnswerNote);
+    if (during) {
+      appendNote("during_answer", during, []);
+    } else {
+      setCurrentNotes([]);
+    }
+    setDuringAnswerNote("");
     setActiveSlot(null);
     setOrMode(false);
     setJudgement(judgeTranscription(entry.phonemes, heard));
@@ -197,10 +305,12 @@ export default function TranscribeQuizPage() {
     if (!question || !judgement) return results;
     const wordMaster = getWordMaster().get(question.w);
     if (!wordMaster) return results;
+    const finalizedNotes = flushAfterJudgementDraft(currentNotes);
     const built = buildTranscriptionErrorLog({
       word: question.w,
       heard,
       wordKnown: known,
+      transcriptionNotes: finalizedNotes,
     });
     if (built) {
       getRepositories()
@@ -219,6 +329,7 @@ export default function TranscribeQuizPage() {
         correctPhonemes: wordMaster.phonemes.map((p) => p.phoneme),
         answerSlots: [...heard],
         alternativeMatchCount: judgement.alternativeMatchCount,
+        transcriptionNotes: finalizedNotes,
       },
     ];
     setResults(next);
@@ -233,6 +344,9 @@ export default function TranscribeQuizPage() {
     setOrMode(false);
     setJudgement(null);
     setKnown(null);
+    setCurrentNotes([]);
+    setAfterJudgementDraft("");
+    setDuringAnswerNote("");
     if (nextIndex >= questions.length) {
       setPhase("result");
       if (audioRef.current) audioRef.current.pause();
@@ -250,6 +364,9 @@ export default function TranscribeQuizPage() {
     setOrMode(false);
     setJudgement(null);
     setKnown(null);
+    setCurrentNotes([]);
+    setAfterJudgementDraft("");
+    setDuringAnswerNote("");
     setPhase("result");
     if (audioRef.current) audioRef.current.pause();
   }
@@ -546,6 +663,25 @@ export default function TranscribeQuizPage() {
     );
   }
 
+  function renderNotes(notes: TranscriptionNote[]) {
+    if (notes.length === 0) return null;
+    return (
+      <div style={{ marginTop: "0.75rem" }}>
+        {notes.map((note) => (
+          <div key={note.id} className="stats-row none" style={{ marginBottom: "0.4rem" }}>
+            <span className="stats-level">{notePhaseLabel(note.phase)}</span>
+            <span className="stats-char" style={{ minWidth: "auto", fontSize: "0.8rem" }}>
+              {formatNoteTimestamp(note.createdAt)}
+            </span>
+            <span className="stats-detail" style={{ whiteSpace: "pre-wrap" }}>
+              {note.text}
+            </span>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
   // ── Render ────────────────────────────────────────────────────────────────
 
   if (!hydrated) return null;
@@ -603,8 +739,70 @@ export default function TranscribeQuizPage() {
           <button className="btn-reset" onClick={startSession}>
             スタート
           </button>
-          
+
           {renderGuideSection(setupGuideOpen, () => setSetupGuideOpen(!setupGuideOpen))}
+
+          <div className="stats-section" style={{ marginTop: "1rem" }}>
+            <button
+              className="btn-reset"
+              style={{ width: "100%", textAlign: "left", display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px", background: "transparent", color: "inherit" }}
+              onClick={() => setMemoHistoryOpen(!memoHistoryOpen)}
+            >
+              <span style={{ fontWeight: "bold", fontSize: "1.1rem" }}>過去の回答メモ</span>
+              <span>{memoHistoryOpen ? "▲ 閉じる" : `▼ 開く（${memoHistory.length}件）`}</span>
+            </button>
+            {memoHistoryOpen && (
+              <div style={{ marginTop: "0.6rem" }}>
+                {memoHistory.length === 0 && (
+                  <p style={{ fontSize: "0.9rem", color: "#616161" }}>
+                    まだメモ付きのIPA転写記録はありません。
+                  </p>
+                )}
+                {memoHistory.map((record) => {
+                  const correct =
+                    getWordMaster()
+                      .get(record.word)
+                      ?.phonemes.map((p) => p.phoneme)
+                      .join(" ") ?? "-";
+                  const answer =
+                    record.heardCandidateSlots && record.heardCandidateSlots.length > 0
+                      ? record.heardCandidateSlots
+                          .map((candidates) =>
+                            candidates.length === 0
+                              ? "□"
+                              : candidates.length > 1
+                                ? `[${candidates.map((p) => (isWildcard(p) ? `${p}?` : p)).join(" | ")}]`
+                                : (isWildcard(candidates[0]) ? `${candidates[0]}?` : candidates[0])
+                          )
+                          .join(" ")
+                      : (record.heardPhonemes ?? [])
+                          .map((p) => (isWildcard(p) ? `${p}?` : p))
+                          .join(" ");
+                  return (
+                    <div key={record.id} className="stats-row none" style={{ alignItems: "flex-start" }}>
+                      <span className="stats-char" style={{ minWidth: "auto" }}>
+                        {record.word}
+                      </span>
+                      <span className="stats-level" style={{ minWidth: "auto" }}>
+                        {formatNoteTimestamp(record.createdAt)}
+                      </span>
+                      <div className="stats-detail" style={{ whiteSpace: "pre-wrap" }}>
+                        <div>意味: {record.meaning}</div>
+                        <div>正解IPA: /{correct}/</div>
+                        <div>回答IPA: /{answer}/</div>
+                        <div>OR候補: {formatOrCandidates(record.heardCandidateSlots)}</div>
+                        {(record.transcriptionNotes ?? []).map((note) => (
+                          <div key={note.id}>
+                            {notePhaseLabel(note.phase)} ({formatNoteTimestamp(note.createdAt)}): {note.text}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
 
           <Link href="/regions" className="link-btn link-btn-disabled" aria-disabled="true" tabIndex={-1} onClick={(event) => event.preventDefault()}>
             音響領域の分析へ →
@@ -681,6 +879,15 @@ export default function TranscribeQuizPage() {
                   <span>{r.meaning}・{r.summary}</span>
                   <span><strong>正解：</strong>/{r.correctPhonemes.join(" ")}/</span>
                   <span><strong>回答：</strong>/{formatAnswerSlots(r.answerSlots)}/</span>
+                  {r.transcriptionNotes.length > 0 && (
+                    <div style={{ marginTop: "0.4rem" }}>
+                      {r.transcriptionNotes.map((note) => (
+                        <div key={note.id} style={{ whiteSpace: "pre-wrap" }}>
+                          <strong>{notePhaseLabel(note.phase)}:</strong> {note.text}
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
@@ -810,6 +1017,24 @@ export default function TranscribeQuizPage() {
         {!judgement && renderKeyboard()}
 
         {!judgement && (
+          <div className="input-wrap" style={{ marginTop: "0.5rem" }}>
+            <label className="input-label" htmlFor="transcription-during-note">
+              聞こえた感じメモ（任意）
+            </label>
+            <textarea
+              id="transcription-during-note"
+              className="heard-note-area"
+              placeholder="例:「イヤギ」って感じに聞こえた"
+              value={duringAnswerNote}
+              maxLength={1000}
+              onChange={(event) => setDuringAnswerNote(event.target.value)}
+              rows={3}
+              style={{ width: "100%", resize: "vertical", whiteSpace: "pre-wrap" }}
+            />
+          </div>
+        )}
+
+        {!judgement && (
           <button
             className="btn-reset transcribe-judge"
             onClick={handleJudge}
@@ -853,6 +1078,35 @@ export default function TranscribeQuizPage() {
             >
               ✔ この単語は知っていた
             </button>
+            <div className="input-wrap" style={{ marginTop: "0.8rem" }}>
+              <label className="input-label" htmlFor="transcription-after-note">
+                判定後のメモを追加（任意）
+              </label>
+              <textarea
+                id="transcription-after-note"
+                className="heard-note-area"
+                value={afterJudgementDraft}
+                maxLength={1000}
+                onChange={(event) => setAfterJudgementDraft(event.target.value)}
+                rows={3}
+                style={{ width: "100%", resize: "vertical", whiteSpace: "pre-wrap" }}
+              />
+              <button
+                type="button"
+                className="btn-reset"
+                style={{ marginTop: "0.4rem" }}
+                onClick={() => {
+                  const normalized = trimNoteText(afterJudgementDraft);
+                  if (!normalized) return;
+                  appendNote("after_judgement", normalized);
+                  setAfterJudgementDraft("");
+                }}
+                disabled={trimNoteText(afterJudgementDraft).length === 0}
+              >
+                メモを追加
+              </button>
+            </div>
+            {renderNotes(currentNotes)}
             <div className="btn-row">
               <button className="btn-next" onClick={handleNext}>
                 {index + 1 < questions.length ? "次の問題 →" : "結果を見る"}

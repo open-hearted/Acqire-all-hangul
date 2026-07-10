@@ -55,6 +55,15 @@ export function regionKey(region: ErrorRegion): string {
  */
 export type ListeningCondition = "quiet" | "noisy";
 
+// ─── IPA転写メモ ───────────────────────────────────────────────────────────
+
+export type TranscriptionNote = {
+  id: string;
+  phase: "during_answer" | "after_judgement";
+  text: string;
+  createdAt: string;
+};
+
 // ─── 誤答ログ（error_log） ────────────────────────────────────────────────
 
 /**
@@ -86,6 +95,8 @@ export interface ErrorLogRecord {
    * 旧記録はこのフィールドを持たず、heardPhonemes を単一候補として読む。
    */
   heardCandidateSlots?: string[][] | null;
+  /** IPA転写クイズのメモ（任意）。旧記録はこのフィールドを持たない。 */
+  transcriptionNotes?: TranscriptionNote[] | null;
   /**
    * 「この単語は知っていた」（任意）。null = 未回答。
    * true なのに転写できない語 = 音韻表現の再結線が必要な語

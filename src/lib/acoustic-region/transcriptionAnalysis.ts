@@ -20,6 +20,7 @@ import type {
   NewErrorLog,
   PositionedPhoneme,
   RegionPosition,
+  TranscriptionNote,
 } from "./types";
 import { LOCAL_USER_ID } from "./types";
 import { isVowelPhoneme } from "./hangulPhonemes";
@@ -340,6 +341,7 @@ export interface TranscriptionAnswerInput {
   word: string;
   heard: AnswerSlotInput[];
   wordKnown: boolean | null;
+  transcriptionNotes?: TranscriptionNote[] | null;
   userId?: string;
 }
 
@@ -372,6 +374,7 @@ export function buildTranscriptionErrorLog(
       // heardCandidateSlots を正として利用する。
       heardPhonemes: heardCandidateSlots.map((candidates) => candidates[0]),
       heardCandidateSlots,
+      transcriptionNotes: input.transcriptionNotes ?? null,
       wordKnown: input.wordKnown,
       listeningCondition: null,
       conditionNote: null,
