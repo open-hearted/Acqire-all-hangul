@@ -824,11 +824,12 @@ body {
 .vowel-map {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  grid-template-areas:
-    "vowel-i . vowel-eu vowel-u"
-    "vowel-e vowel-ae vowel-eo vowel-o"
-    ". vowel-a . .";
   gap: 8px;
+}
+
+/* IPA図の余白より、初心者が押しやすい大きさを優先する。 */
+.vowel-map > .vowel-choice {
+  grid-area: auto !important;
 }
 
 .glide-grid {
@@ -1307,7 +1308,7 @@ body {
 
   .consonant-grid {
     display: grid;
-    grid-template-columns: repeat(10, minmax(0, 1fr));
+    grid-template-columns: repeat(8, minmax(0, 1fr));
     gap: 5px;
   }
 
@@ -1332,17 +1333,17 @@ body {
 
   .consonant-grid .consonant-choice {
     min-width: 0;
-    min-height: 35px;
-    padding: 2px 1px;
+    min-height: 47px;
+    padding: 3px 1px;
   }
 
   .transcription-keyboard .consonant-hangul {
-    font-size: 0.78rem;
+    font-size: 1rem;
   }
 
   .transcription-keyboard .consonant-ipa {
     margin-top: 1px;
-    font-size: 0.61rem;
+    font-size: 0.74rem;
   }
 
   .keyboard-delete-row {
