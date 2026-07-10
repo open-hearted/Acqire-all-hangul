@@ -133,8 +133,12 @@ const CONSONANTS: ConsonantButtonInfo[] = [
 
 function formatAnswerSlots(slots: AnswerSlot[]): string {
   return slots
+    // 入力中は空欄スロットを残すが、回答ログには実際に選んだ音素だけを出す。
+    .filter(
+      (slot): slot is Exclude<AnswerSlot, null> =>
+        slot !== null && slot.candidates.length > 0
+    )
     .map((slot) => {
-      if (slot === null || slot.candidates.length === 0) return "□";
       const candidates = slot.candidates.map((phoneme) =>
         isWildcard(phoneme) ? `${phoneme}?` : phoneme
       );
