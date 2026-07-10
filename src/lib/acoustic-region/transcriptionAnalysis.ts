@@ -21,6 +21,7 @@ import type {
   PositionedPhoneme,
   RegionPosition,
   TranscriptionNote,
+  TranscriptionLogGrade,
 } from "./types";
 import { LOCAL_USER_ID } from "./types";
 import { isVowelPhoneme } from "./hangulPhonemes";
@@ -342,6 +343,10 @@ export interface TranscriptionAnswerInput {
   heard: AnswerSlotInput[];
   wordKnown: boolean | null;
   transcriptionNotes?: TranscriptionNote[] | null;
+  sessionId?: string;
+  sessionStartedAt?: string;
+  wordPlayCount?: number;
+  ipaReferenceCounts?: Record<string, number>;
   userId?: string;
 }
 
@@ -375,6 +380,12 @@ export function buildTranscriptionErrorLog(
       heardPhonemes: heardCandidateSlots.map((candidates) => candidates[0]),
       heardCandidateSlots,
       transcriptionNotes: input.transcriptionNotes ?? null,
+      sessionId: input.sessionId,
+      sessionStartedAt: input.sessionStartedAt,
+      correctPhonemes: entry.phonemes.map((p) => p.phoneme),
+      transcriptionGrade: judgement.grade as TranscriptionLogGrade,
+      wordPlayCount: input.wordPlayCount,
+      ipaReferenceCounts: input.ipaReferenceCounts,
       wordKnown: input.wordKnown,
       listeningCondition: null,
       conditionNote: null,

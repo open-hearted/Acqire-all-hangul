@@ -64,6 +64,9 @@ export type TranscriptionNote = {
   createdAt: string;
 };
 
+/** IPA転写クイズの判定結果。保存時点の判定を固定する。 */
+export type TranscriptionLogGrade = "perfect" | "pattern" | "mismatch";
+
 // ─── 誤答ログ（error_log） ────────────────────────────────────────────────
 
 /**
@@ -97,6 +100,20 @@ export interface ErrorLogRecord {
   heardCandidateSlots?: string[][] | null;
   /** IPA転写クイズのメモ（任意）。旧記録はこのフィールドを持たない。 */
   transcriptionNotes?: TranscriptionNote[] | null;
+  /** IPA転写クイズのセッション識別子（旧記録は未設定） */
+  sessionId?: string;
+  /** セッション開始時刻。終了時刻は同セッションの最後の createdAt から得る。 */
+  sessionStartedAt?: string;
+  /** 保存時点の正解IPA列。語彙マスタ変更後も過去ログの意味を固定する。 */
+  correctPhonemes?: string[];
+  /** 保存時点の転写判定。 */
+  transcriptionGrade?: TranscriptionLogGrade;
+  /** この問題音声を再生した回数（開始時の自動再生を含む）。 */
+  wordPlayCount?: number;
+  /** IPA発音例を参照した回数。キーはIPA記号。 */
+  ipaReferenceCounts?: Record<string, number>;
+  /** この単語がIPA転写クイズに出た累計回数（当該試行時点）。 */
+  wordAttemptNumber?: number;
   /**
    * 「この単語は知っていた」（任意）。null = 未回答。
    * true なのに転写できない語 = 音韻表現の再結線が必要な語

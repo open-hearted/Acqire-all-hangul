@@ -23,6 +23,7 @@ import type {
   ErrorLogRecord,
   TranscriptionNote,
 } from "@/lib/acoustic-region/types";
+import { buildPerceptionLogExport } from "@/lib/acoustic-region/perceptionLogExport";
 
 // ─── Types / Constants ───────────────────────────────────────────────────────
 
@@ -230,10 +231,16 @@ export default function TranscribeQuizPage() {
   const [currentNotes, setCurrentNotes] = useState<TranscriptionNote[]>([]);
   const [memoHistoryOpen, setMemoHistoryOpen] = useState(false);
   const [memoHistory, setMemoHistory] = useState<ErrorLogRecord[]>([]);
+  const [copyToast, setCopyToast] = useState<string | null>(null);
   const [guideOpen, setGuideOpen] = useState(false);
   const [setupGuideOpen, setSetupGuideOpen] = useState(false);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const sessionIdRef = useRef<string | null>(null);
+  const sessionStartedAtRef = useRef<string | null>(null);
+  const wordPlayCountRef = useRef(0);
+  const ipaReferenceCountsRef = useRef<Record<string, number>>({});
+  const copyToastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     setHydrated(true);
@@ -264,7 +271,13 @@ export default function TranscribeQuizPage() {
 
   // ── Audio ─────────────────────────────────────────────────────────────────
 
-  function playWord(word: string) {
+  function resetQuestionActivity() {
+    wordPlayCountRef.current = 0;
+    ipaReferenceCountsRef.current = {};
+  }
+
+  function playWord(word: string, countQuestionPlayback = false) {
+    if (countQuestionPlayback) wordPlayCountRef.current += 1;
     const src = audioSrc(word);
     if (!audioRef.current) {
       audioRef.current = new Audio(src);
@@ -295,8 +308,11 @@ export default function TranscribeQuizPage() {
     setDuringAnswerNote("");
     setAfterJudgementDraft("");
     setCurrentNotes([]);
+    sessionIdRef.current = newNoteId();
+    sessionStartedAtRef.current = new Date().toISOString();
+    resetQuestionActivity();
     setPhase("quiz");
-    playWord(qs[0].w);
+    playWord(qs[0].w, true);
   }
 
   function appendNote(
@@ -362,6 +378,10 @@ export default function TranscribeQuizPage() {
       heard,
       wordKnown: known,
       transcriptionNotes: finalizedNotes,
+      sessionId: sessionIdRef.current ?? undefined,
+      sessionStartedAt: sessionStartedAtRef.current ?? undefined,
+      wordPlayCount: wordPlayCountRef.current,
+      ipaReferenceCounts: { ...ipaReferenceCountsRef.current },
     });
     if (built) {
       getRepositories()
@@ -404,7 +424,8 @@ export default function TranscribeQuizPage() {
       return;
     }
     setIndex(nextIndex);
-    playWord(questions[nextIndex].w);
+    resetQuestionActivity();
+    playWord(questions[nextIndex].w, true);
     void nextResults;
   }
 
@@ -424,7 +445,13 @@ export default function TranscribeQuizPage() {
 
   // ── Render helpers ────────────────────────────────────────────────────────
 
-  function playGuideAudio(audioFile: string) {
+  function playGuideAudio(audioFile: string, phoneme?: string) {
+    if (phoneme && phase === "quiz" && question) {
+      ipaReferenceCountsRef.current = {
+        ...ipaReferenceCountsRef.current,
+        [phoneme]: (ipaReferenceCountsRef.current[phoneme] ?? 0) + 1,
+      };
+    }
     const src = `/audio/${encodeURIComponent(audioFile)}`;
     if (!audioRef.current) {
       audioRef.current = new Audio(src);
@@ -434,6 +461,20 @@ export default function TranscribeQuizPage() {
       audioRef.current.load();
     }
     audioRef.current.play().catch(() => {});
+  }
+
+  async function copyPerceptionLogs(scope: "today" | "all") {
+    try {
+      const records = await getRepositories().errorLogs.listByUser(LOCAL_USER_ID);
+      const text = buildPerceptionLogExport(records, scope);
+      if (!navigator.clipboard?.writeText) throw new Error("clipboard unavailable");
+      await navigator.clipboard.writeText(text);
+      setCopyToast(scope === "today" ? "今日分をコピーしました" : "全期間をコピーしました");
+    } catch {
+      setCopyToast("コピーできませんでした");
+    }
+    if (copyToastTimerRef.current) clearTimeout(copyToastTimerRef.current);
+    copyToastTimerRef.current = setTimeout(() => setCopyToast(null), 2200);
   }
 
   function inputPhoneme(phoneme: string) {
@@ -539,7 +580,7 @@ export default function TranscribeQuizPage() {
         <button
           type="button"
           className="vowel-audio-btn"
-          onClick={() => playGuideAudio(info.audioFile)}
+          onClick={() => playGuideAudio(info.audioFile, info.phoneme)}
           aria-label={`${info.hangul} の発音例を再生`}
           title={isGlide ? "わたり音を含む発音例" : "発音例を再生"}
         >
@@ -567,7 +608,7 @@ export default function TranscribeQuizPage() {
               const guide = PHONEME_GUIDE[p];
               if (!guide) return null;
               return (
-                <div key={p} className="stats-row" style={{ cursor: guide.audioExample ? "pointer" : "default" }} onClick={() => guide.audioExample && playGuideAudio(guide.audioExample)}>
+                <div key={p} className="stats-row" style={{ cursor: guide.audioExample ? "pointer" : "default" }} onClick={() => guide.audioExample && playGuideAudio(guide.audioExample, p)}>
                   <span className="stats-char vowel">{p} {guide.audioExample ? "🔊" : ""}</span>
                   <span className="stats-level">{guide.label}</span>
                   <span className="stats-detail">{guide.hint}</span>
@@ -622,7 +663,7 @@ export default function TranscribeQuizPage() {
               const guide = PHONEME_GUIDE[p];
               if (!guide) return null;
               return (
-                <div key={p} className="stats-row" style={{ padding: "8px", background: "#fff", cursor: guide.audioExample ? "pointer" : "default" }} onClick={() => guide.audioExample && playGuideAudio(guide.audioExample)}>
+                <div key={p} className="stats-row" style={{ padding: "8px", background: "#fff", cursor: guide.audioExample ? "pointer" : "default" }} onClick={() => guide.audioExample && playGuideAudio(guide.audioExample, p)}>
                   <span className="stats-char vowel" style={{ fontSize: "1.2rem" }}>{p} {guide.audioExample ? <span style={{fontSize: "0.9rem"}}>🔊</span> : ""}</span>
                   <span className="stats-level" style={{ fontSize: "0.9rem" }}>{guide.label}</span>
                   <span className="stats-detail" style={{ fontSize: "0.85rem" }}>{guide.hint}</span>
@@ -825,6 +866,28 @@ export default function TranscribeQuizPage() {
             スタート
           </button>
 
+          <div className="transcribe-export-actions" aria-label="知覚ログをコピー">
+            <button
+              type="button"
+              className="transcribe-export-btn"
+              onClick={() => void copyPerceptionLogs("today")}
+            >
+              今日分コピー
+            </button>
+            <button
+              type="button"
+              className="transcribe-export-btn"
+              onClick={() => void copyPerceptionLogs("all")}
+            >
+              全期間コピー
+            </button>
+          </div>
+          {copyToast && (
+            <div className="transcribe-copy-toast" role="status" aria-live="polite">
+              {copyToast}
+            </div>
+          )}
+
           {renderGuideSection(setupGuideOpen, () => setSetupGuideOpen(!setupGuideOpen))}
 
           <div className="stats-section" style={{ marginTop: "1rem" }}>
@@ -1007,7 +1070,7 @@ export default function TranscribeQuizPage() {
         <div className="question-label">問題 {index + 1}（IPA転写）</div>
 
         <div className="transcribe-audio-answer-row">
-          <button className="btn-audio" onClick={() => playWord(question.w)}>
+          <button className="btn-audio" onClick={() => playWord(question.w, true)}>
             <svg
               width="22"
               height="22"

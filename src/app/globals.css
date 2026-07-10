@@ -388,6 +388,43 @@ body {
   cursor: not-allowed;
 }
 
+.transcribe-export-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.transcribe-export-btn {
+  min-height: 42px;
+  padding: 9px;
+  border: 1px solid #1976d2;
+  border-radius: 8px;
+  background: #fff;
+  color: #1976d2;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.transcribe-export-btn:active {
+  background: #e3f2fd;
+}
+
+.transcribe-copy-toast {
+  position: fixed;
+  z-index: 500;
+  left: 50%;
+  bottom: 22px;
+  transform: translateX(-50%);
+  padding: 10px 16px;
+  border-radius: 999px;
+  background: rgba(33, 33, 33, 0.92);
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 700;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.24);
+}
+
 /* Phoneme quiz buttons */
 .phoneme-row {
   display: flex;

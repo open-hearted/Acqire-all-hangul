@@ -79,13 +79,26 @@ class LocalErrorLogRepository implements ErrorLogRepository {
   }
 
   async append(input: NewErrorLog): Promise<ErrorLogRecord> {
+    const existing = this.readAll();
+    const isTranscription = Array.isArray(input.heardPhonemes);
+    const wordAttemptNumber =
+      input.wordAttemptNumber ??
+      (isTranscription
+        ? existing.filter(
+            (record) =>
+              record.userId === input.userId &&
+              record.word === input.word &&
+              Array.isArray(record.heardPhonemes)
+          ).length + 1
+        : undefined);
     const record: ErrorLogRecord = {
       ...input,
+      ...(wordAttemptNumber === undefined ? {} : { wordAttemptNumber }),
       id: newId(),
       createdAt: new Date().toISOString(),
     };
     // 追記のみ。既存レコードは削除しない（出題プールの原資のため）
-    this.store.set(ERROR_LOG_KEY, [...this.readAll(), record]);
+    this.store.set(ERROR_LOG_KEY, [...existing, record]);
     return record;
   }
 
