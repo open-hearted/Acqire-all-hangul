@@ -1073,3 +1073,166 @@ body {
   color: #2e7d32;
   font-weight: 600;
 }
+
+/* IPA転写クイズ: PCでは横幅を使い、スクロールなしで回答を完結させる */
+@media (min-width: 900px) {
+  .transcribe-quiz-page {
+    max-width: 1100px;
+    min-height: 100vh;
+    padding: 6px 16px;
+    gap: 6px;
+  }
+
+  .transcribe-quiz-page .header {
+    padding: 0;
+  }
+
+  .transcribe-quiz-page .header h1 {
+    font-size: 1.2rem;
+  }
+
+  .transcribe-quiz-page .header p {
+    margin-top: 0;
+    font-size: 0.75rem;
+  }
+
+  .transcribe-quiz-page .progress-label {
+    margin-top: 1px;
+    font-size: 0.72rem;
+  }
+
+  .transcribe-quiz-card {
+    padding: 10px 14px;
+    gap: 7px;
+  }
+
+  .transcribe-quiz-card .question-label {
+    font-size: 0.78rem;
+  }
+
+  .transcribe-quiz-card .btn-audio {
+    padding: 8px;
+    font-size: 0.9rem;
+  }
+
+  .transcribe-quiz-card .heard-line {
+    min-height: 38px;
+    margin: 2px 0;
+    padding: 4px 6px;
+  }
+
+  .transcribe-quiz-card .heard-slot-value {
+    min-width: 40px;
+    padding: 5px 7px;
+    font-size: 0.95rem;
+  }
+
+  .transcribe-quiz-card .heard-edit-help {
+    margin: -2px 0 2px;
+  }
+
+  .transcription-keyboard {
+    display: grid;
+    grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
+    column-gap: 18px;
+    row-gap: 2px;
+  }
+
+  .keyboard-toolbar,
+  .ipa-inline-guide {
+    grid-column: 1 / -1;
+  }
+
+  .keyboard-toolbar {
+    margin-bottom: 0 !important;
+  }
+
+  .vowel-input-panel {
+    grid-column: 1;
+  }
+
+  .consonant-input-panel {
+    grid-column: 2;
+  }
+
+  .transcription-keyboard .ipa-group-label {
+    margin: 4px 0 2px;
+  }
+
+  .transcription-keyboard .ipa-input-help {
+    margin-bottom: 3px;
+    font-size: 0.68rem;
+  }
+
+  .transcription-keyboard .vowel-map,
+  .transcription-keyboard .glide-grid {
+    gap: 5px;
+  }
+
+  .transcription-keyboard .vowel-answer-btn {
+    min-height: 43px;
+    padding: 2px;
+  }
+
+  .transcription-keyboard .vowel-hangul {
+    font-size: 0.95rem;
+  }
+
+  .transcription-keyboard .vowel-ipa {
+    font-size: 0.78rem;
+  }
+
+  .transcription-keyboard .vowel-choice {
+    grid-template-columns: minmax(0, 1fr) 30px;
+  }
+
+  .transcription-keyboard .unknown-vowel-row {
+    margin-top: 5px;
+  }
+
+  .transcription-keyboard .unknown-vowel-btn {
+    padding: 7px;
+    font-size: 0.82rem;
+  }
+
+  .consonant-grid {
+    display: grid;
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+    gap: 5px;
+  }
+
+  .consonant-grid .ipa-btn {
+    min-width: 0;
+    padding: 8px 2px;
+    font-size: 0.92rem;
+  }
+
+  .keyboard-delete-row {
+    margin-top: 6px;
+  }
+
+  .keyboard-delete-row .ipa-btn {
+    width: 100%;
+    padding: 7px;
+    font-size: 0.78rem;
+  }
+
+  .transcribe-judge,
+  .transcribe-quit {
+    padding: 8px;
+    font-size: 0.88rem;
+  }
+
+  .ipa-inline-guide {
+    position: fixed;
+    z-index: 300;
+    top: 44px;
+    left: 50%;
+    width: min(760px, calc(100vw - 40px));
+    max-height: calc(100vh - 70px);
+    margin: 0 !important;
+    overflow-y: auto;
+    transform: translateX(-50%);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.22);
+  }
+}

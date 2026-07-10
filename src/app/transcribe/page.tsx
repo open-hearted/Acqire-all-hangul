@@ -350,8 +350,8 @@ export default function TranscribeQuizPage() {
   function renderKeyboard() {
     const disabled = judgement !== null;
     return (
-      <div className="input-wrap">
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+      <div className="input-wrap transcription-keyboard">
+        <div className="keyboard-toolbar" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
           <span className="input-label" style={{ marginBottom: 0 }}>
             聞こえた順に1音素ずつタップ。分からないけど聞こえている音は「母?」「子?」
           </span>
@@ -366,7 +366,7 @@ export default function TranscribeQuizPage() {
         </div>
         
         {guideOpen && (
-          <div style={{ marginBottom: "16px", padding: "10px", background: "#fafafa", borderRadius: "8px", border: "1px solid #ddd" }}>
+          <div className="ipa-inline-guide" style={{ marginBottom: "16px", padding: "10px", background: "#fafafa", borderRadius: "8px", border: "1px solid #ddd" }}>
             <div className="ipa-group-label" style={{ marginTop: "0" }}>母音・わたり音</div>
             {KEYBOARD_VOWELS.map(p => {
               const guide = PHONEME_GUIDE[p];
@@ -395,59 +395,64 @@ export default function TranscribeQuizPage() {
           </div>
         )}
 
-        <div className="ipa-group-label">基本母音（ハングル / IPA）</div>
-        <p className="ipa-input-help">文字部分は回答、🔊は発音例だけを再生します。</p>
-        <div className="vowel-map">
-          {BASIC_VOWELS.map((info) => renderVowelChoice(info))}
-        </div>
+        <div className="vowel-input-panel">
+          <div className="ipa-group-label">基本母音（ハングル / IPA）</div>
+          <p className="ipa-input-help">文字部分は回答、🔊は発音例だけを再生します。</p>
+          <div className="vowel-map">
+            {BASIC_VOWELS.map((info) => renderVowelChoice(info))}
+          </div>
 
-        <div className="ipa-group-label">わたり音</div>
-        <p className="ipa-input-help">単独音ではありません。🔊は母音と組み合わせた発音例です。</p>
-        <div className="glide-grid">
-          {GLIDES.map((info) => renderVowelChoice(info, true))}
-        </div>
+          <div className="ipa-group-label">わたり音</div>
+          <p className="ipa-input-help">単独音ではありません。🔊は母音と組み合わせた発音例です。</p>
+          <div className="glide-grid">
+            {GLIDES.map((info) => renderVowelChoice(info, true))}
+          </div>
 
-        <div className="unknown-vowel-row">
-          <button
-            type="button"
-            className="ipa-btn vowel wildcard unknown-vowel-btn"
-            disabled={disabled}
-            onClick={() => inputPhoneme(WILDCARD_VOWEL)}
-          >
-            母?　母音は聞こえたが分からない
-          </button>
-        </div>
-        <div className="ipa-group-label">子音</div>
-        <div className="ipa-grid">
-          {KEYBOARD_CONSONANTS.map((p) => (
+          <div className="unknown-vowel-row">
             <button
-              key={p}
+              type="button"
+              className="ipa-btn vowel wildcard unknown-vowel-btn"
+              disabled={disabled}
+              onClick={() => inputPhoneme(WILDCARD_VOWEL)}
+            >
+              母?　母音は聞こえたが分からない
+            </button>
+          </div>
+        </div>
+
+        <div className="consonant-input-panel">
+          <div className="ipa-group-label">子音</div>
+          <div className="ipa-grid consonant-grid">
+            {KEYBOARD_CONSONANTS.map((p) => (
+              <button
+                key={p}
+                type="button"
+                className="ipa-btn"
+                disabled={disabled}
+                onClick={() => inputPhoneme(p)}
+              >
+                {p}
+              </button>
+            ))}
+            <button
+              type="button"
+              className="ipa-btn wildcard"
+              disabled={disabled}
+              onClick={() => inputPhoneme(WILDCARD_CONSONANT)}
+            >
+              子?
+            </button>
+          </div>
+          <div className="ipa-grid keyboard-delete-row">
+            <button
               type="button"
               className="ipa-btn"
-              disabled={disabled}
-              onClick={() => inputPhoneme(p)}
+              disabled={disabled || heard.every((p) => p === null)}
+              onClick={deleteLastPhoneme}
             >
-              {p}
+              ⌫ 最後の音素を空欄にする
             </button>
-          ))}
-          <button
-            type="button"
-            className="ipa-btn wildcard"
-            disabled={disabled}
-            onClick={() => inputPhoneme(WILDCARD_CONSONANT)}
-          >
-            子?
-          </button>
-        </div>
-        <div className="ipa-grid">
-          <button
-            type="button"
-            className="ipa-btn"
-            disabled={disabled || heard.every((p) => p === null)}
-            onClick={deleteLastPhoneme}
-          >
-            ⌫ 最後の音素を空欄にする
-          </button>
+          </div>
         </div>
       </div>
     );
@@ -614,7 +619,7 @@ export default function TranscribeQuizPage() {
   // Quiz
   const answeredPhonemeCount = heard.filter((p) => p !== null).length;
   return (
-    <div className="container">
+    <div className="container transcribe-quiz-page">
       {header}
 
       <div>
@@ -629,7 +634,7 @@ export default function TranscribeQuizPage() {
         </div>
       </div>
 
-      <div className="card">
+      <div className="card transcribe-quiz-card">
         <div className="question-label">問題 {index + 1}（IPA転写）</div>
 
         <button className="btn-audio" onClick={() => playWord(question.w)}>
@@ -700,7 +705,7 @@ export default function TranscribeQuizPage() {
 
         {!judgement && (
           <button
-            className="btn-reset"
+            className="btn-reset transcribe-judge"
             onClick={handleJudge}
             disabled={answeredPhonemeCount === 0}
           >
@@ -748,7 +753,7 @@ export default function TranscribeQuizPage() {
       </div>
 
       <button
-        className="btn-reset"
+        className="btn-reset transcribe-quit"
         onClick={handleQuit}
         style={{ background: "transparent", color: "#757575", border: "1px solid #e0e0e0" }}
       >
