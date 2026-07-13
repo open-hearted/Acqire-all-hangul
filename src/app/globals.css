@@ -947,16 +947,9 @@ body {
   gap: 8px;
 }
 
-.consonant-family-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
-  margin-bottom: 6px;
-}
-
 .consonant-family-btn {
   display: flex;
-  flex: 1 1 72px;
+  width: 100%;
   flex-direction: column;
   align-items: center;
   justify-content: center;
@@ -988,10 +981,6 @@ body {
   font-weight: 500;
 }
 
-.consonant-individual-label {
-  margin-top: 7px;
-}
-
 .consonant-choice {
   display: flex;
   flex-direction: column;
@@ -1010,9 +999,156 @@ body {
 
 .consonant-ipa {
   margin-top: 2px;
-  color: #616161;
-  font-size: 0.72rem;
-  line-height: 1;
+  color: #212121;
+  font-size: 1.1875rem;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.consonant-hangul {
+  font-size: 1.125rem;
+  font-weight: 500;
+}
+
+.consonant-ipa.final-ipa {
+  font-size: 1.125rem;
+}
+
+/* ─── IPAキーボード: 初声・語中ゾーン（7列） ─────────────────────────── */
+
+.consonant-onset-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px 6px;
+  align-items: start;
+}
+
+.consonant-family-column,
+.consonant-standalone-column,
+.consonant-utility-column {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.consonant-family-column .consonant-choice,
+.consonant-standalone-column .consonant-choice {
+  min-height: 46px;
+  width: 100%;
+}
+
+.ipa-btn.consonant-wildcard-btn {
+  min-height: 46px;
+  width: 100%;
+  border-color: #ec407a;
+  background: #fce4ec;
+  color: #ad1457;
+  font-weight: 700;
+}
+
+.consonant-or-btn {
+  min-height: 46px;
+  width: 100%;
+  padding: 4px 6px;
+  border: 2px solid #fb8c00;
+  border-radius: 8px;
+  background: #ffe0b2;
+  color: #e65100;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.consonant-or-btn:active {
+  transform: scale(0.96);
+}
+
+.consonant-or-btn.pending {
+  background: #fb8c00;
+  color: #fff;
+  box-shadow: 0 0 0 2px #ffcc80 inset;
+}
+
+.consonant-or-btn:disabled {
+  cursor: default;
+  opacity: 0.4;
+}
+
+/* ─── IPAキーボード: 終声ゾーン ────────────────────────────────────────── */
+
+.consonant-final-section {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.consonant-final-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.consonant-final-header,
+.consonant-final-choice {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 4px 3px;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.consonant-final-header {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.consonant-final-header:disabled,
+.consonant-final-choice:disabled {
+  cursor: default;
+  opacity: 0.4;
+}
+
+.consonant-final-header:active,
+.consonant-final-choice:active {
+  transform: scale(0.96);
+}
+
+.consonant-final-bracket {
+  margin-top: 1px;
+  font-size: 0.7rem;
+  font-weight: 500;
+  opacity: 0.9;
+}
+
+.consonant-final-header.stops {
+  background: #2e7d32;
+  border-color: #1b5e20;
+}
+
+.consonant-final-choice.stops {
+  background: #e8f5e9;
+  border-color: #66bb6a;
+}
+
+.consonant-final-header.nasals {
+  background: #4a148c;
+  border-color: #38006b;
+}
+
+.consonant-final-choice.nasals {
+  background: #f3e5f5;
+  border-color: #ab47bc;
+}
+
+.consonant-final-choice.neutral {
+  background: #fff;
+  border-color: #bdbdbd;
 }
 
 .heard-line {
@@ -1459,50 +1595,46 @@ body {
     font-size: 0.9rem;
   }
 
-  .consonant-grid {
-    display: grid;
-    grid-template-columns: repeat(8, minmax(0, 1fr));
+  .transcription-keyboard .consonant-onset-grid {
+    grid-template-columns: repeat(7, minmax(0, 1fr));
     gap: 5px;
-  }
-
-  .transcription-keyboard .consonant-family-row {
-    gap: 5px;
-    margin-bottom: 4px;
   }
 
   .transcription-keyboard .consonant-family-btn {
-    min-height: 42px;
-    padding: 4px 6px;
-    font-size: 1rem;
+    min-height: 40px;
+    padding: 3px 4px;
+    font-size: 0.85rem;
   }
 
   .transcription-keyboard .consonant-family-hangul {
-    font-size: 0.82rem;
+    font-size: 0.62rem;
   }
 
-  .transcription-keyboard .consonant-individual-label {
-    margin-top: 5px;
-  }
-
-  .consonant-grid .consonant-choice {
+  .consonant-onset-grid .consonant-choice {
     min-width: 0;
-    min-height: 42px;
-    padding: 4px 2px;
+    min-height: 40px;
+    padding: 3px 2px;
   }
 
   .transcription-keyboard .consonant-hangul {
-    font-size: 1.15rem;
+    font-size: 1rem;
   }
 
   .transcription-keyboard .consonant-ipa {
-    margin-top: 1px;
+    font-size: 1rem;
+  }
+
+  .transcription-keyboard .consonant-ipa.final-ipa {
     font-size: 0.95rem;
-    color: #4c4c4c;
   }
 
   .transcription-keyboard .ipa-btn {
-    min-height: 42px;
+    min-height: 40px;
     font-size: 0.96rem;
+  }
+
+  .transcription-keyboard .consonant-final-grid {
+    grid-template-columns: 1.25fr repeat(3, 1fr) 1.25fr repeat(3, 1fr) 1fr;
   }
 
   .keyboard-delete-row {
