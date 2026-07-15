@@ -55,6 +55,16 @@ export type {
   TranscriptionAnswerInput,
 } from "./transcriptionAnalysis";
 export {
+  aggregateTranscriptionSession,
+  formatPhonemeSequence,
+} from "./sessionAnalysis";
+export type {
+  AnalysisExample,
+  TranscriptionErrorPattern,
+  TranscriptionSessionAnalysis,
+  TranscriptionSessionResult,
+} from "./sessionAnalysis";
+export {
   computeVowelCoverage,
   computeWordCoverage,
   tallyErrorRegions,

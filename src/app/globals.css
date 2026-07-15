@@ -941,6 +941,45 @@ body {
   width: 100%;
 }
 
+.vowel-family-row {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.vowel-family-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 46px;
+  padding: 4px 6px;
+  border: 2px solid #f9a825;
+  border-radius: 8px;
+  background: #fff8e1;
+  color: #8d6e00;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.vowel-family-btn:active {
+  transform: scale(0.96);
+  background: #ffecb3;
+}
+
+.vowel-family-btn:disabled {
+  cursor: default;
+  opacity: 0.4;
+}
+
+.vowel-family-bracket {
+  margin-top: 1px;
+  color: #a37700;
+  font-size: 0.66rem;
+  font-weight: 500;
+}
+
 .transcribe-audio-answer-row {
   display: flex;
   flex-direction: column;

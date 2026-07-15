@@ -59,21 +59,21 @@ interface ConsonantButtonInfo {
   hint: string;
 }
 
-interface ConsonantFamilyMember {
+interface PhonemeFamilyMember {
   phoneme: string;
   hangul: string;
 }
 
-interface ConsonantFamilyInfo {
+interface PhonemeFamilyInfo {
   label: string;
   hangul: string;
-  members: ConsonantFamilyMember[];
+  members: PhonemeFamilyMember[];
 }
 
 interface FinalGroupInfo {
   label: string;
   bracket: string;
-  members: ConsonantFamilyMember[];
+  members: PhonemeFamilyMember[];
 }
 
 const WORDS: WordEntry[] = wordsData as WordEntry[];
@@ -108,7 +108,18 @@ const GLIDES: VowelButtonInfo[] = [
   { phoneme: "ɰ", hangul: "例 ㅢ", audioFile: "ㅢ.mp3", area: "" },
 ];
 
-const CONSONANT_FAMILIES: ConsonantFamilyInfo[] = [
+const VOWEL_FAMILIES: PhonemeFamilyInfo[] = [
+  {
+    label: "え系",
+    hangul: "ㅔ・ㅐ",
+    members: [
+      { phoneme: "e", hangul: "ㅔ" },
+      { phoneme: "ɛ", hangul: "ㅐ" },
+    ],
+  },
+];
+
+const CONSONANT_FAMILIES: PhonemeFamilyInfo[] = [
   {
     label: "k系",
     hangul: "ㄱ・ㅋ・ㄲ",
@@ -780,6 +791,28 @@ export default function TranscribeQuizPage() {
           <p className="ipa-input-help">文字部分は回答、🔊は発音例だけを再生します。</p>
           <div className="vowel-map">
             {BASIC_VOWELS.map((info) => renderVowelChoice(info))}
+          </div>
+
+          <div className="ipa-group-label">母音ファミリー</div>
+          <p className="ipa-input-help">系ボタンで候補をまとめて1音素分として記録します。</p>
+          <div className="vowel-family-row">
+            {VOWEL_FAMILIES.map((family) => {
+              const familyPhonemes = family.members.map((member) => member.phoneme);
+              return (
+                <button
+                  key={family.label}
+                  type="button"
+                  className="vowel-family-btn"
+                  disabled={disabled || orMode}
+                  onClick={() => inputConsonantFamily(familyPhonemes)}
+                  aria-label={`${family.label}、${family.hangul}、候補 ${familyPhonemes.join("、")} を1音素分として回答に入れる`}
+                  title={`${family.hangul}：/${familyPhonemes.join(" | ")}/ を候補にする`}
+                >
+                  <span>{family.label}</span>
+                  <span className="vowel-family-bracket">[{familyPhonemes.join("|")}]</span>
+                </button>
+              );
+            })}
           </div>
 
           <div className="ipa-group-label">わたり音</div>
