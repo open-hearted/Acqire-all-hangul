@@ -899,7 +899,7 @@ body {
 
 .vowel-answer-btn {
   min-height: 64px;
-  padding: 6px 2px;
+  padding: 2px 2px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -907,14 +907,14 @@ body {
 }
 
 .vowel-hangul {
-  font-size: 1.1rem;
+  font-size: 1.125rem;
   font-weight: 700;
   white-space: nowrap;
 }
 
 .vowel-ipa {
   margin-top: 2px;
-  font-size: 0.9rem;
+  font-size: 1.5rem;
   color: #616161;
 }
 
@@ -1039,13 +1039,13 @@ body {
 .consonant-ipa {
   margin-top: 1px;
   color: #212121;
-  font-size: 1.1875rem;
+  font-size: 1.5rem;
   font-weight: 700;
   line-height: 1.1;
 }
 
 .consonant-ipa.final-ipa {
-  font-size: 1.125rem;
+  font-size: 1.25rem;
 }
 
 /* ─── IPAキーボード: 初声・語中ゾーン（7列） ─────────────────────────── */
@@ -1611,15 +1611,7 @@ body {
 
   .transcription-keyboard .vowel-answer-btn {
     min-height: 50px;
-    padding: 4px;
-  }
-
-  .transcription-keyboard .vowel-hangul {
-    font-size: 1.02rem;
-  }
-
-  .transcription-keyboard .vowel-ipa {
-    font-size: 0.9rem;
+    padding: 2px;
   }
 
   .transcription-keyboard .vowel-choice {
@@ -1638,7 +1630,7 @@ body {
 
   .transcription-keyboard .consonant-onset-grid {
     grid-template-columns: repeat(7, minmax(0, 1fr));
-    gap: 5px;
+    gap: 3px;
   }
 
   .transcription-keyboard .consonant-family-btn {
@@ -1654,19 +1646,7 @@ body {
   .consonant-onset-grid .consonant-choice {
     min-width: 0;
     min-height: 40px;
-    padding: 3px 2px;
-  }
-
-  .transcription-keyboard .consonant-hangul {
-    font-size: 1rem;
-  }
-
-  .transcription-keyboard .consonant-ipa {
-    font-size: 1rem;
-  }
-
-  .transcription-keyboard .consonant-ipa.final-ipa {
-    font-size: 0.95rem;
+    padding: 1px 1px;
   }
 
   .transcription-keyboard .ipa-btn {
@@ -1674,8 +1654,19 @@ body {
     font-size: 0.96rem;
   }
 
+  .transcription-keyboard .consonant-family-column,
+  .transcription-keyboard .consonant-standalone-column,
+  .transcription-keyboard .consonant-utility-column {
+    gap: 4px;
+  }
+
+  .transcription-keyboard .consonant-family-column {
+    padding: 4px 2px;
+  }
+
   .transcription-keyboard .consonant-final-grid {
     grid-template-columns: 1.25fr repeat(3, 1fr) 1.25fr repeat(3, 1fr) 1fr;
+    gap: 4px;
   }
 
   .keyboard-delete-row {
