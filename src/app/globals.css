@@ -1025,28 +1025,23 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 48px;
-  padding: 4px 3px;
+  min-height: 44px;
+  padding: 2px 2px;
 }
 
 .consonant-hangul {
   color: #212121;
-  font-size: 0.98rem;
-  font-weight: 700;
+  font-size: 1.125rem;
+  font-weight: 600;
   line-height: 1.05;
 }
 
 .consonant-ipa {
-  margin-top: 2px;
+  margin-top: 1px;
   color: #212121;
   font-size: 1.1875rem;
   font-weight: 700;
   line-height: 1.1;
-}
-
-.consonant-hangul {
-  font-size: 1.125rem;
-  font-weight: 500;
 }
 
 .consonant-ipa.final-ipa {
@@ -1071,9 +1066,16 @@ body {
   min-width: 0;
 }
 
+.consonant-family-column {
+  padding: 6px 4px;
+  border: 1px solid #e1d5f0;
+  border-radius: 10px;
+  background: #faf6fd;
+}
+
 .consonant-family-column .consonant-choice,
 .consonant-standalone-column .consonant-choice {
-  min-height: 46px;
+  min-height: 44px;
   width: 100%;
 }
 
@@ -1134,8 +1136,8 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 48px;
-  padding: 4px 3px;
+  min-height: 44px;
+  padding: 2px 2px;
   border: 2px solid transparent;
   border-radius: 8px;
   cursor: pointer;

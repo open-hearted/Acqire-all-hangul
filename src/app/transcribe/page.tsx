@@ -577,11 +577,7 @@ export default function TranscribeQuizPage() {
       const sameCategory = candidates.every(
         (candidate) => isVowelAnswer(candidate) === isVowelAnswer(phoneme)
       );
-      if (
-        candidates.length >= 3 ||
-        candidates.includes(phoneme) ||
-        !sameCategory
-      ) {
+      if (candidates.includes(phoneme) || !sameCategory) {
         return;
       }
       const next = [...heard];
@@ -651,7 +647,6 @@ export default function TranscribeQuizPage() {
     if (!orMode || activeSlot === null) return false;
     const candidates = heard[activeSlot]?.candidates ?? [];
     return (
-      candidates.length >= 3 ||
       candidates.includes(phoneme) ||
       (candidates.length > 0 &&
         isVowelAnswer(candidates[0]) !== isVowelAnswer(phoneme))
@@ -741,7 +736,7 @@ export default function TranscribeQuizPage() {
         <div className="keyboard-toolbar" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
           <span className="input-label" style={{ marginBottom: 0 }}>
             {orMode
-              ? `${activeSlot! + 1}番目のスロットにOR候補を追加中（${activeCandidateCount}/3個）`
+              ? `${activeSlot! + 1}番目のスロットにOR候補を追加中（${activeCandidateCount}個）`
               : pendingOr
                 ? "OR: 次にタップした音/系統を直前のスロットに追記します"
                 : "聞こえた順に1音素ずつタップ。分からないけど聞こえている音は「母?」「子音」"}
@@ -1387,7 +1382,7 @@ export default function TranscribeQuizPage() {
         </div>
         {!judgement && heard.length > 0 && (
           <p className="heard-edit-help">
-            スロットを選んで音素ボタンを押すと置換できます。OR候補を追加すると同じスロットに最大3個まで入ります。×で消しても空欄は残ります。
+            スロットを選んで音素ボタンを押すと置換できます。OR候補を追加すると同じスロットにいくつでも追加できます。×で消しても空欄は残ります。
           </p>
         )}
 
