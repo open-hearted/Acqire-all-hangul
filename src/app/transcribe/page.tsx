@@ -1241,7 +1241,7 @@ export default function TranscribeQuizPage() {
         </div>
         <div className="question-label">問題 {index + 1}（IPA転写）</div>
 
-        <div className="transcribe-audio-answer-row">
+        <div className={`transcribe-audio-answer-row ${!judgement ? "with-judge" : ""}`}>
           <button className="btn-audio" onClick={() => playWord(question.w, true)}>
             <svg
               width="22"
@@ -1353,6 +1353,16 @@ export default function TranscribeQuizPage() {
             )}
             </div>
           </div>
+
+          {!judgement && (
+            <button
+              className="btn-reset transcribe-judge-side"
+              onClick={handleJudge}
+              disabled={answeredPhonemeCount === 0}
+            >
+              判定する（{answeredPhonemeCount}音素）
+            </button>
+          )}
         </div>
         {!judgement && heard.length > 0 && (
           <p className="heard-edit-help">

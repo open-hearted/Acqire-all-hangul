@@ -1513,6 +1513,10 @@ body {
   font-size: 0.82rem;
 }
 
+.transcribe-judge-side {
+  display: none;
+}
+
 .transcribe-post-actions .known-btn,
 .transcribe-post-actions .btn-next {
   margin: 0;
@@ -1548,6 +1552,10 @@ body {
     grid-template-columns: minmax(120px, 0.18fr) minmax(0, 0.82fr);
     align-items: stretch;
     gap: 10px;
+  }
+
+  .transcribe-audio-answer-row.with-judge {
+    grid-template-columns: minmax(120px, 0.16fr) minmax(0, 0.61fr) minmax(170px, 0.23fr);
   }
 
   .transcribe-input-column {
@@ -1700,8 +1708,7 @@ body {
   }
 
   .transcribe-note-judge-row {
-    display: block;
-    margin-top: 2px;
+    display: none;
   }
 
   .transcribe-during-note-wrap {
@@ -1725,6 +1732,19 @@ body {
     padding: 10px;
     margin: 0;
     width: 100%;
+  }
+
+  .transcribe-judge-side {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 132px;
+    padding: 12px 10px;
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1.25;
+    width: 100%;
+    margin: 0;
   }
 
   .feedback {
@@ -1912,6 +1932,7 @@ body {
   }
 
   .transcribe-note-judge-row {
+    display: block;
     margin-top: 2px;
   }
 
