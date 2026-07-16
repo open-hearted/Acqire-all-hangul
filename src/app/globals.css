@@ -1460,8 +1460,11 @@ body {
 }
 
 .transcribe-note-time {
+  width: auto;
   min-width: auto;
   font-size: 0.82rem;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .transcribe-note-text {
@@ -1506,6 +1509,12 @@ body {
   justify-content: flex-end;
 }
 
+.transcribe-top-hint {
+  font-size: 0.75rem;
+  color: #757575;
+  white-space: nowrap;
+}
+
 .transcribe-quit-top {
   width: auto;
   min-height: 34px;
@@ -1520,6 +1529,18 @@ body {
 .transcribe-post-actions .known-btn,
 .transcribe-post-actions .btn-next {
   margin: 0;
+}
+
+.btn-main-label {
+  display: block;
+}
+
+.shortcut-hint {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: #757575;
+  line-height: 1.1;
 }
 
 /* IPA転写クイズ: PCでは横幅を使い、スクロールなしで回答を完結させる */
@@ -1545,6 +1566,17 @@ body {
     font-size: 1rem;
     line-height: 1.2;
     align-self: stretch;
+  }
+
+  .transcribe-quiz-card .btn-audio,
+  .transcribe-judge-side,
+  .transcribe-judge,
+  .transcribe-next {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
   }
 
   .transcribe-audio-answer-row {
@@ -1583,6 +1615,13 @@ body {
     margin: -2px 0 0;
     font-size: 0.88rem;
     line-height: 1.35;
+  }
+
+  .transcribe-post-main {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
   }
 
   .transcription-keyboard {
@@ -1745,6 +1784,27 @@ body {
     line-height: 1.25;
     width: 100%;
     margin: 0;
+  }
+
+  .transcribe-post-actions-inline {
+    width: fit-content;
+    align-self: flex-start;
+    margin-top: 0;
+    gap: 8px;
+  }
+
+  .transcribe-post-actions-inline .known-btn,
+  .transcribe-post-actions-inline .btn-next {
+    width: auto;
+    min-height: 40px;
+    padding: 8px 10px;
+    font-size: 0.92rem;
+  }
+
+  .transcribe-post-actions-inline .btn-next {
+    min-width: 150px;
+    background: #e3f2fd;
+    font-weight: 700;
   }
 
   .feedback {
@@ -1937,6 +1997,23 @@ body {
   }
 
   .transcribe-judge {
+    width: 100%;
+  }
+
+  .shortcut-hint,
+  .transcribe-top-hint {
+    display: none;
+  }
+
+  .transcribe-post-actions-inline {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .transcribe-post-actions-inline .known-btn,
+  .transcribe-post-actions-inline .btn-next {
     width: 100%;
   }
 }

@@ -392,12 +392,24 @@ export default function TranscribeQuizPage() {
         Boolean(target?.isContentEditable);
 
       const isSubmitShortcut = event.ctrlKey || event.metaKey;
+      const isFinalReview = judgement !== null && index + 1 >= questions.length;
+
+      if (isSubmitShortcut && event.shiftKey) {
+        if (isFinalReview) return;
+        event.preventDefault();
+        handleQuit();
+        return;
+      }
+
       if (isSubmitShortcut) {
+        event.preventDefault();
+        if (judgement) {
+          handleNext();
+          return;
+        }
         const canJudge =
-          judgement === null &&
           heard.some((slot) => slot !== null && slot.candidates.length > 0);
         if (!canJudge) return;
-        event.preventDefault();
         handleJudge();
         return;
       }
@@ -409,7 +421,7 @@ export default function TranscribeQuizPage() {
 
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [hydrated, phase, judgement, heard, handleJudge, handlePlayCurrentWord]);
+  }, [hydrated, phase, judgement, heard, index, questions.length, handleJudge, handleNext, handleQuit, handlePlayCurrentWord]);
 
   // ── Session flow ──────────────────────────────────────────────────────────
 
@@ -1260,16 +1272,15 @@ export default function TranscribeQuizPage() {
 
   // Quiz
   const answeredPhonemeCount = heard.filter((slot) => slot !== null).length;
+  const isFinalReview = phase === "quiz" && judgement !== null && index + 1 >= questions.length;
+  const showInterimQuitHint = phase === "quiz" && !isFinalReview;
   return (
     <div className="container transcribe-quiz-page">
-      <div className="transcribe-top-actions">
-        <button
-          className="btn-reset transcribe-quit-top btn-muted"
-          onClick={handleQuit}
-        >
-          ここで終了する
-        </button>
-      </div>
+      {showInterimQuitHint && (
+        <div className="transcribe-top-actions">
+          <span className="transcribe-top-hint">Ctrl+Shift+Enter で途中終了</span>
+        </div>
+      )}
 
       <div className="card transcribe-quiz-card">
         <div className="transcribe-segment-progress" aria-label="問題進捗">
@@ -1283,7 +1294,7 @@ export default function TranscribeQuizPage() {
         <div className="question-label">問題 {index + 1}（IPA転写）</div>
 
         <div className={`transcribe-audio-answer-row ${!judgement ? "with-judge" : ""}`}>
-          <button className="btn-audio" onClick={handlePlayCurrentWord}>
+          <button className="btn-audio" onClick={handlePlayCurrentWord} aria-keyshortcuts="Enter">
             <svg
               width="22"
               height="22"
@@ -1293,7 +1304,8 @@ export default function TranscribeQuizPage() {
             >
               <path d="M8 5v14l11-7z" />
             </svg>
-            再生
+            <span className="btn-main-label">再生</span>
+            <span className="shortcut-hint">Enter</span>
           </button>
 
           <div className="transcribe-input-column">
@@ -1400,8 +1412,10 @@ export default function TranscribeQuizPage() {
               className="btn-reset transcribe-judge-side"
               onClick={handleJudge}
               disabled={answeredPhonemeCount === 0}
+              aria-keyshortcuts="Ctrl+Enter"
             >
-              判定する（{answeredPhonemeCount}音素）
+              <span className="btn-main-label">判定する（{answeredPhonemeCount}音素）</span>
+              <span className="shortcut-hint">Ctrl+Enter</span>
             </button>
           )}
         </div>
@@ -1419,8 +1433,10 @@ export default function TranscribeQuizPage() {
               className="btn-reset transcribe-judge"
               onClick={handleJudge}
               disabled={answeredPhonemeCount === 0}
+              aria-keyshortcuts="Ctrl+Enter"
             >
-              判定する（{answeredPhonemeCount}音素）
+              <span className="btn-main-label">判定する（{answeredPhonemeCount}音素）</span>
+              <span className="shortcut-hint">Ctrl+Enter</span>
             </button>
           </div>
         )}
@@ -1454,6 +1470,21 @@ export default function TranscribeQuizPage() {
                 <p className="transcribe-answer-line">
                   回答: /{formatAnswerSlots(heard)}/
                 </p>
+                <div className="transcribe-post-actions transcribe-post-actions-inline">
+                  <button
+                    type="button"
+                    className={`known-btn ${known ? "active" : ""}`}
+                    onClick={() => setKnown(known ? null : true)}
+                  >
+                    <span className="btn-main-label">✔ この単語は知っていた</span>
+                  </button>
+                  <button className="btn-next transcribe-next" onClick={handleNext} aria-keyshortcuts="Ctrl+Enter">
+                    <span className="btn-main-label">
+                      {index + 1 < questions.length ? "次の問題 →" : "結果を見る"}
+                    </span>
+                    <span className="shortcut-hint">Ctrl+Enter</span>
+                  </button>
+                </div>
               </div>
               <div className="transcribe-post-note-panel">
                 <div className="input-wrap transcribe-after-note-wrap">
@@ -1486,18 +1517,6 @@ export default function TranscribeQuizPage() {
                 </div>
                 <div className="transcribe-note-panel-scroll">{renderNotes(currentNotes)}</div>
               </div>
-            </div>
-            <div className="transcribe-post-actions">
-              <button
-                type="button"
-                className={`known-btn ${known ? "active" : ""}`}
-                onClick={() => setKnown(known ? null : true)}
-              >
-                ✔ この単語は知っていた
-              </button>
-              <button className="btn-next transcribe-next" onClick={handleNext}>
-                {index + 1 < questions.length ? "次の問題 →" : "結果を見る"}
-              </button>
             </div>
           </>
         )}
