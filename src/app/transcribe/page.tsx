@@ -379,7 +379,10 @@ export default function TranscribeQuizPage() {
     if (!hydrated || phase !== "quiz") return;
 
     function onKeyDown(event: KeyboardEvent) {
-      if (event.key !== "Enter") return;
+      const isEnter = event.key === "Enter";
+      const isSpace =
+        event.key === " " || event.code === "Space" || event.key === "Spacebar";
+      if (!isEnter && !isSpace) return;
 
       const target = event.target as HTMLElement | null;
       const isTextInputFocused =
@@ -394,14 +397,14 @@ export default function TranscribeQuizPage() {
       const isSubmitShortcut = event.ctrlKey || event.metaKey;
       const isFinalReview = judgement !== null && index + 1 >= questions.length;
 
-      if (isSubmitShortcut && event.shiftKey) {
+      if (isEnter && isSubmitShortcut && event.shiftKey) {
         if (isFinalReview) return;
         event.preventDefault();
         handleQuit();
         return;
       }
 
-      if (isSubmitShortcut) {
+      if (isEnter && isSubmitShortcut) {
         event.preventDefault();
         if (judgement) {
           handleNext();
@@ -414,6 +417,7 @@ export default function TranscribeQuizPage() {
         return;
       }
 
+      if (!isSpace) return;
       if (isTextInputFocused || event.altKey || event.shiftKey) return;
       event.preventDefault();
       handlePlayCurrentWord();
@@ -1294,7 +1298,7 @@ export default function TranscribeQuizPage() {
         <div className="question-label">問題 {index + 1}（IPA転写）</div>
 
         <div className={`transcribe-audio-answer-row ${!judgement ? "with-judge" : ""}`}>
-          <button className="btn-audio" onClick={handlePlayCurrentWord} aria-keyshortcuts="Enter">
+          <button className="btn-audio" onClick={handlePlayCurrentWord} aria-keyshortcuts="Space">
             <svg
               width="22"
               height="22"
@@ -1305,7 +1309,7 @@ export default function TranscribeQuizPage() {
               <path d="M8 5v14l11-7z" />
             </svg>
             <span className="btn-main-label">再生</span>
-            <span className="shortcut-hint">Enter</span>
+            <span className="shortcut-hint">Space</span>
           </button>
 
           <div className="transcribe-input-column">
