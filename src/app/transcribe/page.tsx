@@ -518,7 +518,7 @@ export default function TranscribeQuizPage() {
   }
 
   useEffect(() => {
-    if (!hydrated || phase !== "quiz") return;
+    if (!hydrated || (phase !== "quiz" && phase !== "result")) return;
 
     function onKeyDown(event: KeyboardEvent) {
       const isEnter = event.key === "Enter";
@@ -537,6 +537,27 @@ export default function TranscribeQuizPage() {
         Boolean(target?.isContentEditable);
 
       const isSubmitShortcut = event.ctrlKey || event.metaKey;
+
+      // Result画面のキーボードショートカット
+      if (phase === "result") {
+        if (isEnter && isSubmitShortcut && event.shiftKey) {
+          event.preventDefault();
+          setPhase("setup");
+          return;
+        }
+        if (isEnter && isSubmitShortcut) {
+          event.preventDefault();
+          startSession();
+          return;
+        }
+        if (isEnter) {
+          event.preventDefault();
+          return;
+        }
+        return;
+      }
+
+      // Quiz画面のキーボードショートカット
       const isFinalReview = judgement !== null && index + 1 >= questions.length;
 
       if (isEnter && isSubmitShortcut && event.shiftKey) {
@@ -567,7 +588,7 @@ export default function TranscribeQuizPage() {
 
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [hydrated, phase, judgement, heard, index, questions.length, handleJudge, handleNext, handleQuit, handlePlayCurrentWord]);
+  }, [hydrated, phase, judgement, heard, index, questions.length, handleJudge, handleNext, handleQuit, handlePlayCurrentWord, startSession]);
 
   // ── Session flow ──────────────────────────────────────────────────────────
 
@@ -1427,14 +1448,17 @@ export default function TranscribeQuizPage() {
                 配置不一致 {byGrade("mismatch")}
               </span>
             </div>
-            <button className="btn-reset" onClick={startSession}>
-              もう一度（同じ設定）
+            <button className="btn-reset" onClick={startSession} aria-keyshortcuts="Ctrl+Enter">
+              <span className="btn-main-label">もう一度（同じ設定）</span>
+              <span className="shortcut-hint">Ctrl+Enter</span>
             </button>
             <button
               className="btn-reset btn-muted"
               onClick={() => setPhase("setup")}
+              aria-keyshortcuts="Ctrl+Shift+Enter"
             >
-              IPA転写クイズトップに戻る
+              <span className="btn-main-label">IPA転写クイズトップに戻る</span>
+              <span className="shortcut-hint">Ctrl+Shift+Enter</span>
             </button>
             <Link href="/regions" className="link-btn link-btn-disabled" aria-disabled="true" tabIndex={-1} onClick={(event) => event.preventDefault()}>
               音響領域の分析へ →
