@@ -1498,28 +1498,6 @@ body {
     gap: 8px;
   }
 
-  .transcribe-quiz-page .header {
-    padding: 2px 0;
-  }
-
-  .transcribe-quiz-page .header h1 {
-    font-size: 1.32rem;
-  }
-
-  .transcribe-quiz-page .header p {
-    margin-top: 2px;
-    font-size: 0.92rem;
-  }
-
-  .transcribe-progress-block {
-    margin-top: -2px;
-  }
-
-  .transcribe-quiz-page .progress-label {
-    margin-top: 3px;
-    font-size: 0.88rem;
-  }
-
   .transcribe-quiz-card {
     padding: 12px 14px;
     gap: 8px;
@@ -1883,6 +1861,24 @@ body {
     transform: translateX(-50%);
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.22);
   }
+}
+
+.transcribe-segment-progress {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: 6px;
+  width: 100%;
+}
+
+.transcribe-segment {
+  height: 5px;
+  border-radius: 999px;
+  background: #e0e0e0;
+}
+
+.transcribe-segment.filled {
+  background: var(--color-primary);
 }
 
 @media (max-width: 899px) {

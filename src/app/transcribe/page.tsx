@@ -1022,19 +1022,11 @@ export default function TranscribeQuizPage() {
 
   if (!hydrated) return null;
 
-  const header = (
-    <div className="header">
-      <h1>IPA転写クイズ</h1>
-      <p>聞こえた音を1音素ずつIPAで書き取る（精密測定）</p>
-    </div>
-  );
-
   // Setup
   if (phase === "setup") {
     const poolSize = WORDS.filter((w) => w.p <= maxLen).length;
     return (
       <div className="container">
-        {header}
         <div className="start-card">
           <h2>聞こえた音をそのまま書き取ろう</h2>
           <p>
@@ -1182,7 +1174,6 @@ export default function TranscribeQuizPage() {
     ).length;
     return (
       <div className="container transcribe-result-page">
-        {header}
         <div className="transcribe-result-layout">
           <div className="result-card transcribe-result-summary">
             <h2>クイズ完了！</h2>
@@ -1262,21 +1253,15 @@ export default function TranscribeQuizPage() {
   const answeredPhonemeCount = heard.filter((slot) => slot !== null).length;
   return (
     <div className="container transcribe-quiz-page">
-      {header}
-
-      <div className="transcribe-progress-block">
-        <div className="progress-wrap">
-          <div
-            className="progress-bar"
-            style={{ width: `${((index + 1) / questions.length) * 100}%` }}
-          />
-        </div>
-        <div className="progress-label">
-          {index + 1} / {questions.length}
-        </div>
-      </div>
-
       <div className="card transcribe-quiz-card">
+        <div className="transcribe-segment-progress" aria-label="問題進捗">
+          {Array.from({ length: questions.length }, (_, i) => (
+            <span
+              key={i}
+              className={`transcribe-segment ${i <= index ? "filled" : ""}`}
+            />
+          ))}
+        </div>
         <div className="question-label">問題 {index + 1}（IPA転写）</div>
 
         <div className="transcribe-audio-answer-row">
