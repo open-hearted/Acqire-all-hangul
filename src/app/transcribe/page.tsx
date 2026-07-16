@@ -117,6 +117,23 @@ const VOWEL_FAMILIES: PhonemeFamilyInfo[] = [
       { phoneme: "ɛ", hangul: "ㅐ" },
     ],
   },
+  {
+    label: "う系",
+    hangul: "う系",
+    members: [
+      { phoneme: "ɯ", hangul: "ㅡ" },
+      { phoneme: "u", hangul: "ㅜ" },
+      { phoneme: "o", hangul: "ㅗ" },
+    ],
+  },
+  {
+    label: "お系",
+    hangul: "お系",
+    members: [
+      { phoneme: "o", hangul: "ㅗ" },
+      { phoneme: "ʌ", hangul: "ㅓ" },
+    ],
+  },
 ];
 
 const CONSONANT_FAMILIES: PhonemeFamilyInfo[] = [
