@@ -11,6 +11,7 @@ export * from "./types";
 export type {
   ErrorLogRepository,
   WordRepository,
+  EventLogRepository,
   AcousticRegionRepositories,
 } from "./repository";
 export {
@@ -64,6 +65,41 @@ export type {
   TranscriptionSessionAnalysis,
   TranscriptionSessionResult,
 } from "./sessionAnalysis";
+export {
+  newEventId,
+  toAnswerSnapshot,
+  referencePhonemeKind,
+  createTrialEventState,
+  recordTrialDisplay,
+  recordWordPlay,
+  recordReferencePlay,
+  recordAnswerChange,
+  recordMemoEdit,
+  recordPreReferenceSnapshot,
+  recordJudgeSubmit,
+  recordSimpleEvent,
+  toTrialEventBlock,
+  formatTrialEventTimeline,
+  buildTranscriptionEventTimeline,
+} from "./transcriptionEvents";
+export type {
+  InputSource,
+  TranscriptionEventType,
+  AnswerChangeOp,
+  AnswerSnapshot,
+  TrialDisplayEvent,
+  WordPlayEvent,
+  ReferencePlayEvent,
+  AnswerChangeEvent,
+  MemoEditEvent,
+  PreReferenceSnapshotEvent,
+  JudgeSubmitEvent,
+  SimpleEvent,
+  TranscriptionEvent,
+  TrialEventBlock,
+  TrialEventState,
+  ReferencePhonemeKind,
+} from "./transcriptionEvents";
 export {
   computeVowelCoverage,
   computeWordCoverage,

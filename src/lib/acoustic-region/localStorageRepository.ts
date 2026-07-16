@@ -8,9 +8,11 @@
 import type {
   ErrorLogRepository,
   WordRepository,
+  EventLogRepository,
   AcousticRegionRepositories,
 } from "./repository";
 import type { ErrorLogRecord, NewErrorLog, WordRecord } from "./types";
+import type { TrialEventBlock } from "./transcriptionEvents";
 
 // ─── JsonStore: localStorage の薄い抽象（SSR/テスト用の差し替え口） ──────────
 
@@ -60,6 +62,7 @@ export function createMemoryStore(): JsonStore {
 
 const ERROR_LOG_KEY = "acoustic-region:error-log:v1";
 const WORDS_KEY = "acoustic-region:words:v1";
+const EVENT_LOG_KEY = "acoustic-region:event-log:v1";
 
 function newId(): string {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
@@ -148,6 +151,40 @@ class LocalWordRepository implements WordRepository {
   }
 }
 
+// ─── EventLogRepository ──────────────────────────────────────────────────
+
+class LocalEventLogRepository implements EventLogRepository {
+  constructor(private readonly store: JsonStore) {}
+
+  private readAll(): TrialEventBlock[] {
+    return this.store.get<TrialEventBlock[]>(EVENT_LOG_KEY, []);
+  }
+
+  async saveBlock(block: TrialEventBlock): Promise<void> {
+    const existing = this.readAll();
+    const idx = existing.findIndex((b) => b.trialId === block.trialId);
+    if (idx === -1) {
+      this.store.set(EVENT_LOG_KEY, [...existing, block]);
+    } else {
+      const next = [...existing];
+      next[idx] = block;
+      this.store.set(EVENT_LOG_KEY, next);
+    }
+  }
+
+  async listAll(): Promise<TrialEventBlock[]> {
+    return this.readAll();
+  }
+
+  async listBySession(sessionId: string): Promise<TrialEventBlock[]> {
+    return this.readAll().filter((b) => b.sessionId === sessionId);
+  }
+
+  async getByTrial(trialId: string): Promise<TrialEventBlock | null> {
+    return this.readAll().find((b) => b.trialId === trialId) ?? null;
+  }
+}
+
 // ─── Factory ─────────────────────────────────────────────────────────────
 
 export function createLocalRepositories(
@@ -156,5 +193,6 @@ export function createLocalRepositories(
   return {
     errorLogs: new LocalErrorLogRepository(store),
     words: new LocalWordRepository(store),
+    events: new LocalEventLogRepository(store),
   };
 }

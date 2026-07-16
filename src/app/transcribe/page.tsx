@@ -15,8 +15,22 @@ import {
   WILDCARD_CONSONANT,
   PHONEME_GUIDE,
   LOCAL_USER_ID,
+  createTrialEventState,
+  recordTrialDisplay,
+  recordWordPlay,
+  recordReferencePlay,
+  recordAnswerChange,
+  recordMemoEdit,
+  recordPreReferenceSnapshot,
+  recordJudgeSubmit,
+  recordSimpleEvent,
+  toTrialEventBlock,
+  toAnswerSnapshot,
   type TranscriptionJudgement,
   type TranscriptionGrade,
+  type TrialEventState,
+  type InputSource,
+  type AnswerChangeOp,
 } from "@/lib/acoustic-region";
 import type { AnswerSlot } from "@/lib/acoustic-region/transcriptionAnalysis";
 import type {
@@ -77,6 +91,7 @@ interface FinalGroupInfo {
 }
 
 const WORDS: WordEntry[] = wordsData as WordEntry[];
+const MEMO_DEBOUNCE_MS = 800;
 const COUNT_OPTIONS = [1, 5, 10, 20];
 const MAXLEN_OPTIONS: { label: string; value: number }[] = [
   { label: "〜4音素", value: 4 },
@@ -321,8 +336,23 @@ export default function TranscribeQuizPage() {
   const ipaReferenceCountsRef = useRef<Record<string, number>>({});
   const copyToastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // 操作イベント時系列ログ（一次データ）。1試行＝1 TrialEventState。
+  const trialEventStateRef = useRef<TrialEventState | null>(null);
+  const hasReferencedRef = useRef(false);
+  const duringMemoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const afterMemoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastDuringMemoTextRef = useRef("");
+  const lastAfterMemoTextRef = useRef("");
+
   useEffect(() => {
     setHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (duringMemoTimerRef.current) clearTimeout(duringMemoTimerRef.current);
+      if (afterMemoTimerRef.current) clearTimeout(afterMemoTimerRef.current);
+    };
   }, []);
 
   useEffect(() => {
@@ -348,6 +378,99 @@ export default function TranscribeQuizPage() {
 
   const question = questions[index];
 
+  // ── 操作イベント時系列ログ ─────────────────────────────────────────────────
+
+  function flushEvents() {
+    const state = trialEventStateRef.current;
+    if (!state) return;
+    getRepositories()
+      .events.saveBlock(toTrialEventBlock(state))
+      .catch(() => {
+        // 記録失敗はクイズ進行を妨げない
+      });
+  }
+
+  function startTrialEvents(word: string) {
+    hasReferencedRef.current = false;
+    lastDuringMemoTextRef.current = "";
+    lastAfterMemoTextRef.current = "";
+    const state = createTrialEventState(sessionIdRef.current ?? "", word);
+    trialEventStateRef.current = state;
+    recordTrialDisplay(state);
+    flushEvents();
+  }
+
+  function emitAnswerChange(
+    op: AnswerChangeOp,
+    nextHeard: AnswerSlot[],
+    extra: {
+      phoneme?: string;
+      candidates?: string[];
+      slotIndex?: number;
+      removedCandidate?: string;
+      isWildcard?: boolean;
+    } = {}
+  ) {
+    const state = trialEventStateRef.current;
+    if (!state) return;
+    recordAnswerChange(state, {
+      op,
+      answer: toAnswerSnapshot(nextHeard),
+      ...extra,
+    });
+    flushEvents();
+  }
+
+  function commitDuringMemo(text: string) {
+    const state = trialEventStateRef.current;
+    const trimmed = trimNoteText(text);
+    if (!state || !trimmed || trimmed === lastDuringMemoTextRef.current) return;
+    recordMemoEdit(state, { phase: "during_answer", text: trimmed });
+    lastDuringMemoTextRef.current = trimmed;
+    flushEvents();
+  }
+
+  function scheduleDuringMemoDebounce(text: string) {
+    if (duringMemoTimerRef.current) clearTimeout(duringMemoTimerRef.current);
+    duringMemoTimerRef.current = setTimeout(() => {
+      duringMemoTimerRef.current = null;
+      commitDuringMemo(text);
+    }, MEMO_DEBOUNCE_MS);
+  }
+
+  function flushDuringMemoDebounce() {
+    if (duringMemoTimerRef.current) {
+      clearTimeout(duringMemoTimerRef.current);
+      duringMemoTimerRef.current = null;
+    }
+    commitDuringMemo(duringAnswerNote);
+  }
+
+  function commitAfterMemo(text: string) {
+    const state = trialEventStateRef.current;
+    const trimmed = trimNoteText(text);
+    if (!state || !trimmed || trimmed === lastAfterMemoTextRef.current) return;
+    recordMemoEdit(state, { phase: "after_judgement", text: trimmed });
+    lastAfterMemoTextRef.current = trimmed;
+    flushEvents();
+  }
+
+  function scheduleAfterMemoDebounce(text: string) {
+    if (afterMemoTimerRef.current) clearTimeout(afterMemoTimerRef.current);
+    afterMemoTimerRef.current = setTimeout(() => {
+      afterMemoTimerRef.current = null;
+      commitAfterMemo(text);
+    }, MEMO_DEBOUNCE_MS);
+  }
+
+  function flushAfterMemoDebounce() {
+    if (afterMemoTimerRef.current) {
+      clearTimeout(afterMemoTimerRef.current);
+      afterMemoTimerRef.current = null;
+    }
+    commitAfterMemo(afterJudgementDraft);
+  }
+
   // ── Audio ─────────────────────────────────────────────────────────────────
 
   function resetQuestionActivity() {
@@ -355,8 +478,15 @@ export default function TranscribeQuizPage() {
     ipaReferenceCountsRef.current = {};
   }
 
-  function playWord(word: string, countQuestionPlayback = false) {
-    if (countQuestionPlayback) wordPlayCountRef.current += 1;
+  function playWord(word: string, countQuestionPlayback = false, source: InputSource = "auto") {
+    const state = trialEventStateRef.current;
+    if (countQuestionPlayback) {
+      wordPlayCountRef.current += 1;
+      if (state) {
+        recordWordPlay(state, "word_play", { source, wordPlayCountAfter: wordPlayCountRef.current });
+        flushEvents();
+      }
+    }
     const src = audioSrc(word);
     if (!audioRef.current) {
       audioRef.current = new Audio(src);
@@ -365,14 +495,26 @@ export default function TranscribeQuizPage() {
       audioRef.current.src = src;
       audioRef.current.load();
     }
+    if (countQuestionPlayback && state) {
+      const onPlaying = () => {
+        recordWordPlay(state, "word_play_started");
+        flushEvents();
+      };
+      const onEnded = () => {
+        recordWordPlay(state, "word_play_ended");
+        flushEvents();
+      };
+      audioRef.current.addEventListener("playing", onPlaying, { once: true });
+      audioRef.current.addEventListener("ended", onEnded, { once: true });
+    }
     audioRef.current.play().catch(() => {
       // Audio playback failed (e.g. browser autoplay policy)
     });
   }
 
-  function handlePlayCurrentWord() {
+  function handlePlayCurrentWord(source: InputSource = "click") {
     if (!question) return;
-    playWord(question.w, true);
+    playWord(question.w, true, source);
   }
 
   useEffect(() => {
@@ -407,20 +549,20 @@ export default function TranscribeQuizPage() {
       if (isEnter && isSubmitShortcut) {
         event.preventDefault();
         if (judgement) {
-          handleNext();
+          handleNext("keyboard");
           return;
         }
         const canJudge =
           heard.some((slot) => slot !== null && slot.candidates.length > 0);
         if (!canJudge) return;
-        handleJudge();
+        handleJudge("keyboard");
         return;
       }
 
       if (!isSpace) return;
       if (isTextInputFocused || event.altKey || event.shiftKey) return;
       event.preventDefault();
-      handlePlayCurrentWord();
+      handlePlayCurrentWord("keyboard");
     }
 
     window.addEventListener("keydown", onKeyDown);
@@ -448,8 +590,9 @@ export default function TranscribeQuizPage() {
     sessionIdRef.current = newNoteId();
     sessionStartedAtRef.current = new Date().toISOString();
     resetQuestionActivity();
+    startTrialEvents(qs[0].w);
     setPhase("quiz");
-    playWord(qs[0].w, true);
+    playWord(qs[0].w, true, "auto");
   }
 
   function appendNote(
@@ -484,7 +627,7 @@ export default function TranscribeQuizPage() {
   }
 
   // 判定（1問につき1回。ここではまだ記録しない: 「知っていた」の入力を待つ）
-  function handleJudge() {
+  function handleJudge(source: InputSource = "click") {
     const answeredSlots = heard.filter(
       (slot): slot is Exclude<AnswerSlot, null> =>
         slot !== null && slot.candidates.length > 0
@@ -492,6 +635,7 @@ export default function TranscribeQuizPage() {
     if (!question || judgement || answeredSlots.length === 0) return;
     const entry = getWordMaster().get(question.w);
     if (!entry) return;
+    flushDuringMemoDebounce();
     const during = trimNoteText(duringAnswerNote);
     if (during) {
       appendNote("during_answer", during, []);
@@ -502,11 +646,22 @@ export default function TranscribeQuizPage() {
     setActiveSlot(null);
     setOrMode(false);
     setPendingOr(false);
+    const state = trialEventStateRef.current;
+    if (state) {
+      recordJudgeSubmit(state, {
+        answer: toAnswerSnapshot(heard),
+        wordPlayCount: wordPlayCountRef.current,
+        referencedBeforeSubmit: hasReferencedRef.current,
+        source,
+      });
+      recordSimpleEvent(state, "answer_revealed");
+      flushEvents();
+    }
     setJudgement(judgeTranscription(entry.phonemes, heard));
   }
 
   // 記録して次へ（判定済みの問題のみ記録する）
-  function recordCurrent(): QuestionResult[] {
+  function recordCurrent(trialId?: string): QuestionResult[] {
     if (!question || !judgement) return results;
     const wordMaster = getWordMaster().get(question.w);
     if (!wordMaster) return results;
@@ -520,6 +675,7 @@ export default function TranscribeQuizPage() {
       sessionStartedAt: sessionStartedAtRef.current ?? undefined,
       wordPlayCount: wordPlayCountRef.current,
       ipaReferenceCounts: { ...ipaReferenceCountsRef.current },
+      trialId,
     });
     if (built) {
       getRepositories()
@@ -545,8 +701,15 @@ export default function TranscribeQuizPage() {
     return next;
   }
 
-  function handleNext() {
-    const nextResults = recordCurrent();
+  function handleNext(source: InputSource = "click") {
+    flushDuringMemoDebounce();
+    flushAfterMemoDebounce();
+    const finishingState = trialEventStateRef.current;
+    if (finishingState) {
+      recordSimpleEvent(finishingState, "trial_next", { source });
+      flushEvents();
+    }
+    const nextResults = recordCurrent(finishingState?.trialId);
     const nextIndex = index + 1;
     setHeard([]);
     setActiveSlot(null);
@@ -560,16 +723,25 @@ export default function TranscribeQuizPage() {
     if (nextIndex >= questions.length) {
       setPhase("result");
       if (audioRef.current) audioRef.current.pause();
+      trialEventStateRef.current = null;
       return;
     }
     setIndex(nextIndex);
     resetQuestionActivity();
-    playWord(questions[nextIndex].w, true);
+    startTrialEvents(questions[nextIndex].w);
+    playWord(questions[nextIndex].w, true, "auto");
     void nextResults;
   }
 
   function handleQuit() {
-    recordCurrent();
+    flushDuringMemoDebounce();
+    flushAfterMemoDebounce();
+    const finishingState = trialEventStateRef.current;
+    if (finishingState) {
+      recordSimpleEvent(finishingState, "trial_quit", { source: "keyboard" });
+      flushEvents();
+    }
+    recordCurrent(finishingState?.trialId);
     setHeard([]);
     setActiveSlot(null);
     setOrMode(false);
@@ -580,6 +752,7 @@ export default function TranscribeQuizPage() {
     setAfterJudgementDraft("");
     setDuringAnswerNote("");
     setPhase("result");
+    trialEventStateRef.current = null;
     if (audioRef.current) audioRef.current.pause();
   }
 
@@ -591,6 +764,28 @@ export default function TranscribeQuizPage() {
         ...ipaReferenceCountsRef.current,
         [phoneme]: (ipaReferenceCountsRef.current[phoneme] ?? 0) + 1,
       };
+      const state = trialEventStateRef.current;
+      if (state) {
+        if (!hasReferencedRef.current) {
+          flushDuringMemoDebounce();
+          hasReferencedRef.current = true;
+          recordPreReferenceSnapshot(state, {
+            answer: toAnswerSnapshot(heard),
+            duringNote: duringAnswerNote,
+            wordPlayCount: wordPlayCountRef.current,
+            triggeredByPhoneme: phoneme,
+          });
+        }
+        recordReferencePlay(state, "reference_play", {
+          phoneme,
+          audioFile,
+          referenceCountAfter: ipaReferenceCountsRef.current[phoneme],
+          answer: toAnswerSnapshot(heard),
+          duringNote: duringAnswerNote,
+          source: "click",
+        });
+        flushEvents();
+      }
     }
     const src = `/audio/${encodeURIComponent(audioFile)}`;
     if (!audioRef.current) {
@@ -629,6 +824,7 @@ export default function TranscribeQuizPage() {
     const next = [...heard];
     next[targetIndex] = { candidates: merged };
     setHeard(next);
+    emitAnswerChange("or_add", next, { candidates, slotIndex: targetIndex });
     if (activeSlot !== null) setActiveSlot(null);
   }
 
@@ -655,15 +851,31 @@ export default function TranscribeQuizPage() {
       const next = [...heard];
       next[activeSlot] = { candidates: [...candidates, phoneme] };
       setHeard(next);
+      emitAnswerChange("or_add", next, {
+        phoneme,
+        slotIndex: activeSlot,
+        isWildcard: isWildcard(phoneme),
+      });
       return;
     }
     if (activeSlot === null) {
-      setHeard([...heard, { candidates: [phoneme] }]);
+      const next = [...heard, { candidates: [phoneme] }];
+      setHeard(next);
+      emitAnswerChange("append_phoneme", next, {
+        phoneme,
+        slotIndex: next.length - 1,
+        isWildcard: isWildcard(phoneme),
+      });
       return;
     }
     const next = [...heard];
     next[activeSlot] = { candidates: [phoneme] };
     setHeard(next);
+    emitAnswerChange("replace_phoneme", next, {
+      phoneme,
+      slotIndex: activeSlot,
+      isWildcard: isWildcard(phoneme),
+    });
     setActiveSlot(null);
   }
 
@@ -676,20 +888,25 @@ export default function TranscribeQuizPage() {
     if (orMode) return;
     const next = [...heard];
     const slot: AnswerSlot = { candidates: [...candidates] };
+    let slotIndex: number;
     if (activeSlot === null) {
       next.push(slot);
+      slotIndex = next.length - 1;
     } else {
       next[activeSlot] = slot;
+      slotIndex = activeSlot;
       setActiveSlot(null);
     }
     setHeard(next);
+    emitAnswerChange("inject_family", next, { candidates, slotIndex });
   }
 
-  function deleteSlot(slotIndex: number) {
+  function deleteSlot(slotIndex: number, op: AnswerChangeOp = "clear_slot") {
     if (judgement) return;
     const next = [...heard];
     next[slotIndex] = null;
     setHeard(next);
+    emitAnswerChange(op, next, { slotIndex });
     setActiveSlot(slotIndex);
     setOrMode(false);
     setPendingOr(false);
@@ -701,6 +918,7 @@ export default function TranscribeQuizPage() {
     const candidates = next[slotIndex]!.candidates.filter((p) => p !== candidate);
     next[slotIndex] = candidates.length > 0 ? { candidates } : null;
     setHeard(next);
+    emitAnswerChange("remove_candidate", next, { slotIndex, removedCandidate: candidate });
     setActiveSlot(slotIndex);
   }
 
@@ -708,7 +926,7 @@ export default function TranscribeQuizPage() {
     if (judgement) return;
     for (let i = heard.length - 1; i >= 0; i--) {
       if (heard[i] !== null && heard[i]!.candidates.length > 0) {
-        deleteSlot(i);
+        deleteSlot(i, "remove_last");
         return;
       }
     }
@@ -1298,7 +1516,7 @@ export default function TranscribeQuizPage() {
         <div className="question-label">問題 {index + 1}（IPA転写）</div>
 
         <div className={`transcribe-audio-answer-row ${!judgement ? "with-judge" : ""}`}>
-          <button className="btn-audio" onClick={handlePlayCurrentWord} aria-keyshortcuts="Space">
+          <button className="btn-audio" onClick={() => handlePlayCurrentWord("click")} aria-keyshortcuts="Space">
             <svg
               width="22"
               height="22"
@@ -1323,7 +1541,11 @@ export default function TranscribeQuizPage() {
                 placeholder="例:「イヤギ」って感じに聞こえた"
                 value={duringAnswerNote}
                 maxLength={1000}
-                onChange={(event) => setDuringAnswerNote(event.target.value)}
+                onChange={(event) => {
+                  const value = event.target.value;
+                  setDuringAnswerNote(value);
+                  scheduleDuringMemoDebounce(value);
+                }}
                 rows={3}
               />
             </div>
@@ -1414,7 +1636,7 @@ export default function TranscribeQuizPage() {
           {!judgement && (
             <button
               className="btn-reset transcribe-judge-side"
-              onClick={handleJudge}
+              onClick={() => handleJudge("click")}
               disabled={answeredPhonemeCount === 0}
               aria-keyshortcuts="Ctrl+Enter"
             >
@@ -1435,7 +1657,7 @@ export default function TranscribeQuizPage() {
           <div className="transcribe-note-judge-row">
             <button
               className="btn-reset transcribe-judge"
-              onClick={handleJudge}
+              onClick={() => handleJudge("click")}
               disabled={answeredPhonemeCount === 0}
               aria-keyshortcuts="Ctrl+Enter"
             >
@@ -1482,7 +1704,7 @@ export default function TranscribeQuizPage() {
                   >
                     <span className="btn-main-label">✔ この単語は知っていた</span>
                   </button>
-                  <button className="btn-next transcribe-next" onClick={handleNext} aria-keyshortcuts="Ctrl+Enter">
+                  <button className="btn-next transcribe-next" onClick={() => handleNext("click")} aria-keyshortcuts="Ctrl+Enter">
                     <span className="btn-main-label">
                       {index + 1 < questions.length ? "次の問題 →" : "結果を見る"}
                     </span>
@@ -1501,7 +1723,11 @@ export default function TranscribeQuizPage() {
                       className="heard-note-area transcribe-after-note"
                       value={afterJudgementDraft}
                       maxLength={1000}
-                      onChange={(event) => setAfterJudgementDraft(event.target.value)}
+                      onChange={(event) => {
+                        const value = event.target.value;
+                        setAfterJudgementDraft(value);
+                        scheduleAfterMemoDebounce(value);
+                      }}
                       rows={3}
                     />
                     <button
@@ -1511,6 +1737,7 @@ export default function TranscribeQuizPage() {
                         const normalized = trimNoteText(afterJudgementDraft);
                         if (!normalized) return;
                         appendNote("after_judgement", normalized);
+                        flushAfterMemoDebounce();
                         setAfterJudgementDraft("");
                       }}
                       disabled={trimNoteText(afterJudgementDraft).length === 0}

@@ -348,6 +348,7 @@ export interface TranscriptionAnswerInput {
   wordPlayCount?: number;
   ipaReferenceCounts?: Record<string, number>;
   userId?: string;
+  trialId?: string;
 }
 
 /**
@@ -382,6 +383,7 @@ export function buildTranscriptionErrorLog(
       transcriptionNotes: input.transcriptionNotes ?? null,
       sessionId: input.sessionId,
       sessionStartedAt: input.sessionStartedAt,
+      trialId: input.trialId,
       correctPhonemes: entry.phonemes.map((p) => p.phoneme),
       transcriptionGrade: judgement.grade as TranscriptionLogGrade,
       wordPlayCount: input.wordPlayCount,

@@ -5,6 +5,7 @@
 // そのため全メソッドを非同期にしてある。
 
 import type { ErrorLogRecord, NewErrorLog, WordRecord } from "./types";
+import type { TrialEventBlock } from "./transcriptionEvents";
 
 /**
  * 誤答ログ（error_log）リポジトリ。
@@ -35,8 +36,29 @@ export interface WordRepository {
   listByRegion(regionTag: string): Promise<WordRecord[]>;
 }
 
+/**
+ * IPA転写クイズの操作イベント時系列ログ（event_log）リポジトリ。
+ * error_log とは別ストア。trialId で ErrorLogRecord.trialId と結合する。
+ * 削除APIは提供しない（error_log と同じ理由に加え、event_log 単独は
+ * 診断の一次データであり再現不可能なため）。
+ */
+export interface EventLogRepository {
+  /** 1試行分のイベントブロックを保存する。同じ trialId の既存ブロックは丸ごと置き換える（逐次フラッシュ用） */
+  saveBlock(block: TrialEventBlock): Promise<void>;
+
+  /** 全イベントブロックを返す（時系列要約エクスポート用） */
+  listAll(): Promise<TrialEventBlock[]>;
+
+  /** セッション単位のイベントブロックを返す */
+  listBySession(sessionId: string): Promise<TrialEventBlock[]>;
+
+  /** trialId 単位のイベントブロックを返す */
+  getByTrial(trialId: string): Promise<TrialEventBlock | null>;
+}
+
 /** モジュールが必要とするリポジトリ一式。差し替え時はこの単位で入れ替える */
 export interface AcousticRegionRepositories {
   errorLogs: ErrorLogRepository;
   words: WordRepository;
+  events: EventLogRepository;
 }

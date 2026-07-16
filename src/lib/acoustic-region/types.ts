@@ -102,6 +102,11 @@ export interface ErrorLogRecord {
   transcriptionNotes?: TranscriptionNote[] | null;
   /** IPA転写クイズのセッション識別子（旧記録は未設定） */
   sessionId?: string;
+  /**
+   * IPA転写クイズの試行識別子（旧記録は未設定）。
+   * event-log（acoustic-region:event-log:v1）の TrialEventBlock.trialId と結合するキー。
+   */
+  trialId?: string;
   /** セッション開始時刻。終了時刻は同セッションの最後の createdAt から得る。 */
   sessionStartedAt?: string;
   /** 保存時点の正解IPA列。語彙マスタ変更後も過去ログの意味を固定する。 */
