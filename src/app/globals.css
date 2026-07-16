@@ -993,6 +993,22 @@ body {
   gap: 8px;
 }
 
+.transcribe-input-column {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.transcribe-during-note-inline {
+  margin: 0;
+  gap: 6px;
+}
+
+.transcribe-during-note-inline .transcribe-during-note {
+  min-height: 72px;
+}
+
 .consonant-family-btn {
   display: flex;
   width: 100%;
@@ -1508,16 +1524,22 @@ body {
   }
 
   .transcribe-quiz-card .btn-audio {
-    height: 50px;
-    padding: 10px;
+    min-height: 132px;
+    padding: 12px 10px;
     font-size: 1rem;
+    line-height: 1.2;
+    align-self: stretch;
   }
 
   .transcribe-audio-answer-row {
     display: grid;
-    grid-template-columns: minmax(250px, 0.35fr) minmax(0, 0.65fr);
+    grid-template-columns: minmax(120px, 0.18fr) minmax(0, 0.82fr);
     align-items: stretch;
     gap: 10px;
+  }
+
+  .transcribe-input-column {
+    gap: 8px;
   }
 
   .transcribe-audio-answer-row .heard-line {
@@ -1666,10 +1688,7 @@ body {
   }
 
   .transcribe-note-judge-row {
-    display: grid;
-    grid-template-columns: minmax(0, 0.74fr) minmax(0, 0.26fr);
-    align-items: end;
-    gap: 10px;
+    display: block;
     margin-top: 2px;
   }
 
@@ -1688,11 +1707,12 @@ body {
   }
 
   .transcribe-judge {
-    min-height: 64px;
+    min-height: 54px;
     font-size: 1rem;
     font-weight: 700;
     padding: 10px;
     margin: 0;
+    width: 100%;
   }
 
   .feedback {
@@ -1869,6 +1889,30 @@ body {
   grid-auto-columns: minmax(0, 1fr);
   gap: 6px;
   width: 100%;
+}
+
+@media (max-width: 899px) {
+  .transcribe-audio-answer-row {
+    display: grid;
+    grid-template-columns: minmax(86px, 0.22fr) minmax(0, 0.78fr);
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .transcribe-quiz-card .btn-audio {
+    min-height: 118px;
+    padding: 10px 8px;
+    line-height: 1.2;
+    align-self: stretch;
+  }
+
+  .transcribe-note-judge-row {
+    margin-top: 2px;
+  }
+
+  .transcribe-judge {
+    width: 100%;
+  }
 }
 
 .transcribe-segment {

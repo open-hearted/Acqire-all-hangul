@@ -296,8 +296,6 @@ export default function TranscribeQuizPage() {
   const [memoHistoryOpen, setMemoHistoryOpen] = useState(false);
   const [memoHistory, setMemoHistory] = useState<ErrorLogRecord[]>([]);
   const [copyToast, setCopyToast] = useState<string | null>(null);
-  const [guideOpen, setGuideOpen] = useState(false);
-  const [setupGuideOpen, setSetupGuideOpen] = useState(false);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const sessionIdRef = useRef<string | null>(null);
@@ -731,55 +729,6 @@ export default function TranscribeQuizPage() {
     const disabled = judgement !== null;
     return (
       <div className="input-wrap transcription-keyboard">
-        <div className="keyboard-toolbar" style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", marginBottom: "8px" }}>
-          <button
-            type="button"
-            className="btn-reset"
-            style={{ width: "auto", fontSize: "0.8rem", padding: "4px 8px", background: "#f5f5f5", color: "#333", marginLeft: "10px", flexShrink: 0 }}
-            onClick={() => setGuideOpen(!guideOpen)}
-          >
-            {guideOpen ? "閉じる" : "？IPAの読み方"}
-          </button>
-        </div>
-        
-        {guideOpen && (
-          <div className="ipa-inline-guide" style={{ marginBottom: "16px", padding: "10px", background: "#fafafa", borderRadius: "8px", border: "1px solid #ddd" }}>
-            <div className="ipa-group-label" style={{ marginTop: "0" }}>母音・わたり音</div>
-            {KEYBOARD_VOWELS.map(p => {
-              const guide = PHONEME_GUIDE[p];
-              if (!guide) return null;
-              return (
-                <div key={p} className="stats-row" style={{ padding: "8px", background: "#fff", cursor: guide.audioExample ? "pointer" : "default" }} onClick={() => guide.audioExample && playGuideAudio(guide.audioExample, p)}>
-                  <span className="stats-char vowel" style={{ fontSize: "1.2rem" }}>{p} {guide.audioExample ? <span style={{fontSize: "0.9rem"}}>🔊</span> : ""}</span>
-                  <span className="stats-level" style={{ fontSize: "0.9rem" }}>{guide.label}</span>
-                  <span className="stats-detail" style={{ fontSize: "0.85rem" }}>{guide.hint}</span>
-                </div>
-              );
-            })}
-            
-            <div className="ipa-group-label" style={{ marginTop: "1rem" }}>子音</div>
-            {KEYBOARD_CONSONANTS.map(p => {
-              const guide = PHONEME_GUIDE[p];
-              if (!guide) return null;
-              return (
-                <div key={p} className="stats-row" style={{ padding: "8px", background: "#fff" }}>
-                  <span className="stats-char" style={{ fontSize: "1.2rem" }}>{p}</span>
-                  <span className="stats-level" style={{ fontSize: "0.9rem" }}>{guide.label}</span>
-                  <span className="stats-detail" style={{ fontSize: "0.85rem" }}>{guide.hint}</span>
-                </div>
-              );
-            })}
-
-            <div className="ipa-group-label" style={{ marginTop: "1rem" }}>候補の追記（OR）</div>
-            <div className="stats-row" style={{ padding: "8px", background: "#fff" }}>
-              <span className="stats-level" style={{ fontSize: "0.9rem" }}>OR操作</span>
-              <span className="stats-detail" style={{ fontSize: "0.85rem" }}>
-                ORボタンをタップしてから別の音/系ボタンを押すと、直前の音素にOR候補として追記されます。例: t系 → OR → /n/ で [t|tʰ|t͈|n] になります。
-              </span>
-            </div>
-          </div>
-        )}
-
         <div className="vowel-input-panel">
           <div className="ipa-group-label">基本母音（ハングル / IPA）</div>
           <div className="vowel-map">
@@ -1090,7 +1039,7 @@ export default function TranscribeQuizPage() {
             </div>
           )}
 
-          {renderGuideSection(setupGuideOpen, () => setSetupGuideOpen(!setupGuideOpen))}
+          {/* 将来再公開のため IPA ガイドのコンテンツ実装は残し、現在は UI から非表示 */}
 
           <div className="stats-section" style={{ marginTop: "1rem" }}>
             <button
@@ -1275,102 +1224,11 @@ export default function TranscribeQuizPage() {
             >
               <path d="M8 5v14l11-7z" />
             </svg>
-            音声を再生する
+            再生
           </button>
 
-          {/* 入力中の列 */}
-          <div className="heard-line" aria-label="回答音素スロット">
-          {heard.length === 0 ? (
-            <span className="heard-empty">（ここに入力した音素が並びます）</span>
-          ) : (
-            heard.map((slot, i) => (
-              <div
-                key={i}
-                className={`heard-slot ${slot === null ? "empty" : ""} ${
-                  activeSlot === i ? "active" : ""
-                } ${orMode && activeSlot === i ? "or-active" : ""}`}
-              >
-                <button
-                  type="button"
-                  className="heard-slot-value"
-                  disabled={judgement !== null || orMode}
-                  onClick={() => {
-                    setActiveSlot(i);
-                    setOrMode(false);
-                    setPendingOr(false);
-                  }}
-                  aria-label={`${i + 1}番目のスロットを選択`}
-                >
-                  {slot === null ? "空欄" : formatSlotCandidates(slot.candidates)}
-                </button>
-                {slot !== null && (
-                  <button
-                    type="button"
-                    className="heard-slot-delete"
-                    disabled={judgement !== null || (orMode && activeSlot !== i)}
-                    onClick={() => deleteSlot(i)}
-                    aria-label={`${i + 1}番目の音素を削除して空欄にする`}
-                  >
-                    ×
-                  </button>
-                )}
-                {slot !== null && activeSlot === i && slot.candidates.length > 1 && (
-                  <div className="heard-candidate-editor" aria-label={`${i + 1}番目の候補を削除`}>
-                    {slot.candidates.map((candidate) => (
-                      <button
-                        key={candidate}
-                        type="button"
-                        className="heard-candidate-delete"
-                        disabled={judgement !== null}
-                        onClick={() => deleteCandidate(i, candidate)}
-                        aria-label={`${candidate} を候補から削除`}
-                      >
-                        {isWildcard(candidate) ? `${candidate}?` : candidate} ×
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))
-          )}
-          {activeSlot !== null && (
-            <>
-              {(heard[activeSlot] === null || isVowelAnswer(heard[activeSlot]!.candidates[0])) && (
-                <button
-                  type="button"
-                  className={`heard-append-btn ${orMode ? "active" : ""}`}
-                  onClick={() => setOrMode(!orMode)}
-                  aria-pressed={orMode}
-                >
-                  {orMode ? "OR入力を終了" : "OR候補を追加"}
-                </button>
-              )}
-              <button
-                type="button"
-                className="heard-append-btn"
-                onClick={() => {
-                  setActiveSlot(null);
-                  setOrMode(false);
-                  setPendingOr(false);
-                }}
-              >
-                ＋ 末尾に追加へ戻る
-              </button>
-            </>
-          )}
-          </div>
-        </div>
-        {!judgement && heard.length > 0 && (
-          <p className="heard-edit-help">
-            スロットを選んで音素ボタンを押すと置換できます。OR候補を追加すると同じスロットにいくつでも追加できます。×で消しても空欄は残ります。
-          </p>
-        )}
-
-        {!judgement && renderKeyboard()}
-
-        {!judgement && (
-          <div className="transcribe-note-judge-row">
-            <div className="input-wrap transcribe-during-note-wrap">
+          <div className="transcribe-input-column">
+            <div className="input-wrap transcribe-during-note-wrap transcribe-during-note-inline">
               <label className="input-label" htmlFor="transcription-during-note">
                 聞こえた感じメモ（任意）
               </label>
@@ -1384,6 +1242,100 @@ export default function TranscribeQuizPage() {
                 rows={3}
               />
             </div>
+
+            {/* 入力中の列 */}
+            <div className="heard-line" aria-label="回答音素スロット">
+            {heard.length === 0 ? (
+              <span className="heard-empty">（ここに入力した音素が並びます）</span>
+            ) : (
+              heard.map((slot, i) => (
+                <div
+                  key={i}
+                  className={`heard-slot ${slot === null ? "empty" : ""} ${
+                    activeSlot === i ? "active" : ""
+                  } ${orMode && activeSlot === i ? "or-active" : ""}`}
+                >
+                  <button
+                    type="button"
+                    className="heard-slot-value"
+                    disabled={judgement !== null || orMode}
+                    onClick={() => {
+                      setActiveSlot(i);
+                      setOrMode(false);
+                      setPendingOr(false);
+                    }}
+                    aria-label={`${i + 1}番目のスロットを選択`}
+                  >
+                    {slot === null ? "空欄" : formatSlotCandidates(slot.candidates)}
+                  </button>
+                  {slot !== null && (
+                    <button
+                      type="button"
+                      className="heard-slot-delete"
+                      disabled={judgement !== null || (orMode && activeSlot !== i)}
+                      onClick={() => deleteSlot(i)}
+                      aria-label={`${i + 1}番目の音素を削除して空欄にする`}
+                    >
+                      ×
+                    </button>
+                  )}
+                  {slot !== null && activeSlot === i && slot.candidates.length > 1 && (
+                    <div className="heard-candidate-editor" aria-label={`${i + 1}番目の候補を削除`}>
+                      {slot.candidates.map((candidate) => (
+                        <button
+                          key={candidate}
+                          type="button"
+                          className="heard-candidate-delete"
+                          disabled={judgement !== null}
+                          onClick={() => deleteCandidate(i, candidate)}
+                          aria-label={`${candidate} を候補から削除`}
+                        >
+                          {isWildcard(candidate) ? `${candidate}?` : candidate} ×
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))
+            )}
+            {activeSlot !== null && (
+              <>
+                {(heard[activeSlot] === null || isVowelAnswer(heard[activeSlot]!.candidates[0])) && (
+                  <button
+                    type="button"
+                    className={`heard-append-btn ${orMode ? "active" : ""}`}
+                    onClick={() => setOrMode(!orMode)}
+                    aria-pressed={orMode}
+                  >
+                    {orMode ? "OR入力を終了" : "OR候補を追加"}
+                  </button>
+                )}
+                <button
+                  type="button"
+                  className="heard-append-btn"
+                  onClick={() => {
+                    setActiveSlot(null);
+                    setOrMode(false);
+                    setPendingOr(false);
+                  }}
+                >
+                  ＋ 末尾に追加へ戻る
+                </button>
+              </>
+            )}
+            </div>
+          </div>
+        </div>
+        {!judgement && heard.length > 0 && (
+          <p className="heard-edit-help">
+            スロットを選んで音素ボタンを押すと置換できます。OR候補を追加すると同じスロットにいくつでも追加できます。×で消しても空欄は残ります。
+          </p>
+        )}
+
+        {!judgement && renderKeyboard()}
+
+        {!judgement && (
+          <div className="transcribe-note-judge-row">
             <button
               className="btn-reset transcribe-judge"
               onClick={handleJudge}
