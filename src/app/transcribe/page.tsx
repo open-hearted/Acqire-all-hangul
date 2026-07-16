@@ -110,7 +110,7 @@ const GLIDES: VowelButtonInfo[] = [
 
 const VOWEL_FAMILIES: PhonemeFamilyInfo[] = [
   {
-    label: "え系",
+    label: "ㅔ・ㅐ",
     hangul: "ㅔ・ㅐ",
     members: [
       { phoneme: "e", hangul: "ㅔ" },
@@ -729,18 +729,9 @@ export default function TranscribeQuizPage() {
 
   function renderKeyboard() {
     const disabled = judgement !== null;
-    const activeCandidateCount =
-      activeSlot === null ? 0 : heard[activeSlot]?.candidates.length ?? 0;
     return (
       <div className="input-wrap transcription-keyboard">
-        <div className="keyboard-toolbar" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
-          <span className="input-label" style={{ marginBottom: 0 }}>
-            {orMode
-              ? `${activeSlot! + 1}番目のスロットにOR候補を追加中（${activeCandidateCount}個）`
-              : pendingOr
-                ? "OR: 次にタップした音/系統を直前のスロットに追記します"
-                : "聞こえた順に1音素ずつタップ。分からないけど聞こえている音は「母?」「子音」"}
-          </span>
+        <div className="keyboard-toolbar" style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", marginBottom: "8px" }}>
           <button
             type="button"
             className="btn-reset"
@@ -778,18 +769,24 @@ export default function TranscribeQuizPage() {
                 </div>
               );
             })}
+
+            <div className="ipa-group-label" style={{ marginTop: "1rem" }}>候補の追記（OR）</div>
+            <div className="stats-row" style={{ padding: "8px", background: "#fff" }}>
+              <span className="stats-level" style={{ fontSize: "0.9rem" }}>OR操作</span>
+              <span className="stats-detail" style={{ fontSize: "0.85rem" }}>
+                ORボタンをタップしてから別の音/系ボタンを押すと、直前の音素にOR候補として追記されます。例: t系 → OR → /n/ で [t|tʰ|t͈|n] になります。
+              </span>
+            </div>
           </div>
         )}
 
         <div className="vowel-input-panel">
           <div className="ipa-group-label">基本母音（ハングル / IPA）</div>
-          <p className="ipa-input-help">文字部分は回答、🔊は発音例だけを再生します。</p>
           <div className="vowel-map">
             {BASIC_VOWELS.map((info) => renderVowelChoice(info))}
           </div>
 
           <div className="ipa-group-label">母音ファミリー</div>
-          <p className="ipa-input-help">系ボタンで候補をまとめて1音素分として記録します。</p>
           <div className="vowel-family-row">
             {VOWEL_FAMILIES.map((family) => {
               const familyPhonemes = family.members.map((member) => member.phoneme);
@@ -800,10 +797,10 @@ export default function TranscribeQuizPage() {
                   className="vowel-family-btn"
                   disabled={disabled || orMode}
                   onClick={() => inputConsonantFamily(familyPhonemes)}
-                  aria-label={`${family.label}、${family.hangul}、候補 ${familyPhonemes.join("、")} を1音素分として回答に入れる`}
+                  aria-label={`${family.hangul}、候補 ${familyPhonemes.join("、")} を1音素分として回答に入れる`}
                   title={`${family.hangul}：/${familyPhonemes.join(" | ")}/ を候補にする`}
                 >
-                  <span>{family.label}</span>
+                  <span className="vowel-family-hangul">{family.hangul}</span>
                   <span className="vowel-family-bracket">[{familyPhonemes.join("|")}]</span>
                 </button>
               );
@@ -811,7 +808,6 @@ export default function TranscribeQuizPage() {
           </div>
 
           <div className="ipa-group-label">わたり音</div>
-          <p className="ipa-input-help">単独音ではありません。🔊は母音と組み合わせた発音例です。</p>
           <div className="glide-grid">
             {GLIDES.map((info) => renderVowelChoice(info, true))}
           </div>
@@ -830,7 +826,6 @@ export default function TranscribeQuizPage() {
 
         <div className="consonant-input-panel">
           <div className="ipa-group-label">子音（初声・語中）</div>
-          <p className="ipa-input-help">系ボタンで候補をまとめて記録。ORをタップしてから別の音/系ボタンを押すと、直前のスロットに候補を追記します。</p>
           <div className="consonant-onset-grid" aria-label="初声・語中の子音">
             {CONSONANT_FAMILIES.map((family) => {
               const familyPhonemes = family.members.map((member) => member.phoneme);
@@ -895,8 +890,8 @@ export default function TranscribeQuizPage() {
                 disabled={disabled || (activeSlot === null && heard.length === 0)}
                 onClick={togglePendingOr}
                 aria-pressed={pendingOr}
-                aria-label="OR。次にタップした音または系統を直前のスロットに追記する"
-                title="次にタップした音/系統を直前のスロットにOR候補として追記します"
+                aria-label="OR。次にタップした音または系統を直前の音素に追記する"
+                title="次にタップした音/系統を直前の音素にOR候補として追記します"
               >
                 OR
               </button>

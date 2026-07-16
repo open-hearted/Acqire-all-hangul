@@ -963,6 +963,13 @@ body {
   cursor: pointer;
 }
 
+.vowel-family-hangul {
+  color: #212121;
+  font-size: 1.125rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
 .vowel-family-btn:active {
   transform: scale(0.96);
   background: #ffecb3;
