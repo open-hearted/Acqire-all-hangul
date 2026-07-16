@@ -179,6 +179,7 @@ public/
   word_audios/                      単語音声1671件
 docs/
   acoustic-region-module.md          acoustic-regionモジュールの正式設計ドキュメント（日本語、コードとほぼ一致）
+  theory.md                          アプリ設計の背後にある学習理論「四段連鎖モデル」の記録
 README.md                            古い内容のまま（元祖クイズのみ記載、acoustic-region以降は未記載）
 .env.example                        (未コミット) OPENAI_API_KEY, AI_ACCESS_PASSWORD, AI_PROVIDER, OPENAI_MODEL
 ```
