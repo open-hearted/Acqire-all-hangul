@@ -1221,6 +1221,15 @@ export default function TranscribeQuizPage() {
   const answeredPhonemeCount = heard.filter((slot) => slot !== null).length;
   return (
     <div className="container transcribe-quiz-page">
+      <div className="transcribe-top-actions">
+        <button
+          className="btn-reset transcribe-quit-top btn-muted"
+          onClick={handleQuit}
+        >
+          ここで終了する
+        </button>
+      </div>
+
       <div className="card transcribe-quiz-card">
         <div className="transcribe-segment-progress" aria-label="問題進捗">
           {Array.from({ length: questions.length }, (_, i) => (
@@ -1438,25 +1447,10 @@ export default function TranscribeQuizPage() {
               <button className="btn-next transcribe-next" onClick={handleNext}>
                 {index + 1 < questions.length ? "次の問題 →" : "結果を見る"}
               </button>
-              <button
-                className="btn-reset transcribe-quit transcribe-quit-inline btn-muted"
-                onClick={handleQuit}
-              >
-                ここで終了する
-              </button>
             </div>
           </>
         )}
       </div>
-
-      {!judgement && (
-        <button
-          className="btn-reset transcribe-quit btn-muted"
-          onClick={handleQuit}
-        >
-          ここで終了する
-        </button>
-      )}
     </div>
   );
 }

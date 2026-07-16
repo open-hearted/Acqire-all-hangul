@@ -1500,9 +1500,21 @@ body {
   gap: 8px;
 }
 
+.transcribe-top-actions {
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.transcribe-quit-top {
+  width: auto;
+  min-height: 34px;
+  padding: 6px 10px;
+  font-size: 0.82rem;
+}
+
 .transcribe-post-actions .known-btn,
-.transcribe-post-actions .btn-next,
-.transcribe-post-actions .transcribe-quit-inline {
+.transcribe-post-actions .btn-next {
   margin: 0;
 }
 
@@ -1804,14 +1816,13 @@ body {
 
   .transcribe-post-actions {
     display: grid;
-    grid-template-columns: minmax(0, 0.3fr) minmax(0, 0.55fr) minmax(0, 0.15fr);
+    grid-template-columns: minmax(0, 0.36fr) minmax(0, 0.64fr);
     gap: 8px;
     align-items: stretch;
   }
 
   .transcribe-post-actions .known-btn,
-  .transcribe-post-actions .transcribe-next,
-  .transcribe-post-actions .transcribe-quit-inline {
+  .transcribe-post-actions .transcribe-next {
     width: 100%;
     min-height: 44px;
     padding: 9px 8px;
@@ -1821,12 +1832,6 @@ body {
   .transcribe-post-actions .transcribe-next {
     background: #e3f2fd;
     font-weight: 700;
-  }
-
-  .transcribe-quit {
-    min-height: 42px;
-    font-size: 0.9rem;
-    padding: 8px;
   }
 
   .transcribe-result-page {
@@ -1927,8 +1932,13 @@ body {
 
 @media (max-width: 899px) {
   .transcribe-post-actions .known-btn,
-  .transcribe-post-actions .btn-next,
-  .transcribe-post-actions .transcribe-quit-inline {
+  .transcribe-post-actions .btn-next {
     width: 100%;
+  }
+
+  .transcribe-quit-top {
+    min-height: 32px;
+    padding: 5px 9px;
+    font-size: 0.8rem;
   }
 }
