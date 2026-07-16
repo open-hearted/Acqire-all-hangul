@@ -370,6 +370,47 @@ export default function TranscribeQuizPage() {
     });
   }
 
+  function handlePlayCurrentWord() {
+    if (!question) return;
+    playWord(question.w, true);
+  }
+
+  useEffect(() => {
+    if (!hydrated || phase !== "quiz") return;
+
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key !== "Enter") return;
+
+      const target = event.target as HTMLElement | null;
+      const isTextInputFocused =
+        target instanceof HTMLTextAreaElement ||
+        target instanceof HTMLSelectElement ||
+        (target instanceof HTMLInputElement &&
+          !["button", "checkbox", "radio", "range", "file", "submit", "reset", "color"].includes(
+            target.type
+          )) ||
+        Boolean(target?.isContentEditable);
+
+      const isSubmitShortcut = event.ctrlKey || event.metaKey;
+      if (isSubmitShortcut) {
+        const canJudge =
+          judgement === null &&
+          heard.some((slot) => slot !== null && slot.candidates.length > 0);
+        if (!canJudge) return;
+        event.preventDefault();
+        handleJudge();
+        return;
+      }
+
+      if (isTextInputFocused || event.altKey || event.shiftKey) return;
+      event.preventDefault();
+      handlePlayCurrentWord();
+    }
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [hydrated, phase, judgement, heard, handleJudge, handlePlayCurrentWord]);
+
   // ── Session flow ──────────────────────────────────────────────────────────
 
   function startSession() {
@@ -1242,7 +1283,7 @@ export default function TranscribeQuizPage() {
         <div className="question-label">問題 {index + 1}（IPA転写）</div>
 
         <div className={`transcribe-audio-answer-row ${!judgement ? "with-judge" : ""}`}>
-          <button className="btn-audio" onClick={() => playWord(question.w, true)}>
+          <button className="btn-audio" onClick={handlePlayCurrentWord}>
             <svg
               width="22"
               height="22"
