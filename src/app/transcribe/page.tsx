@@ -681,6 +681,8 @@ export default function TranscribeQuizPage() {
     );
   }
 
+  // 将来のIPAガイド再公開に備えて実装を保持（現在はUIから呼び出しを削除済み）
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   function renderGuideSection(isOpen: boolean, onToggle: () => void) {
     return (
       <div className="stats-section" style={{ marginTop: "1rem" }}>
