@@ -549,6 +549,9 @@ export default function QuizPage() {
           <Link href="/transcribe" className="link-btn">
             IPA転写クイズ（精密測定）へ →
           </Link>
+          <Link href="/loop" className="link-btn">
+            母音リピート再生へ →
+          </Link>
           <Link href="/regions" className="link-btn link-btn-disabled" aria-disabled="true" tabIndex={-1} onClick={(event) => event.preventDefault()}>
             音響領域の分析へ →
           </Link>
