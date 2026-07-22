@@ -2083,6 +2083,46 @@ body {
   color: var(--color-muted);
 }
 
+.loop-sequence {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.loop-sequence-item {
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  font-size: 1rem;
+  color: var(--color-muted);
+}
+
+.loop-sequence-item.current {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+  color: #fff;
+  font-weight: 700;
+}
+
+.loop-shuffle-indicator {
+  font-size: 0.8rem;
+  color: var(--color-muted);
+  margin-left: 4px;
+}
+
+.loop-shuffle-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  color: var(--color-text);
+  margin: 10px 0;
+  cursor: pointer;
+}
+
 .loop-slider {
   width: 100%;
   margin-top: 6px;
