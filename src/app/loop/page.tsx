@@ -52,6 +52,10 @@ export default function VowelLoopPage() {
   const [intervalMs, setIntervalMs] = useState(DEFAULT_INTERVAL_MS);
   const [shuffle, setShuffle] = useState(true);
   const [testMode, setTestMode] = useState(false);
+  // テストモードの出題数（自動終了の目標値）。範囲 5〜100
+  const [targetCount, setTargetCount] = useState(20);
+  // 再生済み数（表示用）。recordedOrderRef の長さをUIに反映するための state
+  const [playedCount, setPlayedCount] = useState(0);
   // Stop 時点の再生順序（表示用）。次の Start でクリアする
   const [lastOrder, setLastOrder] = useState<string[] | null>(null);
 
@@ -62,6 +66,8 @@ export default function VowelLoopPage() {
   const pausedDuringWaitRef = useRef(false);
   // テストモード中に実際に再生した母音を再生順で記録する（localStorageには残さない）
   const recordedOrderRef = useRef<string[]>([]);
+  // Space ショートカットを無効化する対象（出題数入力欄）
+  const targetCountInputRef = useRef<HTMLInputElement | null>(null);
 
   // クロージャが古い値を掴まないよう、常に最新値を ref に同期する（render時に反映）
   const selectedRef = useRef(selected);
@@ -76,6 +82,8 @@ export default function VowelLoopPage() {
   shuffleRef.current = shuffle;
   const testModeRef = useRef(testMode);
   testModeRef.current = testMode;
+  const targetCountRef = useRef(targetCount);
+  targetCountRef.current = targetCount;
 
   function clearPendingTimer() {
     if (timerRef.current) {
@@ -89,6 +97,7 @@ export default function VowelLoopPage() {
     if (!audio) return;
     if (testModeRef.current) {
       recordedOrderRef.current = [...recordedOrderRef.current, vowel];
+      setPlayedCount(recordedOrderRef.current.length);
     }
     audio.pause();
     audio.src = audioSrc(vowel);
@@ -103,6 +112,15 @@ export default function VowelLoopPage() {
     const audio = new Audio();
     // ended リスナーは生成時に1回だけ付ける（以後はこの同一インスタンスを使い回す）
     audio.addEventListener("ended", () => {
+      // テストモードで出題数に達していたら、この母音の再生を最後に自動終了する
+      // （次の間隔待ちへは進まない。「再生し終えたら」終了なので途中で切らない）
+      if (
+        testModeRef.current &&
+        recordedOrderRef.current.length >= targetCountRef.current
+      ) {
+        stopPlayback();
+        return;
+      }
       clearPendingTimer();
       timerRef.current = setTimeout(() => {
         timerRef.current = null;
@@ -148,6 +166,7 @@ export default function VowelLoopPage() {
     pausedDuringWaitRef.current = false;
     setPaused(false);
     recordedOrderRef.current = [];
+    setPlayedCount(0);
     setLastOrder(null);
     const seq =
       sel.length === 1
@@ -238,6 +257,8 @@ export default function VowelLoopPage() {
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
       if (e.code === "Space") {
+        // 出題数入力欄にフォーカス中は通常の入力を妨げない
+        if (document.activeElement === targetCountInputRef.current) return;
         e.preventDefault();
         pauseResumeRef.current();
       } else if (e.ctrlKey && e.code === "Enter") {
@@ -275,7 +296,12 @@ export default function VowelLoopPage() {
       <div className="start-card">
         <div className="loop-display">
           {concealPlayback ? (
-            <span className="loop-display-char loop-display-hidden">?</span>
+            <>
+              <span className="loop-display-char loop-display-hidden">?</span>
+              <span className="loop-display-progress">
+                {playedCount} / {targetCount}
+              </span>
+            </>
           ) : currentVowel ? (
             <span className="loop-display-char">{currentVowel}</span>
           ) : (
@@ -338,6 +364,32 @@ export default function VowelLoopPage() {
           />
           テストモード（再生中は母音を隠し、停止後に順序を表示）
         </label>
+
+        {testMode && (
+          <div className="input-wrap">
+            <span className="input-label">出題数（5〜100・達したら自動終了）</span>
+            <input
+              ref={targetCountInputRef}
+              type="number"
+              min={5}
+              max={100}
+              value={targetCount}
+              onChange={(e) => {
+                const n = Number(e.target.value);
+                if (!Number.isNaN(n)) setTargetCount(n);
+              }}
+              onBlur={(e) => {
+                const n = Number(e.target.value);
+                const clamped = Math.min(
+                  100,
+                  Math.max(5, Number.isNaN(n) ? 20 : n)
+                );
+                setTargetCount(clamped);
+              }}
+              className="loop-count-input"
+            />
+          </div>
+        )}
 
         <div className="loop-btn-row">
           <button

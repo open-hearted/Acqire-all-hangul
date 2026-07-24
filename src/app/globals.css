@@ -2081,6 +2081,20 @@ body {
   color: var(--color-muted);
 }
 
+.loop-display-progress {
+  font-size: 0.95rem;
+  color: var(--color-muted);
+  margin-top: 4px;
+}
+
+.loop-count-input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  font-size: 1rem;
+}
+
 .loop-sequence {
   display: flex;
   flex-wrap: wrap;
