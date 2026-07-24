@@ -2066,16 +2066,10 @@ body {
 }
 
 .loop-display-char {
-  font-size: 3rem;
+  font-size: 4rem;
   font-weight: 700;
   color: var(--color-primary);
   line-height: 1.1;
-}
-
-.loop-display-ipa {
-  font-size: 1.1rem;
-  color: var(--color-muted);
-  margin-top: 4px;
 }
 
 .loop-display-placeholder {
@@ -2139,4 +2133,9 @@ body {
   .loop-grid {
     grid-template-columns: repeat(7, 1fr);
   }
+}
+
+/* IPA表記を廃したぶん、ハングル字母を大きく見せる（/loop 専用） */
+.loop-grid .vowel-char {
+  font-size: 1.8rem;
 }

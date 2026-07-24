@@ -187,7 +187,6 @@ export default function VowelLoopPage() {
   }, []);
 
   const currentVowel = playing ? sequence[currentIndex] : null;
-  const currentInfo = currentVowel ? VOWELS[currentVowel] : null;
   const showShuffleIndicator = shuffle && selected.length >= 2;
 
   return (
@@ -199,11 +198,8 @@ export default function VowelLoopPage() {
 
       <div className="start-card">
         <div className="loop-display">
-          {currentInfo ? (
-            <>
-              <span className="loop-display-char">{currentVowel}</span>
-              <span className="loop-display-ipa">/{currentInfo.ipa}/</span>
-            </>
+          {currentVowel ? (
+            <span className="loop-display-char">{currentVowel}</span>
           ) : (
             <span className="loop-display-placeholder">母音を選んでください</span>
           )}
@@ -274,19 +270,15 @@ export default function VowelLoopPage() {
       </div>
 
       <div className="loop-grid">
-        {VOWEL_KEYS.map((vowel) => {
-          const info = VOWELS[vowel];
-          return (
-            <button
-              key={vowel}
-              className={`vowel-btn ${selected.includes(vowel) ? "selected" : ""}`}
-              onClick={() => toggleVowel(vowel)}
-            >
-              <span className="vowel-char">{vowel}</span>
-              <span className="vowel-sub">[{info.ipa}]</span>
-            </button>
-          );
-        })}
+        {VOWEL_KEYS.map((vowel) => (
+          <button
+            key={vowel}
+            className={`vowel-btn ${selected.includes(vowel) ? "selected" : ""}`}
+            onClick={() => toggleVowel(vowel)}
+          >
+            <span className="vowel-char">{vowel}</span>
+          </button>
+        ))}
       </div>
 
       <Link href="/" className="link-btn">
