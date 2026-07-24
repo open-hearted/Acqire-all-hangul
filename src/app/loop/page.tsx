@@ -14,6 +14,8 @@ const MAX_INTERVAL_MS = 3000;
 const STEP_INTERVAL_MS = 100;
 const DEFAULT_INTERVAL_MS = 800;
 
+const RESULT_ROW_SIZE = 10;
+
 function audioSrc(hangul: string) {
   return `/audio/${encodeURIComponent(hangul)}.mp3`;
 }
@@ -33,18 +35,33 @@ function shuffleAvoidingRepeat(vowels: string[], avoidFirst?: string): string[] 
   return arr;
 }
 
+function chunk<T>(arr: T[], size: number): T[][] {
+  const out: T[][] = [];
+  for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
+  return out;
+}
+
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export default function VowelLoopPage() {
   const [selected, setSelected] = useState<string[]>([]);
   const [playing, setPlaying] = useState(false);
+  const [paused, setPaused] = useState(false);
   const [sequence, setSequence] = useState<string[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [intervalMs, setIntervalMs] = useState(DEFAULT_INTERVAL_MS);
   const [shuffle, setShuffle] = useState(true);
+  const [testMode, setTestMode] = useState(false);
+  // Stop 時点の再生順序（表示用）。次の Start でクリアする
+  const [lastOrder, setLastOrder] = useState<string[] | null>(null);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Pause が「間隔待ち中（timerRef 稼働中）」に押されたかどうか。
+  // true なら Resume 時にタイマーの残り時間を待たず次の母音へ即進む。
+  const pausedDuringWaitRef = useRef(false);
+  // テストモード中に実際に再生した母音を再生順で記録する（localStorageには残さない）
+  const recordedOrderRef = useRef<string[]>([]);
 
   // クロージャが古い値を掴まないよう、常に最新値を ref に同期する（render時に反映）
   const selectedRef = useRef(selected);
@@ -57,6 +74,8 @@ export default function VowelLoopPage() {
   intervalRef.current = intervalMs;
   const shuffleRef = useRef(shuffle);
   shuffleRef.current = shuffle;
+  const testModeRef = useRef(testMode);
+  testModeRef.current = testMode;
 
   function clearPendingTimer() {
     if (timerRef.current) {
@@ -68,6 +87,9 @@ export default function VowelLoopPage() {
   function playVowelAt(vowel: string) {
     const audio = audioRef.current;
     if (!audio) return;
+    if (testModeRef.current) {
+      recordedOrderRef.current = [...recordedOrderRef.current, vowel];
+    }
     audio.pause();
     audio.src = audioSrc(vowel);
     audio.load();
@@ -123,6 +145,10 @@ export default function VowelLoopPage() {
     const sel = selected;
     if (sel.length === 0) return;
     clearPendingTimer();
+    pausedDuringWaitRef.current = false;
+    setPaused(false);
+    recordedOrderRef.current = [];
+    setLastOrder(null);
     const seq =
       sel.length === 1
         ? [sel[0]]
@@ -138,10 +164,47 @@ export default function VowelLoopPage() {
 
   function stopPlayback() {
     clearPendingTimer();
+    pausedDuringWaitRef.current = false;
+    setPaused(false);
     setPlaying(false);
     if (audioRef.current) {
       audioRef.current.pause();
       audioRef.current.currentTime = 0;
+    }
+    if (testModeRef.current && recordedOrderRef.current.length > 0) {
+      setLastOrder([...recordedOrderRef.current]);
+    }
+  }
+
+  // 一時停止。「音声再生中」「間隔待ち中」の2状態を区別して扱う（実装の急所）。
+  // 間隔待ち中は timerRef が生きているのでそれを clearTimeout する。
+  // 音声再生中は timerRef が null（ended がまだ来ていない）なので audio.pause() する。
+  function pausePlayback() {
+    if (!playing || paused) return;
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+      pausedDuringWaitRef.current = true;
+    } else {
+      pausedDuringWaitRef.current = false;
+      audioRef.current?.pause();
+    }
+    setPaused(true);
+  }
+
+  // 再開。間隔待ち中に一時停止したなら、残り時間を待たず次の母音へ進む
+  // （＝実装がシンプルで済み、待ち時間差分の追跡バグを避けられる）。
+  // 音声再生中に一時停止したなら、同じ音声の続きから play() する。
+  function resumePlayback() {
+    if (!playing || !paused) return;
+    setPaused(false);
+    if (pausedDuringWaitRef.current) {
+      pausedDuringWaitRef.current = false;
+      advanceAndPlay();
+    } else {
+      audioRef.current?.play().catch(() => {
+        // 再生失敗は静かに無視する
+      });
     }
   }
 
@@ -156,19 +219,30 @@ export default function VowelLoopPage() {
     setSelected([]);
   }
 
-  // Start/Stop トグル。Space キーからも同じ関数を呼ぶ
-  const toggleRef = useRef<() => void>(() => {});
-  toggleRef.current = () => {
+  // Start/Stop トグル（Ctrl+Enter から呼ぶ）
+  const startStopRef = useRef<() => void>(() => {});
+  startStopRef.current = () => {
     if (playing) stopPlayback();
     else handleStart();
   };
 
-  // Space キーで Start/Stop トグル
+  // Pause/Resume トグル（Space から呼ぶ）。停止中は何もしない（誤爆防止）
+  const pauseResumeRef = useRef<() => void>(() => {});
+  pauseResumeRef.current = () => {
+    if (!playing) return;
+    if (paused) resumePlayback();
+    else pausePlayback();
+  };
+
+  // キーボードショートカット: Space=一時停止/再開、Ctrl+Enter=開始/停止
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
       if (e.code === "Space") {
         e.preventDefault();
-        toggleRef.current();
+        pauseResumeRef.current();
+      } else if (e.ctrlKey && e.code === "Enter") {
+        e.preventDefault();
+        startStopRef.current();
       }
     }
     window.addEventListener("keydown", onKeyDown);
@@ -188,6 +262,8 @@ export default function VowelLoopPage() {
 
   const currentVowel = playing ? sequence[currentIndex] : null;
   const showShuffleIndicator = shuffle && selected.length >= 2;
+  // テストモード中の再生時は、順序が推測できる手がかりを一切出さない
+  const concealPlayback = testMode && playing;
 
   return (
     <div className="container">
@@ -198,7 +274,9 @@ export default function VowelLoopPage() {
 
       <div className="start-card">
         <div className="loop-display">
-          {currentVowel ? (
+          {concealPlayback ? (
+            <span className="loop-display-char loop-display-hidden">?</span>
+          ) : currentVowel ? (
             <span className="loop-display-char">{currentVowel}</span>
           ) : (
             <span className="loop-display-placeholder">母音を選んでください</span>
@@ -207,11 +285,16 @@ export default function VowelLoopPage() {
 
         {selected.length > 0 && (
           <div className="loop-sequence">
-            {selected.map((vowel) => (
+            {(concealPlayback
+              ? VOWEL_KEYS.filter((v) => selected.includes(v))
+              : selected
+            ).map((vowel) => (
               <span
                 key={vowel}
                 className={`loop-sequence-item ${
-                  playing && currentVowel === vowel ? "current" : ""
+                  !concealPlayback && playing && currentVowel === vowel
+                    ? "current"
+                    : ""
                 }`}
               >
                 {vowel}
@@ -247,13 +330,37 @@ export default function VowelLoopPage() {
           シャッフル（選択が2つ以上のとき有効）
         </label>
 
-        <button
-          className="btn-reset"
-          onClick={() => toggleRef.current()}
-          disabled={!playing && selected.length === 0}
-        >
-          {playing ? "■ Stop（Spaceキーでも停止）" : "▶ Start（Spaceキーでも開始）"}
-        </button>
+        <label className="loop-shuffle-toggle">
+          <input
+            type="checkbox"
+            checked={testMode}
+            onChange={(e) => setTestMode(e.target.checked)}
+          />
+          テストモード（再生中は母音を隠し、停止後に順序を表示）
+        </label>
+
+        <div className="loop-btn-row">
+          <button
+            className="btn-reset"
+            onClick={() => startStopRef.current()}
+            disabled={!playing && selected.length === 0}
+          >
+            {playing ? "■ Stop" : "▶ Start"}
+          </button>
+
+          <button
+            className="btn-reset"
+            style={{ background: "#5c6bc0" }}
+            onClick={() => pauseResumeRef.current()}
+            disabled={!playing}
+          >
+            {paused ? "▶ Resume" : "⏸ Pause"}
+          </button>
+        </div>
+
+        <p className="loop-shortcuts-hint">
+          ショートカット: Space = 一時停止/再開　·　Ctrl+Enter = 開始/停止
+        </p>
 
         <button
           className="btn-reset"
@@ -268,6 +375,24 @@ export default function VowelLoopPage() {
           全て解除
         </button>
       </div>
+
+      {lastOrder && lastOrder.length > 0 && (
+        <div className="loop-result">
+          <h2 className="loop-result-title">再生順序（{lastOrder.length}音）</h2>
+          {chunk(lastOrder, RESULT_ROW_SIZE).map((row, i) => {
+            const start = i * RESULT_ROW_SIZE + 1;
+            const end = start + row.length - 1;
+            return (
+              <div key={i} className="loop-result-row">
+                <span className="loop-result-range">
+                  {start}-{end}:
+                </span>
+                <span className="loop-result-vowels">{row.join(" ")}</span>
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       <div className="loop-grid">
         {VOWEL_KEYS.map((vowel) => (
