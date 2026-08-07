@@ -2206,3 +2206,40 @@ body {
 .loop-grid .vowel-char {
   font-size: 1.8rem;
 }
+
+/* 韓国語音声リピート練習（/audio-repeat） */
+.audio-repeat-page { max-width: 1180px; }
+.audio-repeat-layout { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(320px, .85fr); gap: 20px; align-items: start; margin-bottom: 20px; }
+.audio-repeat-sidebar { display: grid; gap: 20px; }
+.audio-repeat-page h2 { margin: 0 0 14px; font-size: 1.2rem; }
+.audio-repeat-group { border-top: 1px solid #e5e7eb; }
+.audio-repeat-group summary { cursor: pointer; padding: 14px 4px; font-weight: 700; }
+.audio-repeat-group summary span { color: #6b7280; font-size: .85rem; font-weight: 400; }
+.audio-repeat-group ul, .audio-repeat-practice-list { list-style: none; margin: 0; padding: 0; }
+.audio-repeat-group li { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 8px; align-items: center; padding: 9px 4px; border-top: 1px solid #f1f5f9; }
+.audio-repeat-group button, .audio-repeat-order-buttons button, .audio-repeat-controls > button, .audio-repeat-options button { min-height: 40px; border: 1px solid #cbd5e1; border-radius: 9px; background: #fff; color: #334155; padding: 7px 11px; cursor: pointer; font: inherit; }
+.audio-repeat-group button:disabled, .audio-repeat-order-buttons button:disabled, .audio-repeat-controls > button:disabled { opacity: .45; cursor: default; }
+.audio-repeat-track-name { overflow-wrap: anywhere; font-weight: 600; }
+.audio-repeat-heading-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.audio-repeat-text-button { border: 0; background: transparent; color: #64748b; text-decoration: underline; cursor: pointer; }
+.audio-repeat-empty { color: #64748b; font-size: .92rem; }
+.audio-repeat-practice-list li { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 9px; border-radius: 9px; border-bottom: 1px solid #e5e7eb; }
+.audio-repeat-practice-list li.current { background: #eef2ff; outline: 2px solid #818cf8; }
+.audio-repeat-practice-list strong, .audio-repeat-practice-list small { display: block; overflow-wrap: anywhere; }
+.audio-repeat-practice-list small { color: #64748b; margin-top: 2px; }
+.audio-repeat-order-buttons { display: flex; gap: 4px; flex-shrink: 0; }
+.audio-repeat-settings fieldset { border: 0; padding: 0; margin: 0 0 17px; }
+.audio-repeat-settings legend { margin-bottom: 8px; font-weight: 700; }
+.audio-repeat-options { display: flex; flex-wrap: wrap; gap: 7px; }
+.audio-repeat-options button.active { border-color: #4f46e5; background: #4f46e5; color: #fff; font-weight: 700; }
+.audio-repeat-status { min-height: 24px; padding: 10px; border-radius: 9px; background: #f8fafc; color: #334155; font-size: .92rem; }
+.audio-repeat-controls { display: grid; grid-template-columns: 1.2fr 1fr .7fr; gap: 8px; }
+.audio-repeat-controls .btn-reset { width: auto; margin: 0; }
+
+@media (max-width: 760px) {
+  .audio-repeat-layout { grid-template-columns: 1fr; }
+  .audio-repeat-library { max-height: none; }
+  .audio-repeat-group li { grid-template-columns: minmax(0, 1fr) auto; }
+  .audio-repeat-group li button:last-child { grid-column: 1 / -1; }
+  .audio-repeat-controls { grid-template-columns: 1fr; }
+}
