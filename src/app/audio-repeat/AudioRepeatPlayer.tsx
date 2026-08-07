@@ -1,0 +1,220 @@
+"use client";
+
+import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
+
+export interface AudioTrack {
+  id: string;
+  cd: string;
+  fileName: string;
+  label: string;
+  src: string;
+}
+
+export interface AudioGroup {
+  name: string;
+  tracks: AudioTrack[];
+}
+
+type RepeatCount = 1 | 5 | 10 | "infinite";
+type IntervalSeconds = 0 | 0.3 | 0.5 | 1 | 2;
+type PlaybackState = "idle" | "playing" | "paused" | "waiting";
+
+const REPEAT_OPTIONS: RepeatCount[] = [1, 5, 10, "infinite"];
+const INTERVAL_OPTIONS: IntervalSeconds[] = [0, 0.3, 0.5, 1, 2];
+
+export default function AudioRepeatPlayer({ groups }: { groups: AudioGroup[] }) {
+  const [practiceList, setPracticeList] = useState<AudioTrack[]>([]);
+  const [repeatCount, setRepeatCount] = useState<RepeatCount>(5);
+  const [intervalSeconds, setIntervalSeconds] = useState<IntervalSeconds>(0.5);
+  const [playbackState, setPlaybackState] = useState<PlaybackState>("idle");
+  const [currentIndex, setCurrentIndex] = useState<number | null>(null);
+  const [currentRepeat, setCurrentRepeat] = useState(0);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const listRef = useRef(practiceList);
+  const settingsRef = useRef({ repeatCount, intervalSeconds });
+
+  useEffect(() => {
+    listRef.current = practiceList;
+  }, [practiceList]);
+
+  useEffect(() => {
+    settingsRef.current = { repeatCount, intervalSeconds };
+  }, [repeatCount, intervalSeconds]);
+
+  function clearTimer() {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = null;
+  }
+
+  function stop() {
+    clearTimer();
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    }
+    setPlaybackState("idle");
+    setCurrentIndex(null);
+    setCurrentRepeat(0);
+  }
+
+  useEffect(() => () => {
+    clearTimer();
+    audioRef.current?.pause();
+  }, []);
+
+  function playAt(index: number, repetition: number) {
+    const track = listRef.current[index];
+    if (!track) {
+      stop();
+      return;
+    }
+    clearTimer();
+    const audio = audioRef.current ?? new Audio();
+    audioRef.current = audio;
+    audio.onended = () => handleEnded(index, repetition);
+    audio.onerror = stop;
+    audio.src = track.src;
+    audio.currentTime = 0;
+    setCurrentIndex(index);
+    setCurrentRepeat(repetition);
+    setPlaybackState("playing");
+    audio.play().catch(stop);
+  }
+
+  function handleEnded(index: number, repetition: number) {
+    const { repeatCount: repeats, intervalSeconds: interval } = settingsRef.current;
+    let nextIndex = index;
+    let nextRepeat = repetition + 1;
+
+    if (repeats === "infinite") {
+      nextIndex = (index + 1) % listRef.current.length;
+      nextRepeat = 1;
+    } else if (nextRepeat > repeats) {
+      nextIndex = index + 1;
+      nextRepeat = 1;
+      if (nextIndex >= listRef.current.length) {
+        stop();
+        return;
+      }
+    }
+
+    setPlaybackState("waiting");
+    timerRef.current = setTimeout(() => playAt(nextIndex, nextRepeat), interval * 1000);
+  }
+
+  function preview(track: AudioTrack) {
+    stop();
+    const audio = audioRef.current ?? new Audio();
+    audioRef.current = audio;
+    audio.onended = () => setPlaybackState("idle");
+    audio.onerror = () => setPlaybackState("idle");
+    audio.src = track.src;
+    setPlaybackState("playing");
+    audio.play().catch(stop);
+  }
+
+  function togglePause() {
+    if (playbackState === "playing") {
+      audioRef.current?.pause();
+      setPlaybackState("paused");
+    } else if (playbackState === "paused") {
+      audioRef.current?.play().then(() => setPlaybackState("playing")).catch(stop);
+    }
+  }
+
+  function addTrack(track: AudioTrack) {
+    setPracticeList((current) => current.some((item) => item.id === track.id) ? current : [...current, track]);
+  }
+
+  function updateList(next: AudioTrack[]) {
+    stop();
+    setPracticeList(next);
+  }
+
+  function moveTrack(index: number, direction: -1 | 1) {
+    const target = index + direction;
+    if (target < 0 || target >= practiceList.length) return;
+    const next = [...practiceList];
+    [next[index], next[target]] = [next[target], next[index]];
+    updateList(next);
+  }
+
+  const currentTrack = currentIndex === null ? null : practiceList[currentIndex];
+  const status = currentTrack
+    ? `${currentTrack.label}：${playbackState === "paused" ? "一時停止" : playbackState === "waiting" ? "待機中" : "再生中"}（${currentRepeat}回目）`
+    : playbackState === "playing" ? "試聴中" : "停止中";
+
+  return (
+    <main className="container audio-repeat-page">
+      <header className="header">
+        <h1>韓国語音声リピート練習</h1>
+        <p>練習したい音声を選び、好きな順番で繰り返し聞けます。</p>
+      </header>
+
+      <div className="audio-repeat-layout">
+        <section className="card audio-repeat-library">
+          <h2>音声一覧</h2>
+          {groups.length === 0 && <p>CDフォルダ内にMP3がありません。</p>}
+          {groups.map((group) => (
+            <details key={group.name} className="audio-repeat-group" open>
+              <summary>{group.name} <span>{group.tracks.length}件</span></summary>
+              <ul>
+                {group.tracks.map((track) => {
+                  const selected = practiceList.some((item) => item.id === track.id);
+                  return (
+                    <li key={track.id}>
+                      <span className="audio-repeat-track-name" title={track.fileName}>{track.label}</span>
+                      <button type="button" onClick={() => preview(track)} aria-label={`${track.label}を試聴`}>▶</button>
+                      <button type="button" disabled={selected} onClick={() => addTrack(track)}>{selected ? "追加済み" : "＋追加"}</button>
+                    </li>
+                  );
+                })}
+              </ul>
+            </details>
+          ))}
+        </section>
+
+        <div className="audio-repeat-sidebar">
+          <section className="card">
+            <div className="audio-repeat-heading-row">
+              <h2>練習リスト</h2>
+              <button type="button" className="audio-repeat-text-button" disabled={!practiceList.length} onClick={() => updateList([])}>すべて削除</button>
+            </div>
+            {!practiceList.length && <p className="audio-repeat-empty">音声一覧から練習する音声を追加してください。</p>}
+            <ol className="audio-repeat-practice-list">
+              {practiceList.map((track, index) => (
+                <li key={track.id} className={currentIndex === index ? "current" : ""}>
+                  <div><strong>{track.label}</strong><small>{track.cd}</small></div>
+                  <div className="audio-repeat-order-buttons">
+                    <button type="button" disabled={index === 0} onClick={() => moveTrack(index, -1)} aria-label={`${track.label}を上へ移動`}>↑</button>
+                    <button type="button" disabled={index === practiceList.length - 1} onClick={() => moveTrack(index, 1)} aria-label={`${track.label}を下へ移動`}>↓</button>
+                    <button type="button" onClick={() => updateList(practiceList.filter((_, itemIndex) => itemIndex !== index))} aria-label={`${track.label}を削除`}>×</button>
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </section>
+
+          <section className="card audio-repeat-settings">
+            <h2>練習設定</h2>
+            <fieldset><legend>リピート回数</legend><div className="audio-repeat-options">
+              {REPEAT_OPTIONS.map((value) => <button type="button" className={repeatCount === value ? "active" : ""} onClick={() => setRepeatCount(value)} key={value}>{value === "infinite" ? "無限" : `${value}回`}</button>)}
+            </div></fieldset>
+            <fieldset><legend>音声間隔</legend><div className="audio-repeat-options">
+              {INTERVAL_OPTIONS.map((value) => <button type="button" className={intervalSeconds === value ? "active" : ""} onClick={() => setIntervalSeconds(value)} key={value}>{value}秒</button>)}
+            </div></fieldset>
+            <p className="audio-repeat-status" aria-live="polite">{status}</p>
+            <div className="audio-repeat-controls">
+              <button type="button" className="btn-reset" disabled={!practiceList.length || playbackState !== "idle"} onClick={() => playAt(0, 1)}>▶ 再生</button>
+              <button type="button" disabled={playbackState !== "playing" && playbackState !== "paused"} onClick={togglePause}>{playbackState === "paused" ? "▶ 再開" : "⏸ 一時停止"}</button>
+              <button type="button" disabled={playbackState === "idle"} onClick={stop}>■ 停止</button>
+            </div>
+          </section>
+        </div>
+      </div>
+      <Link href="/" className="link-btn">← トップへ戻る</Link>
+    </main>
+  );
+}
