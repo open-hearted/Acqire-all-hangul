@@ -552,6 +552,9 @@ export default function QuizPage() {
           <Link href="/loop" className="link-btn">
             母音リピート再生へ →
           </Link>
+          <Link href="/audio-repeat" className="link-btn">
+            韓国語音声リピート練習へ →
+          </Link>
           <Link href="/regions" className="link-btn link-btn-disabled" aria-disabled="true" tabIndex={-1} onClick={(event) => event.preventDefault()}>
             音響領域の分析へ →
           </Link>
