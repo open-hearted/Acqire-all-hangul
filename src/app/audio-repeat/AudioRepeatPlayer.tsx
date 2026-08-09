@@ -300,7 +300,7 @@ export default function AudioRepeatPlayer({
                     <div className="audio-repeat-quick-player" aria-live="polite">
                       <span>
                         {currentTrack
-                          ? `${currentTrack.label}${playbackState === "paused" ? "：一時停止" : playbackState === "waiting" ? "：待機中" : ""}`
+                          ? `${currentTrack.label}${playbackState === "paused" ? "：一時停止" : ""}`
                           : ""}
                       </span>
                       <div style={{ display: "flex", gap: "6px", flexShrink: 0 }}>
