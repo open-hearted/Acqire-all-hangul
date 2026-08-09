@@ -2277,5 +2277,6 @@ body {
   .audio-repeat-character-grid button { min-height: 58px; font-size: 1.5rem; }
   .audio-repeat-word-grid { gap: 5px; }
   .audio-repeat-word-grid button { min-height: 54px; font-size: 1.55rem; }
+  .audio-repeat-quick-player span { font-size: 1.55rem; }
   .audio-repeat-quick-player { position: sticky; bottom: 8px; z-index: 5; box-shadow: 0 4px 18px rgb(15 23 42 / 18%); }
 }
