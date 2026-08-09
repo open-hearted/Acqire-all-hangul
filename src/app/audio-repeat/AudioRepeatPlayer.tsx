@@ -134,18 +134,20 @@ export default function AudioRepeatPlayer({
   function handleEnded(index: number, repetition: number) {
     const { repeatCount: repeats, intervalSeconds: interval } =
       settingsRef.current;
-    let nextIndex = index;
-    let nextRepeat = repetition + 1;
+    let nextIndex = index + 1;
+    let nextRepeat = repetition;
 
     if (repeats === "infinite") {
-      nextIndex = (index + 1) % listRef.current.length;
-      nextRepeat = 1;
-    } else if (nextRepeat > repeats) {
-      nextIndex = index + 1;
-      nextRepeat = 1;
+      nextIndex = nextIndex % listRef.current.length;
+    } else {
       if (nextIndex >= listRef.current.length) {
-        stop();
-        return;
+        // リスト終端に達した場合、次の繰り返しへ
+        nextIndex = 0;
+        nextRepeat = repetition + 1;
+        if (nextRepeat > repeats) {
+          stop();
+          return;
+        }
       }
     }
 
