@@ -189,6 +189,12 @@ export default function AudioRepeatPlayer({
     updateList(next);
   }
 
+  function playSingleTrack(track: AudioTrack) {
+    const audio = new Audio();
+    audio.src = track.src;
+    audio.play().catch(() => {});
+  }
+
   const currentTrack =
     currentIndex === null ? null : practiceList[currentIndex];
   const status = quickTrack
@@ -356,6 +362,14 @@ export default function AudioRepeatPlayer({
                     <small>{track.cd}</small>
                   </div>
                   <div className="audio-repeat-order-buttons">
+                    <button
+                      type="button"
+                      onClick={() => playSingleTrack(track)}
+                      aria-label={`${track.label}を再生`}
+                      title="1回再生"
+                    >
+                      ▶
+                    </button>
                     <button
                       type="button"
                       disabled={index === 0}
