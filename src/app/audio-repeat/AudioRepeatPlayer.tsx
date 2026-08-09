@@ -285,16 +285,39 @@ export default function AudioRepeatPlayer({
                       );
                     })}
                   </div>
-                  <div className="audio-repeat-quick-player" aria-live="polite">
-                    <span>
-                      {quickTrack
-                        ? `${quickTrack.label}${playbackState === "paused" ? "：一時停止" : ""}`
-                        : "文字または単語を選んでください"}
-                    </span>
-                    <button type="button" disabled={!quickTrack} onClick={stop}>
-                      ■ 停止
-                    </button>
-                  </div>
+                  {quickTapMode === "repeat" ? (
+                    <div className="audio-repeat-quick-player" aria-live="polite">
+                      <span>
+                        {quickTrack
+                          ? `${quickTrack.label}${playbackState === "paused" ? "：一時停止" : ""}`
+                          : "文字または単語を選んでください"}
+                      </span>
+                      <button type="button" disabled={!quickTrack} onClick={stop}>
+                        ■ 停止
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="audio-repeat-quick-player" aria-live="polite">
+                      <span>
+                        {currentTrack
+                          ? `${currentTrack.label}（${currentRepeat}回目）${playbackState === "paused" ? "：一時停止" : playbackState === "waiting" ? "：待機中" : ""}`
+                          : practiceList.length > 0
+                            ? `${practiceList.length}件追加済み`
+                            : "文字または単語を追加してください"}
+                      </span>
+                      <div style={{ display: "flex", gap: "6px", flexShrink: 0 }}>
+                        <button type="button" disabled={!practiceList.length} onClick={() => { stop(); playAt(0, 1); }}>
+                          ▶ 再生
+                        </button>
+                        <button type="button" disabled={currentTrack === null} onClick={togglePause}>
+                          {playbackState === "paused" ? "▶ 再開" : "⏸"}
+                        </button>
+                        <button type="button" disabled={currentTrack === null} onClick={stop}>
+                          ■ 停止
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </>
               );
             })()}
