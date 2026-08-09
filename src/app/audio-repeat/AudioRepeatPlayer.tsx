@@ -204,7 +204,7 @@ export default function AudioRepeatPlayer({
   const status = quickTrack
     ? `${quickTrack.label}：2秒間隔で${playbackState === "waiting" ? "待機中" : playbackState === "paused" ? "一時停止" : "無限リピート中"}`
     : currentTrack
-      ? `${currentTrack.label}：${playbackState === "paused" ? "一時停止" : playbackState === "waiting" ? "待機中" : "再生中"}（${currentRepeat}回目）`
+      ? `${currentTrack.label}（${currentRepeat}回目）${playbackState === "paused" ? "：一時停止" : playbackState === "waiting" ? "：待機中" : ""}`
       : playbackState === "playing"
         ? "試聴中"
         : "停止中";
@@ -284,7 +284,7 @@ export default function AudioRepeatPlayer({
                   <div className="audio-repeat-quick-player" aria-live="polite">
                     <span>
                       {quickTrack
-                        ? `${quickTrack.label}：${playbackState === "waiting" ? "2秒待機中" : playbackState === "paused" ? "一時停止" : "再生中"}`
+                        ? `${quickTrack.label}${playbackState === "paused" ? "：一時停止" : ""}`
                         : "文字または単語を選んでください"}
                     </span>
                     <button type="button" disabled={!quickTrack} onClick={stop}>
