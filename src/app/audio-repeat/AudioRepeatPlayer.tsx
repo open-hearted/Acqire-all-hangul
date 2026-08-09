@@ -252,7 +252,7 @@ export default function AudioRepeatPlayer({
                           onClick={() => {
                             if (!track) return;
                             if (quickTapMode === "repeat") startQuickRepeat(track);
-                            else { addTrack(track); startQuickRepeat(track); }
+                            else addTrack(track);
                           }}
                         >
                           {label}
@@ -277,7 +277,7 @@ export default function AudioRepeatPlayer({
                           onClick={() => {
                             if (!track) return;
                             if (quickTapMode === "repeat") startQuickRepeat(track);
-                            else { addTrack(track); startQuickRepeat(track); }
+                            else addTrack(track);
                           }}
                         >
                           {label}
