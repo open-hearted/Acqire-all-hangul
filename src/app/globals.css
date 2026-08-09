@@ -2275,6 +2275,6 @@ body {
   .audio-repeat-character-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
   .audio-repeat-word-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
   .audio-repeat-character-grid button { min-height: 58px; font-size: 1.5rem; }
-  .audio-repeat-word-grid button { min-height: 52px; }
+  .audio-repeat-word-grid button { min-height: 52px; font-size: 1.3rem; }
   .audio-repeat-quick-player { position: sticky; bottom: 8px; z-index: 5; box-shadow: 0 4px 18px rgb(15 23 42 / 18%); }
 }
