@@ -96,7 +96,8 @@ export default function AudioRepeatPlayer({
         timerRef.current = setTimeout(playOnce, 2000);
       };
       setPlaybackState("playing");
-      audio.play().catch(stop);
+      audio.load();
+      timerRef.current = setTimeout(() => audio.play().catch(stop), 50);
     };
 
     playOnce();
@@ -128,7 +129,8 @@ export default function AudioRepeatPlayer({
     setCurrentIndex(index);
     setCurrentRepeat(repetition);
     setPlaybackState("playing");
-    audio.play().catch(stop);
+    audio.load();
+    timerRef.current = setTimeout(() => audio.play().catch(stop), 50);
   }
 
   function handleEnded(index: number, repetition: number) {
@@ -194,7 +196,8 @@ export default function AudioRepeatPlayer({
   function playSingleTrack(track: AudioTrack) {
     const audio = new Audio();
     audio.src = track.src;
-    audio.play().catch(() => {});
+    audio.load();
+    setTimeout(() => audio.play().catch(() => {}), 50);
   }
 
   const currentTrack =
