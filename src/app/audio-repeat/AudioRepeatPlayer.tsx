@@ -36,6 +36,7 @@ export default function AudioRepeatPlayer({
     lessonGroups[0]?.name ?? "",
   );
   const [quickTrack, setQuickTrack] = useState<AudioTrack | null>(null);
+  const [quickTapMode, setQuickTapMode] = useState<"repeat" | "add">("repeat");
   const [practiceList, setPracticeList] = useState<AudioTrack[]>([]);
   const [repeatCount, setRepeatCount] = useState<RepeatCount>(5);
   const [intervalSeconds, setIntervalSeconds] = useState<IntervalSeconds>(0.5);
@@ -221,7 +222,7 @@ export default function AudioRepeatPlayer({
           <div className="audio-repeat-heading-row">
             <div>
               <h2>教材順にすぐ練習</h2>
-              <p>文字や単語を押すと、2秒間隔で無限リピートします。</p>
+              <p>{quickTapMode === "repeat" ? "文字や単語を押すと、2秒間隔で無限リピートします。" : "文字や単語を押すと、自由リストに追加します。"}</p>
             </div>
             <select
               value={selectedLesson}
@@ -238,6 +239,10 @@ export default function AudioRepeatPlayer({
               ))}
             </select>
           </div>
+          <div className="mode-toggle">
+            <button type="button" className={quickTapMode === "repeat" ? "active" : ""} onClick={() => setQuickTapMode("repeat")}>▶ すぐ練習</button>
+            <button type="button" className={quickTapMode === "add" ? "active" : ""} onClick={() => setQuickTapMode("add")}>＋ リストに追加</button>
+          </div>
           {selectedLesson &&
             (() => {
               const lesson = AUDIO_REPEAT_LESSONS[selectedLesson.toUpperCase()];
@@ -252,10 +257,16 @@ export default function AudioRepeatPlayer({
                           key={label}
                           type="button"
                           className={
-                            quickTrack?.id === track?.id ? "active" : ""
+                            quickTapMode === "repeat"
+                              ? quickTrack?.id === track?.id ? "active" : ""
+                              : practiceList.some((item) => item.id === track?.id) ? "active" : ""
                           }
                           disabled={!track}
-                          onClick={() => track && startQuickRepeat(track)}
+                          onClick={() => {
+                            if (!track) return;
+                            if (quickTapMode === "repeat") startQuickRepeat(track);
+                            else addTrack(track);
+                          }}
                         >
                           {label}
                         </button>
@@ -271,10 +282,16 @@ export default function AudioRepeatPlayer({
                           key={label}
                           type="button"
                           className={
-                            quickTrack?.id === track?.id ? "active" : ""
+                            quickTapMode === "repeat"
+                              ? quickTrack?.id === track?.id ? "active" : ""
+                              : practiceList.some((item) => item.id === track?.id) ? "active" : ""
                           }
                           disabled={!track}
-                          onClick={() => track && startQuickRepeat(track)}
+                          onClick={() => {
+                            if (!track) return;
+                            if (quickTapMode === "repeat") startQuickRepeat(track);
+                            else addTrack(track);
+                          }}
                         >
                           {label}
                         </button>
