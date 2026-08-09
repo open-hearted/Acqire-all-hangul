@@ -156,17 +156,6 @@ export default function AudioRepeatPlayer({
     );
   }
 
-  function preview(track: AudioTrack) {
-    stop();
-    const audio = audioRef.current ?? new Audio();
-    audioRef.current = audio;
-    audio.onended = () => setPlaybackState("idle");
-    audio.onerror = () => setPlaybackState("idle");
-    audio.src = track.src;
-    setPlaybackState("playing");
-    audio.play().catch(stop);
-  }
-
   function togglePause() {
     if (playbackState === "playing") {
       audioRef.current?.pause();
@@ -206,9 +195,7 @@ export default function AudioRepeatPlayer({
     ? `${quickTrack.label}：2秒間隔で${playbackState === "waiting" ? "待機中" : playbackState === "paused" ? "一時停止" : "無限リピート中"}`
     : currentTrack
       ? `${currentTrack.label}（${currentRepeat}回目）${playbackState === "paused" ? "：一時停止" : playbackState === "waiting" ? "：待機中" : ""}`
-      : playbackState === "playing"
-        ? "試聴中"
-        : "停止中";
+      : "停止中";
 
   return (
     <main className="container audio-repeat-page">
@@ -319,49 +306,6 @@ export default function AudioRepeatPlayer({
         <p>複数の音声を選び、回数や間隔を自由に設定できます。</p>
       </div>
       <div className="audio-repeat-layout">
-        <section className="card audio-repeat-library">
-          <h2>音声一覧</h2>
-          {groups.length === 0 && <p>CDフォルダ内にMP3がありません。</p>}
-          {groups.map((group) => (
-            <details key={group.name} className="audio-repeat-group" open>
-              <summary>
-                {group.name} <span>{group.tracks.length}件</span>
-              </summary>
-              <ul>
-                {group.tracks.map((track) => {
-                  const selected = practiceList.some(
-                    (item) => item.id === track.id,
-                  );
-                  return (
-                    <li key={track.id}>
-                      <span
-                        className="audio-repeat-track-name"
-                        title={track.fileName}
-                      >
-                        {track.label}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => preview(track)}
-                        aria-label={`${track.label}を試聴`}
-                      >
-                        ▶
-                      </button>
-                      <button
-                        type="button"
-                        disabled={selected}
-                        onClick={() => addTrack(track)}
-                      >
-                        {selected ? "追加済み" : "＋追加"}
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
-            </details>
-          ))}
-        </section>
-
         <div className="audio-repeat-sidebar">
           <section className="card">
             <div className="audio-repeat-heading-row">
@@ -377,7 +321,7 @@ export default function AudioRepeatPlayer({
             </div>
             {!practiceList.length && (
               <p className="audio-repeat-empty">
-                音声一覧から練習する音声を追加してください。
+                上の「教材順にすぐ練習」から音声を追加してください。
               </p>
             )}
             <ol className="audio-repeat-practice-list">
