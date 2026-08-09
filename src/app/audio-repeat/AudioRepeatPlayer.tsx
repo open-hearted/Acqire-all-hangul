@@ -96,17 +96,7 @@ export default function AudioRepeatPlayer({
         timerRef.current = setTimeout(playOnce, 2000);
       };
       setPlaybackState("playing");
-      audio.load();
-      const playHandler = () => {
-        audio.removeEventListener("canplaythrough", playHandler);
-        audio.play().catch(stop);
-      };
-      audio.addEventListener("canplaythrough", playHandler);
-      // フォールバック：3秒でキャンセル
-      timerRef.current = setTimeout(() => {
-        audio.removeEventListener("canplaythrough", playHandler);
-        audio.play().catch(stop);
-      }, 3000);
+      audio.play().catch(stop);
     };
 
     playOnce();
@@ -138,17 +128,7 @@ export default function AudioRepeatPlayer({
     setCurrentIndex(index);
     setCurrentRepeat(repetition);
     setPlaybackState("playing");
-    audio.load();
-    const playHandler = () => {
-      audio.removeEventListener("canplaythrough", playHandler);
-      audio.play().catch(stop);
-    };
-    audio.addEventListener("canplaythrough", playHandler);
-    // フォールバック：3秒でキャンセル
-    timerRef.current = setTimeout(() => {
-      audio.removeEventListener("canplaythrough", playHandler);
-      audio.play().catch(stop);
-    }, 3000);
+    audio.play().catch(stop);
   }
 
   function handleEnded(index: number, repetition: number) {
