@@ -296,7 +296,7 @@ export default function AudioRepeatPlayer({
                       <span>
                         {quickTrack
                           ? `${quickTrack.label}${playbackState === "paused" ? "：一時停止" : ""}`
-                          : "文字または単語を選んでください"}
+                          : ""}
                       </span>
                       <button type="button" disabled={!quickTrack} onClick={stop}>
                         ■ 停止
