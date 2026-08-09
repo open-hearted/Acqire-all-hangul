@@ -303,7 +303,7 @@ export default function AudioRepeatPlayer({
                           ? `${currentTrack.label}（${currentRepeat}回目）${playbackState === "paused" ? "：一時停止" : playbackState === "waiting" ? "：待機中" : ""}`
                           : practiceList.length > 0
                             ? `${practiceList.length}件追加済み`
-                            : "文字または単語を追加してください"}
+                            : ""}
                       </span>
                       <div style={{ display: "flex", gap: "6px", flexShrink: 0 }}>
                         <button type="button" disabled={!practiceList.length} onClick={() => { stop(); playAt(0, 1); }}>
